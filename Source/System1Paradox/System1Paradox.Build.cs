@@ -16,7 +16,6 @@ public class System1Paradox : ModuleRules
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] {
-            // Добавьте сюда модули, если понадобятся
         });
     }
 }

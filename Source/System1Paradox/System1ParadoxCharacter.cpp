@@ -11,26 +11,30 @@ ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
     // SpringArm компонент
     SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
     SpringArmComponent->SetupAttachment(RootComponent);
-    SpringArmComponent->TargetArmLength = 300.0f;
+    SpringArmComponent->TargetArmLength = 0.0f; // FPS стиль - камера близко
     SpringArmComponent->bUsePawnControlRotation = true;
     SpringArmComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 70.0f));
+    SpringArmComponent->bEnableCameraLag = true;
+    SpringArmComponent->CameraLagSpeed = 10.0f;
 
     // Камера
     CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
     CameraComponent->SetupAttachment(SpringArmComponent, USpringArmComponent::SocketName);
     CameraComponent->bUsePawnControlRotation = false;
+    CameraComponent->SetFieldOfView(90.0f); // FOV как в CS:GO
 
     // Настройки персонажа
-    bUseControllerRotationPitch = false;
+    bUseControllerRotationPitch = true;
     bUseControllerRotationYaw = true;
     bUseControllerRotationRoll = false;
 
     // Настройки движения
     GetCharacterMovement()->bOrientRotationToMovement = false;
     GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f);
-    GetCharacterMovement()->JumpZVelocity = 600.0f;
+    GetCharacterMovement()->JumpZVelocity = 300.0f;
     GetCharacterMovement()->AirControl = 0.2f;
     GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+    GetCharacterMovement()->NavAgentProps.bCanCrouch = true; // Включаем приседание
 }
 
 void ASystem1ParadoxCharacter::BeginPlay()
@@ -47,19 +51,28 @@ void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* Player
 {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+    // Проверяем что InputComponent существует
+    if (!PlayerInputComponent)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("InputComponent is NULL!"));
+        return;
+    }
+
     // Движение
     PlayerInputComponent->BindAxis("MoveForward", this, &ASystem1ParadoxCharacter::MoveForward);
     PlayerInputComponent->BindAxis("MoveRight", this, &ASystem1ParadoxCharacter::MoveRight);
-    PlayerInputComponent->BindAxis("Turn", this, &ASystem1ParadoxCharacter::Turn);
-    PlayerInputComponent->BindAxis("LookUp", this, &ASystem1ParadoxCharacter::LookUp);
+    PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
+    PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 
     // Действия
-    PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASystem1ParadoxCharacter::StartJump);
-    PlayerInputComponent->BindAction("Jump", IE_Released, this, &ASystem1ParadoxCharacter::StopJump);
+    PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+    PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
     PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASystem1ParadoxCharacter::StartSprint);
     PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASystem1ParadoxCharacter::StopSprint);
     PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASystem1ParadoxCharacter::StartCrouch);
     PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ASystem1ParadoxCharacter::StopCrouch);
+
+    UE_LOG(LogTemp, Warning, TEXT("Input bindings setup complete!"));
 }
 
 void ASystem1ParadoxCharacter::MoveForward(float Value)

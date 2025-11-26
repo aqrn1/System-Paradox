@@ -5,17 +5,8 @@
 
 ASystem1ParadoxGameMode::ASystem1ParadoxGameMode()
 {
-    // Настройка класса персонажа по умолчанию
-    static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/ThirdPerson/Blueprints/BP_ThirdPersonCharacter"));
-    if (PlayerPawnBPClass.Class != nullptr)
-    {
-        DefaultPawnClass = PlayerPawnBPClass.Class;
-    }
-    else
-    {
-        // Fallback на C++ класс
-        DefaultPawnClass = ASystem1ParadoxCharacter::StaticClass();
-    }
+    // Используем наш C++ класс персонажа напрямую
+    DefaultPawnClass = ASystem1ParadoxCharacter::StaticClass();
 
     // Настройка PlayerController
     PlayerControllerClass = ASystem1ParadoxPlayerController::StaticClass();

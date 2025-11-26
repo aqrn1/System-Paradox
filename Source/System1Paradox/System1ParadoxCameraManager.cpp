@@ -5,14 +5,13 @@
 ASystem1ParadoxCameraManager::ASystem1ParadoxCameraManager()
 {
     PrimaryActorTick.bCanEverTick = true;
-
-    // Настройки камеры по умолчанию
-    DefaultFOV = FOV;
+    DefaultFOV = 90.0f;
 }
 
 void ASystem1ParadoxCameraManager::BeginPlay()
 {
     Super::BeginPlay();
+    SetFOV(DefaultFOV);
 }
 
 void ASystem1ParadoxCameraManager::Tick(float DeltaTime)
@@ -24,14 +23,13 @@ void ASystem1ParadoxCameraManager::UpdateCamera(float DeltaTime)
 {
     Super::UpdateCamera(DeltaTime);
 
-    // Применяем настройки FOV
-    if (GetViewTargetPawn())
+    // Применяем настройки FOV для спринта
+    if (GetViewTarget())
     {
-        ASystem1ParadoxCharacter* PlayerCharacter = Cast<ASystem1ParadoxCharacter>(GetViewTargetPawn());
-        if (PlayerCharacter && PlayerCharacter->GetCameraComponent())
+        ASystem1ParadoxCharacter* PlayerCharacter = Cast<ASystem1ParadoxCharacter>(GetViewTarget());
+        if (PlayerCharacter)
         {
-            // Можно добавить логику изменения FOV при беге/прицеливании
-            float TargetFOV = PlayerCharacter->GetIsSprinting() ? FOV + 10.0f : FOV;
+            float TargetFOV = PlayerCharacter->GetIsSprinting() ? DefaultFOV + 5.0f : DefaultFOV;
             SetFOV(FMath::FInterpTo(GetFOVAngle(), TargetFOV, DeltaTime, 8.0f));
         }
     }

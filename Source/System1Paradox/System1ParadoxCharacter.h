@@ -16,6 +16,7 @@ public:
 
 protected:
     virtual void BeginPlay() override;
+    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
     // Компоненты камеры
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
@@ -53,7 +54,6 @@ protected:
 
 public:
     virtual void Tick(float DeltaTime) override;
-    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
     // Геттеры
     FORCEINLINE UCameraComponent* GetCameraComponent() const { return CameraComponent; }

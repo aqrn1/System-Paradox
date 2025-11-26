@@ -16,10 +16,6 @@ protected:
     virtual void BeginPlay() override;
     virtual void SetupInputComponent() override;
 
-    // Enhanced Input
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-    class UInputMappingContext* DefaultMappingContext;
-
 public:
     virtual void Tick(float DeltaTime) override;
 };

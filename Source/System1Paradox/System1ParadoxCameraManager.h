@@ -15,14 +15,10 @@ public:
 protected:
     virtual void BeginPlay() override;
 
-    // Настройки камеры для CS:GO стиля
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Settings")
-    float FOV = 90.0f;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Settings")
-    float CameraLagSpeed = 3.0f;
-
 public:
     virtual void Tick(float DeltaTime) override;
     virtual void UpdateCamera(float DeltaTime) override;
+
+private:
+    float DefaultFOV = 90.0f;
 };
