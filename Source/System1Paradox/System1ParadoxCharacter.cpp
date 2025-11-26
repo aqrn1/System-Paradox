@@ -3,6 +3,8 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Engine/Engine.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 
 ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
 {
@@ -51,60 +53,48 @@ void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* Player
 {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-    // Проверяем что InputComponent существует
-    if (!PlayerInputComponent)
+    // Enhanced Input
+    if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
     {
-        UE_LOG(LogTemp, Warning, TEXT("InputComponent is NULL!"));
-        return;
+        // Movement
+        EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ASystem1ParadoxCharacter::Move);
+        EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASystem1ParadoxCharacter::Look);
+        EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ASystem1ParadoxCharacter::StartJump);
+        EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ASystem1ParadoxCharacter::StopJump);
+        EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ASystem1ParadoxCharacter::StartSprint);
+        EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ASystem1ParadoxCharacter::StopSprint);
+        EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ASystem1ParadoxCharacter::StartCrouch);
+        EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ASystem1ParadoxCharacter::StopCrouch);
     }
-
-    // Движение
-    PlayerInputComponent->BindAxis("MoveForward", this, &ASystem1ParadoxCharacter::MoveForward);
-    PlayerInputComponent->BindAxis("MoveRight", this, &ASystem1ParadoxCharacter::MoveRight);
-    PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
-    PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
-
-    // Действия
-    PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-    PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
-    PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASystem1ParadoxCharacter::StartSprint);
-    PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASystem1ParadoxCharacter::StopSprint);
-    PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASystem1ParadoxCharacter::StartCrouch);
-    PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ASystem1ParadoxCharacter::StopCrouch);
-
-    UE_LOG(LogTemp, Warning, TEXT("Input bindings setup complete!"));
 }
 
-void ASystem1ParadoxCharacter::MoveForward(float Value)
+void ASystem1ParadoxCharacter::Move(const FInputActionValue& Value)
 {
-    if ((Controller != nullptr) && (Value != 0.0f))
+    FVector2D MovementVector = Value.Get<FVector2D>();
+
+    if (Controller != nullptr)
     {
+        // Forward/Backward
         const FRotator Rotation = Controller->GetControlRotation();
         const FRotator YawRotation(0, Rotation.Yaw, 0);
-        const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-        AddMovementInput(Direction, Value);
+        const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+        AddMovementInput(ForwardDirection, MovementVector.Y);
+
+        // Right/Left
+        const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+        AddMovementInput(RightDirection, MovementVector.X);
     }
 }
 
-void ASystem1ParadoxCharacter::MoveRight(float Value)
+void ASystem1ParadoxCharacter::Look(const FInputActionValue& Value)
 {
-    if ((Controller != nullptr) && (Value != 0.0f))
+    FVector2D LookAxisVector = Value.Get<FVector2D>();
+
+    if (Controller != nullptr)
     {
-        const FRotator Rotation = Controller->GetControlRotation();
-        const FRotator YawRotation(0, Rotation.Yaw, 0);
-        const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-        AddMovementInput(Direction, Value);
+        AddControllerYawInput(LookAxisVector.X);
+        AddControllerPitchInput(LookAxisVector.Y);
     }
-}
-
-void ASystem1ParadoxCharacter::Turn(float Value)
-{
-    AddControllerYawInput(Value);
-}
-
-void ASystem1ParadoxCharacter::LookUp(float Value)
-{
-    AddControllerPitchInput(Value);
 }
 
 void ASystem1ParadoxCharacter::StartJump()

@@ -4,6 +4,7 @@
 #include "GameFramework/Character.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "InputActionValue.h"
 #include "System1ParadoxCharacter.generated.h"
 
 UCLASS()
@@ -25,15 +26,27 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
     USpringArmComponent* SpringArmComponent;
 
-    // Input функции
-    void MoveForward(float Value);
-    void MoveRight(float Value);
-    void LookUp(float Value);
-    void Turn(float Value);
+    // Enhanced Input Actions
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+    class UInputAction* MoveAction;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+    class UInputAction* LookAction;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+    class UInputAction* JumpAction;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+    class UInputAction* SprintAction;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+    class UInputAction* CrouchAction;
+
+    // Enhanced Input Functions
+    void Move(const FInputActionValue& Value);
+    void Look(const FInputActionValue& Value);
     void StartJump();
     void StopJump();
-
-    // CS:GO стиль движения
     void StartSprint();
     void StopSprint();
     void StartCrouch();
