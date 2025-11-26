@@ -1,94 +1,64 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Logging/LogMacros.h"
 #include "System1ParadoxCharacter.generated.h"
 
-class UInputComponent;
-class USkeletalMeshComponent;
-class UCameraComponent;
-class UInputAction;
-struct FInputActionValue;
-
-DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
-
-/**
- *  A basic first person character
- */
-UCLASS(abstract)
-class ASystem1ParadoxCharacter : public ACharacter
+UCLASS()
+class SYSTEM1PARADOX_API ASystem1ParadoxCharacter : public ACharacter
 {
-	GENERATED_BODY()
-
-	/** Pawn mesh: first person view (arms; seen only by self) */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
-	USkeletalMeshComponent* FirstPersonMesh;
-
-	/** First person camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* FirstPersonCameraComponent;
-
-protected:
-
-	/** Jump Input Action */
-	UPROPERTY(EditAnywhere, Category ="Input")
-	UInputAction* JumpAction;
-
-	/** Move Input Action */
-	UPROPERTY(EditAnywhere, Category ="Input")
-	UInputAction* MoveAction;
-
-	/** Look Input Action */
-	UPROPERTY(EditAnywhere, Category ="Input")
-	class UInputAction* LookAction;
-
-	/** Mouse Look Input Action */
-	UPROPERTY(EditAnywhere, Category ="Input")
-	class UInputAction* MouseLookAction;
-	
-public:
-	ASystem1ParadoxCharacter();
-
-protected:
-
-	/** Called from Input Actions for movement input */
-	void MoveInput(const FInputActionValue& Value);
-
-	/** Called from Input Actions for looking input */
-	void LookInput(const FInputActionValue& Value);
-
-	/** Handles aim inputs from either controls or UI interfaces */
-	UFUNCTION(BlueprintCallable, Category="Input")
-	virtual void DoAim(float Yaw, float Pitch);
-
-	/** Handles move inputs from either controls or UI interfaces */
-	UFUNCTION(BlueprintCallable, Category="Input")
-	virtual void DoMove(float Right, float Forward);
-
-	/** Handles jump start inputs from either controls or UI interfaces */
-	UFUNCTION(BlueprintCallable, Category="Input")
-	virtual void DoJumpStart();
-
-	/** Handles jump end inputs from either controls or UI interfaces */
-	UFUNCTION(BlueprintCallable, Category="Input")
-	virtual void DoJumpEnd();
-
-protected:
-
-	/** Set up input action bindings */
-	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
-	
+    GENERATED_BODY()
 
 public:
+    // Исправляем название конструктора на название класса
+    ASystem1ParadoxCharacter();
 
-	/** Returns the first person mesh **/
-	USkeletalMeshComponent* GetFirstPersonMesh() const { return FirstPersonMesh; }
+protected:
+    virtual void BeginPlay() override;
 
-	/** Returns first person camera component **/
-	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+    /** Компонент плеча камеры */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
+    class USpringArmComponent* SpringArmComponent;
 
+    /** Компонент камеры */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
+    class UCameraComponent* CameraComponent;
+
+    // Управление перемещением
+    void MoveForward(float Value);
+    void MoveRight(float Value);
+    void LookUp(float Value);
+    void Turn(float Value);
+    void StartJump();
+    void StopJump();
+    void StartCrouch();
+    void StopCrouch();
+    void StartSprint();
+    void StopSprint();
+
+    // Переменные скорости и состояния
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    float WalkSpeed = 250.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    float SprintSpeed = 320.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    float CrouchSpeed = 150.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    float JumpHeight = 45.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    float AirControlFactor = 0.3f;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+    bool bIsSprinting;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+    bool bIsCrouching;
+
+public:
+    virtual void Tick(float DeltaTime) override;
+    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 };
-

@@ -1,120 +1,154 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #include "System1ParadoxCharacter.h"
-#include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
-#include "Components/CapsuleComponent.h"
-#include "Components/SkeletalMeshComponent.h"
-#include "EnhancedInputComponent.h"
-#include "InputActionValue.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "System1Paradox.h"
+#include "Components/InputComponent.h"
 
 ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
 {
-	// Set size for collision capsule
-	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
-	
-	// Create the first person mesh that will be viewed only by this character's owner
-	FirstPersonMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("First Person Mesh"));
+    PrimaryActorTick.bCanEverTick = true;
 
-	FirstPersonMesh->SetupAttachment(GetMesh());
-	FirstPersonMesh->SetOnlyOwnerSee(true);
-	FirstPersonMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson;
-	FirstPersonMesh->SetCollisionProfileName(FName("NoCollision"));
+    // Создаем и прикрепляем SpringArm
+    SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+    SpringArmComponent->SetupAttachment(RootComponent);
+    SpringArmComponent->TargetArmLength = 300.f; // длина плеча
+    SpringArmComponent->bUsePawnControlRotation = true;
 
-	// Create the Camera Component	
-	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("First Person Camera"));
-	FirstPersonCameraComponent->SetupAttachment(FirstPersonMesh, FName("head"));
-	FirstPersonCameraComponent->SetRelativeLocationAndRotation(FVector(-2.8f, 5.89f, 0.0f), FRotator(0.0f, 90.0f, -90.0f));
-	FirstPersonCameraComponent->bUsePawnControlRotation = true;
-	FirstPersonCameraComponent->bEnableFirstPersonFieldOfView = true;
-	FirstPersonCameraComponent->bEnableFirstPersonScale = true;
-	FirstPersonCameraComponent->FirstPersonFieldOfView = 70.0f;
-	FirstPersonCameraComponent->FirstPersonScale = 0.6f;
+    // Создаем и подключаем Камеру
+    CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+    CameraComponent->SetupAttachment(SpringArmComponent, USpringArmComponent::SocketName);
+    CameraComponent->bUsePawnControlRotation = false; // камера не вращается сама
 
-	// configure the character comps
-	GetMesh()->SetOwnerNoSee(true);
-	GetMesh()->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::WorldSpaceRepresentation;
+    // Настройка переменных скорости
+    WalkSpeed = 250.f;
+    SprintSpeed = 400.f; // Обновите по вашему желанию
 
-	GetCapsuleComponent()->SetCapsuleSize(34.0f, 96.0f);
+    // Настройки движения
+    GetCharacterMovement()->bOrientRotationToMovement = false; // вращение за телом
+    GetCharacterMovement()->RotationRate = FRotator(0, 540, 0);
+    GetCharacterMovement()->JumpZVelocity = JumpHeight;
+    GetCharacterMovement()->AirControl = AirControlFactor;
 
-	// Configure character movement
-	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
-	GetCharacterMovement()->AirControl = 0.5f;
+    // Настройка crouch
+    GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
+    GetCharacterMovement()->CrouchedHalfHeight = 44.f;
+
+    // Инициализация состояния
+    bIsSprinting = false;
+    bIsCrouching = false;
+}
+
+void ASystem1ParadoxCharacter::BeginPlay()
+{
+    Super::BeginPlay();
+}
+
+void ASystem1ParadoxCharacter::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    if (bIsSprinting && (GetVelocity().Size() < 10.0f || GetCharacterMovement()->IsFalling()))
+    {
+        StopSprint();
+    }
 }
 
 void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{	
-	// Set up action bindings
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
-	{
-		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ASystem1ParadoxCharacter::DoJumpStart);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ASystem1ParadoxCharacter::DoJumpEnd);
+{
+    Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-		// Moving
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ASystem1ParadoxCharacter::MoveInput);
-
-		// Looking/Aiming
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASystem1ParadoxCharacter::LookInput);
-		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &ASystem1ParadoxCharacter::LookInput);
-	}
-	else
-	{
-		UE_LOG(LogSystem1Paradox, Error, TEXT("'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
-	}
+    PlayerInputComponent->BindAxis("MoveForward", this, &ASystem1ParadoxCharacter::MoveForward);
+    PlayerInputComponent->BindAxis("MoveRight", this, &ASystem1ParadoxCharacter::MoveRight);
+    PlayerInputComponent->BindAxis("Turn", this, &ASystem1ParadoxCharacter::Turn);
+    PlayerInputComponent->BindAxis("LookUp", this, &ASystem1ParadoxCharacter::LookUp);
+    PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASystem1ParadoxCharacter::StartJump);
+    PlayerInputComponent->BindAction("Jump", IE_Released, this, &ASystem1ParadoxCharacter::StopJump);
+    PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASystem1ParadoxCharacter::StartCrouch);
+    PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ASystem1ParadoxCharacter::StopCrouch);
+    PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASystem1ParadoxCharacter::StartSprint);
+    PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASystem1ParadoxCharacter::StopSprint);
 }
 
-
-void ASystem1ParadoxCharacter::MoveInput(const FInputActionValue& Value)
+void ASystem1ParadoxCharacter::MoveForward(float Value)
 {
-	// get the Vector2D move axis
-	FVector2D MovementVector = Value.Get<FVector2D>();
-
-	// pass the axis values to the move input
-	DoMove(MovementVector.X, MovementVector.Y);
-
+    if (Controller && Value != 0.0f)
+    {
+        const FRotator Rotation = Controller->GetControlRotation();
+        const FRotator YawRot(0, Rotation.Yaw, 0);
+        const FVector Direction = FRotationMatrix(YawRot).GetUnitAxis(EAxis::X);
+        AddMovementInput(Direction, Value);
+    }
 }
 
-void ASystem1ParadoxCharacter::LookInput(const FInputActionValue& Value)
+void ASystem1ParadoxCharacter::MoveRight(float Value)
 {
-	// get the Vector2D look axis
-	FVector2D LookAxisVector = Value.Get<FVector2D>();
-
-	// pass the axis values to the aim input
-	DoAim(LookAxisVector.X, LookAxisVector.Y);
-
+    if (Controller && Value != 0.0f)
+    {
+        const FRotator Rotation = Controller->GetControlRotation();
+        const FRotator YawRot(0, Rotation.Yaw, 0);
+        const FVector Direction = FRotationMatrix(YawRot).GetUnitAxis(EAxis::Y);
+        AddMovementInput(Direction, Value);
+    }
 }
 
-void ASystem1ParadoxCharacter::DoAim(float Yaw, float Pitch)
+void ASystem1ParadoxCharacter::LookUp(float Value)
 {
-	if (GetController())
-	{
-		// pass the rotation inputs
-		AddControllerYawInput(Yaw);
-		AddControllerPitchInput(Pitch);
-	}
+    AddControllerPitchInput(Value * 0.8f);
 }
 
-void ASystem1ParadoxCharacter::DoMove(float Right, float Forward)
+void ASystem1ParadoxCharacter::Turn(float Value)
 {
-	if (GetController())
-	{
-		// pass the move inputs
-		AddMovementInput(GetActorRightVector(), Right);
-		AddMovementInput(GetActorForwardVector(), Forward);
-	}
+    AddControllerYawInput(Value * 0.8f);
 }
 
-void ASystem1ParadoxCharacter::DoJumpStart()
+void ASystem1ParadoxCharacter::StartJump()
 {
-	// pass Jump to the character
-	Jump();
+    Jump();
+    StopSprint();
 }
 
-void ASystem1ParadoxCharacter::DoJumpEnd()
+void ASystem1ParadoxCharacter::StopJump()
 {
-	// pass StopJumping to the character
-	StopJumping();
+    StopJumping();
+}
+
+void ASystem1ParadoxCharacter::StartCrouch()
+{
+    if (CanCrouch())
+    {
+        Crouch();
+        bIsCrouching = true;
+        GetCharacterMovement()->MaxWalkSpeed = CrouchSpeed;
+        StopSprint();
+    }
+}
+
+void ASystem1ParadoxCharacter::StopCrouch()
+{
+    UnCrouch();
+    bIsCrouching = false;
+
+    if (bIsSprinting)
+    {
+        GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+    }
+    else
+    {
+        GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+    }
+}
+
+void ASystem1ParadoxCharacter::StartSprint()
+{
+    if (!bIsCrouching && (GetVelocity().Size() > 0.1f) && !GetCharacterMovement()->IsFalling())
+    {
+        bIsSprinting = true;
+        GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+    }
+}
+
+void ASystem1ParadoxCharacter::StopSprint()
+{
+    bIsSprinting = false;
+    GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
