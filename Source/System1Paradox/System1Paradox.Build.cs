@@ -1,5 +1,3 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 using UnrealBuildTool;
 
 public class System1Paradox : ModuleRules
@@ -13,15 +11,12 @@ public class System1Paradox : ModuleRules
             "CoreUObject",
             "Engine",
             "InputCore",
-            "EnhancedInput"
-            // Убрали лишние зависимости пока не понадобятся
+            "EnhancedInput",
+            "GameplayTags"
         });
 
-        // Убрали PrivateDependencyModuleNames - пока не нужны
-        // Убрали PublicIncludePaths - ссылались на удалённые папки
-
-        // Раскомментируйте по мере необходимости:
-        // PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
-        // PrivateDependencyModuleNames.Add("OnlineSubsystem");
+        PrivateDependencyModuleNames.AddRange(new string[] {
+            // Добавьте сюда модули, если понадобятся
+        });
     }
 }

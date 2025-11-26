@@ -1,8 +1,12 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Modules/ModuleManager.h"
 
-/** Main log category used across the project */
-DECLARE_LOG_CATEGORY_EXTERN(LogSystem1Paradox, Log, All);
+class FSystem1ParadoxModule : public IModuleInterface
+{
+public:
+    /** IModuleInterface implementation */
+    virtual void StartupModule() override;
+    virtual void ShutdownModule() override;
+};

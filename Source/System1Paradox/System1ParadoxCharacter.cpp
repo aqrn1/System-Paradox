@@ -1,41 +1,36 @@
 #include "System1ParadoxCharacter.h"
-#include "Camera/CameraComponent.h"
-#include "GameFramework/SpringArmComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Components/InputComponent.h"
+#include "GameFramework/Controller.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Engine/Engine.h"
 
 ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    // Создаем и прикрепляем SpringArm
+    // SpringArm компонент
     SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
     SpringArmComponent->SetupAttachment(RootComponent);
-    SpringArmComponent->TargetArmLength = 300.f; // длина плеча
+    SpringArmComponent->TargetArmLength = 300.0f;
     SpringArmComponent->bUsePawnControlRotation = true;
+    SpringArmComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 70.0f));
 
-    // Создаем и подключаем Камеру
+    // Камера
     CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
     CameraComponent->SetupAttachment(SpringArmComponent, USpringArmComponent::SocketName);
-    CameraComponent->bUsePawnControlRotation = false; // камера не вращается сама
+    CameraComponent->bUsePawnControlRotation = false;
 
-    // Настройка переменных скорости
-    WalkSpeed = 250.f;
-    SprintSpeed = 400.f; // Обновите по вашему желанию
+    // Настройки персонажа
+    bUseControllerRotationPitch = false;
+    bUseControllerRotationYaw = true;
+    bUseControllerRotationRoll = false;
 
     // Настройки движения
-    GetCharacterMovement()->bOrientRotationToMovement = false; // вращение за телом
-    GetCharacterMovement()->RotationRate = FRotator(0, 540, 0);
-    GetCharacterMovement()->JumpZVelocity = JumpHeight;
-    GetCharacterMovement()->AirControl = AirControlFactor;
-
-    // Настройка crouch
-    GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
-    GetCharacterMovement()->CrouchedHalfHeight = 44.f;
-
-    // Инициализация состояния
-    bIsSprinting = false;
-    bIsCrouching = false;
+    GetCharacterMovement()->bOrientRotationToMovement = false;
+    GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f);
+    GetCharacterMovement()->JumpZVelocity = 600.0f;
+    GetCharacterMovement()->AirControl = 0.2f;
+    GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
 
 void ASystem1ParadoxCharacter::BeginPlay()
@@ -46,65 +41,62 @@ void ASystem1ParadoxCharacter::BeginPlay()
 void ASystem1ParadoxCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-
-    if (bIsSprinting && (GetVelocity().Size() < 10.0f || GetCharacterMovement()->IsFalling()))
-    {
-        StopSprint();
-    }
 }
 
 void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+    // Движение
     PlayerInputComponent->BindAxis("MoveForward", this, &ASystem1ParadoxCharacter::MoveForward);
     PlayerInputComponent->BindAxis("MoveRight", this, &ASystem1ParadoxCharacter::MoveRight);
     PlayerInputComponent->BindAxis("Turn", this, &ASystem1ParadoxCharacter::Turn);
     PlayerInputComponent->BindAxis("LookUp", this, &ASystem1ParadoxCharacter::LookUp);
+
+    // Действия
     PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASystem1ParadoxCharacter::StartJump);
     PlayerInputComponent->BindAction("Jump", IE_Released, this, &ASystem1ParadoxCharacter::StopJump);
-    PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASystem1ParadoxCharacter::StartCrouch);
-    PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ASystem1ParadoxCharacter::StopCrouch);
     PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASystem1ParadoxCharacter::StartSprint);
     PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASystem1ParadoxCharacter::StopSprint);
+    PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASystem1ParadoxCharacter::StartCrouch);
+    PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ASystem1ParadoxCharacter::StopCrouch);
 }
 
 void ASystem1ParadoxCharacter::MoveForward(float Value)
 {
-    if (Controller && Value != 0.0f)
+    if ((Controller != nullptr) && (Value != 0.0f))
     {
         const FRotator Rotation = Controller->GetControlRotation();
-        const FRotator YawRot(0, Rotation.Yaw, 0);
-        const FVector Direction = FRotationMatrix(YawRot).GetUnitAxis(EAxis::X);
+        const FRotator YawRotation(0, Rotation.Yaw, 0);
+        const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
         AddMovementInput(Direction, Value);
     }
 }
 
 void ASystem1ParadoxCharacter::MoveRight(float Value)
 {
-    if (Controller && Value != 0.0f)
+    if ((Controller != nullptr) && (Value != 0.0f))
     {
         const FRotator Rotation = Controller->GetControlRotation();
-        const FRotator YawRot(0, Rotation.Yaw, 0);
-        const FVector Direction = FRotationMatrix(YawRot).GetUnitAxis(EAxis::Y);
+        const FRotator YawRotation(0, Rotation.Yaw, 0);
+        const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
         AddMovementInput(Direction, Value);
     }
 }
 
-void ASystem1ParadoxCharacter::LookUp(float Value)
-{
-    AddControllerPitchInput(Value * 0.8f);
-}
-
 void ASystem1ParadoxCharacter::Turn(float Value)
 {
-    AddControllerYawInput(Value * 0.8f);
+    AddControllerYawInput(Value);
+}
+
+void ASystem1ParadoxCharacter::LookUp(float Value)
+{
+    AddControllerPitchInput(Value);
 }
 
 void ASystem1ParadoxCharacter::StartJump()
 {
     Jump();
-    StopSprint();
 }
 
 void ASystem1ParadoxCharacter::StopJump()
@@ -112,43 +104,24 @@ void ASystem1ParadoxCharacter::StopJump()
     StopJumping();
 }
 
-void ASystem1ParadoxCharacter::StartCrouch()
-{
-    if (CanCrouch())
-    {
-        Crouch();
-        bIsCrouching = true;
-        GetCharacterMovement()->MaxWalkSpeed = CrouchSpeed;
-        StopSprint();
-    }
-}
-
-void ASystem1ParadoxCharacter::StopCrouch()
-{
-    UnCrouch();
-    bIsCrouching = false;
-
-    if (bIsSprinting)
-    {
-        GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
-    }
-    else
-    {
-        GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-    }
-}
-
 void ASystem1ParadoxCharacter::StartSprint()
 {
-    if (!bIsCrouching && (GetVelocity().Size() > 0.1f) && !GetCharacterMovement()->IsFalling())
-    {
-        bIsSprinting = true;
-        GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
-    }
+    bIsSprinting = true;
+    GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
 }
 
 void ASystem1ParadoxCharacter::StopSprint()
 {
     bIsSprinting = false;
     GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+}
+
+void ASystem1ParadoxCharacter::StartCrouch()
+{
+    Crouch();
+}
+
+void ASystem1ParadoxCharacter::StopCrouch()
+{
+    UnCrouch();
 }

@@ -1,22 +1,28 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Camera/PlayerCameraManager.h"
 #include "System1ParadoxCameraManager.generated.h"
 
-/**
- *  Basic First Person camera manager.
- *  Limits min/max look pitch.
- */
 UCLASS()
-class ASystem1ParadoxCameraManager : public APlayerCameraManager
+class SYSTEM1PARADOX_API ASystem1ParadoxCameraManager : public APlayerCameraManager
 {
-	GENERATED_BODY()
-	
-public:
+    GENERATED_BODY()
 
-	/** Constructor */
-	ASystem1ParadoxCameraManager();
+public:
+    ASystem1ParadoxCameraManager();
+
+protected:
+    virtual void BeginPlay() override;
+
+    // Настройки камеры для CS:GO стиля
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Settings")
+    float FOV = 90.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Settings")
+    float CameraLagSpeed = 3.0f;
+
+public:
+    virtual void Tick(float DeltaTime) override;
+    virtual void UpdateCamera(float DeltaTime) override;
 };
