@@ -1,7 +1,8 @@
 ﻿#include "System1Paradox.h"
 #include "Modules/ModuleManager.h"
 #include "HAL/IConsoleManager.h"
-#include "BlueprintManager.h" // ← ДОБАВЬТЕ ЭТУ СТРОКУ
+#include "Engine/World.h"
+#include "BlueprintManager.h"
 
 // 🔥 ТЕСТОВАЯ КОМАНДА
 static void TestCommand(const TArray<FString>& Args)
