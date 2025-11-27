@@ -1,6 +1,5 @@
 ﻿#include "System1Paradox.h"
 #include "Modules/ModuleManager.h"
-#include "BlueprintManager.h"  // ← ЭТА СТРОКА ДОЛЖНА БЫТЬ
 #include "Engine/Engine.h"
 
 IMPLEMENT_PRIMARY_GAME_MODULE(FSystem1ParadoxModule, System1Paradox, "System1Paradox");
