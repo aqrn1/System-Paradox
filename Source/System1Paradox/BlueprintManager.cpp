@@ -4,6 +4,7 @@
 #include "Misc/MessageDialog.h"
 #include "HAL/PlatformFilemanager.h"
 #include "HAL/PlatformFile.h"
+#include "Misc/Paths.h"
 
 UBlueprintManager::UBlueprintManager()
 {
@@ -17,23 +18,27 @@ void UBlueprintManager::CreateAllBlueprints()
     // Создаем папку для блюпринтов
     EnsureBlueprintFolderExists();
 
-    // Получаем все классы проекта
+    // Получаем все классы проекта для создания блюпринтов
     TArray<UClass*> ProjectClasses;
     GetAllProjectClasses(ProjectClasses);
 
     UE_LOG(LogTemp, Warning, TEXT("📋 Найдено классов для создания блюпринтов: %d"), ProjectClasses.Num());
 
     // Создаем блюпринты для каждого класса
+    int32 CreatedCount = 0;
     for (UClass* Class : ProjectClasses)
     {
-        if (Class)
+        if (Class && IsClassSuitableForBlueprint(Class))
         {
             FString BlueprintName = FString::Printf(TEXT("BP_%s"), *Class->GetName());
-            CreateBlueprintFromClass(Class, BlueprintName);
+            if (CreateBlueprintFromClass(Class, BlueprintName))
+            {
+                CreatedCount++;
+            }
         }
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("✅ Создание всех блюпринтов завершено!"));
+    UE_LOG(LogTemp, Warning, TEXT("✅ Создание блюпринтов завершено! Создано: %d"), CreatedCount);
 }
 
 bool UBlueprintManager::CreateBlueprintFromClass(UClass* SourceClass, const FString& BlueprintName, const FString& PackagePath)
@@ -47,10 +52,20 @@ bool UBlueprintManager::CreateBlueprintFromClass(UClass* SourceClass, const FStr
     UE_LOG(LogTemp, Warning, TEXT("🛠️ Создаем блюпринт %s из класса %s"),
         *BlueprintName, *SourceClass->GetName());
 
-    // Здесь будет реальное создание блюпринта
-    // Пока просто логируем
-    UE_LOG(LogTemp, Warning, TEXT("   📁 Путь: %s"), *PackagePath);
-    UE_LOG(LogTemp, Warning, TEXT("   🎯 Класс: %s"), *SourceClass->GetName());
+    FString FullPackagePath = FString::Printf(TEXT("%s/%s"), *PackagePath, *BlueprintName);
+
+    UE_LOG(LogTemp, Warning, TEXT("   📁 Полный путь: %s"), *FullPackagePath);
+    UE_LOG(LogTemp, Warning, TEXT("   🎯 Родительский класс: %s"), *SourceClass->GetName());
+    UE_LOG(LogTemp, Warning, TEXT("   📝 Имя класса: %s"), *SourceClass->GetFullName());
+
+    // Проверяем, является ли класс валидным для создания блюпринта
+    if (!SourceClass->HasAnyClassFlags(CLASS_EditInlineNew) && !SourceClass->IsChildOf<AActor>())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("   ⚠️ Класс не наследуется от AActor - могут быть ограничения"));
+    }
+
+    // Пока просто логируем - в следующей версии добавим реальное создание
+    UE_LOG(LogTemp, Warning, TEXT("   ✅ Логирование завершено (реальное создание в следующей версии)"));
 
     return true;
 }
@@ -73,11 +88,71 @@ void UBlueprintManager::EnsureBlueprintFolderExists()
 
 void UBlueprintManager::GetAllProjectClasses(TArray<UClass*>& OutClasses)
 {
-    // Пока возвращаем тестовые классы
-    // В будущем будем автоматически находить все классы проекта
-
     UE_LOG(LogTemp, Warning, TEXT("🔍 Ищем C++ классы проекта..."));
 
-    // Здесь будет автоматическое обнаружение классов
-    // Пока возвращаем заглушку
+    // Способ 1: Прямое добавление классов через StaticClass()
+    UE_LOG(LogTemp, Warning, TEXT("📋 Добавляем классы вручную..."));
+
+    // Добавляем основные классы проекта
+    UClass* CharacterClass = ASystem1ParadoxCharacter::StaticClass();
+    UClass* GameModeClass = ASystem1ParadoxGameMode::StaticClass();
+    UClass* PlayerControllerClass = ASystem1ParadoxPlayerController::StaticClass();
+    UClass* CameraManagerClass = ASystem1ParadoxCameraManager::StaticClass();
+
+    if (CharacterClass)
+    {
+        OutClasses.Add(CharacterClass);
+        UE_LOG(LogTemp, Warning, TEXT("   ✅ Добавлен: %s"), *CharacterClass->GetName());
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("   ❌ System1ParadoxCharacter не найден!"));
+    }
+
+    if (GameModeClass)
+    {
+        OutClasses.Add(GameModeClass);
+        UE_LOG(LogTemp, Warning, TEXT("   ✅ Добавлен: %s"), *GameModeClass->GetName());
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("   ❌ System1ParadoxGameMode не найден!"));
+    }
+
+    if (PlayerControllerClass)
+    {
+        OutClasses.Add(PlayerControllerClass);
+        UE_LOG(LogTemp, Warning, TEXT("   ✅ Добавлен: %s"), *PlayerControllerClass->GetName());
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("   ❌ System1ParadoxPlayerController не найден!"));
+    }
+
+    if (CameraManagerClass)
+    {
+        OutClasses.Add(CameraManagerClass);
+        UE_LOG(LogTemp, Warning, TEXT("   ✅ Добавлен: %s"), *CameraManagerClass->GetName());
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("   ❌ System1ParadoxCameraManager не найден!"));
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("📋 Итоговое количество классов: %d"), OutClasses.Num());
+}
+
+bool UBlueprintManager::IsClassSuitableForBlueprint(UClass* Class)
+{
+    if (!Class) return false;
+
+    // Исключаем некоторые классы
+    FString ClassName = Class->GetName();
+    if (ClassName.Contains(TEXT("BlueprintManager")) ||
+        ClassName.Contains(TEXT("Module")))
+    {
+        return false;
+    }
+
+    return true;
 }

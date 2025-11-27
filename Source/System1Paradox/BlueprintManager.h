@@ -2,6 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "System1ParadoxCharacter.h"
+#include "System1ParadoxGameMode.h"
+#include "System1ParadoxPlayerController.h"
+#include "System1ParadoxCameraManager.h"
 #include "BlueprintManager.generated.h"
 
 UCLASS()
@@ -26,4 +30,7 @@ private:
 
     // Получение всех C++ классов проекта для создания блюпринтов
     void GetAllProjectClasses(TArray<UClass*>& OutClasses);
+
+    // Проверка подходит ли класс для создания блюпринта
+    bool IsClassSuitableForBlueprint(UClass* Class);
 };
