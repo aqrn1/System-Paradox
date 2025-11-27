@@ -6,7 +6,7 @@
 static void TestCommand(const TArray<FString>& Args)
 {
     UE_LOG(LogTemp, Warning, TEXT("🎯 ТЕСТОВАЯ КОМАНДА РАБОТАЕТ!"));
-    UE_LOG(LogTemp, Warning, TEXT("📊 Количество аргументов: %d"), Args.Num()));
+    UE_LOG(LogTemp, Warning, TEXT("📊 Количество аргументов: %d"), Args.Num()); // ← УБРАЛ ЛИШНЮЮ СКОБКУ
 }
 
 // 🔥 ПРОВЕРКА СИСТЕМЫ
