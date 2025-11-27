@@ -1,4 +1,4 @@
-#include "BlueprintManager.h"
+п»ї#include "BlueprintManager.h"
 #include "Engine/Blueprint.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Misc/MessageDialog.h"
@@ -7,23 +7,23 @@
 
 UBlueprintManager::UBlueprintManager()
 {
-    UE_LOG(LogTemp, Warning, TEXT("?? BlueprintManager создан!"));
+    UE_LOG(LogTemp, Warning, TEXT("рџ”§ BlueprintManager СЃРѕР·РґР°РЅ!"));
 }
 
 void UBlueprintManager::CreateAllBlueprints()
 {
-    UE_LOG(LogTemp, Warning, TEXT("=== ?? НАЧИНАЕМ СОЗДАНИЕ ВСЕХ BLUEPRINTS ==="));
+    UE_LOG(LogTemp, Warning, TEXT("=== рџљЂ РќРђР§РРќРђР•Рњ РЎРћР—Р”РђРќРР• Р’РЎР•РҐ BLUEPRINTS ==="));
 
-    // Создаем папку для блюпринтов
+    // РЎРѕР·РґР°РµРј РїР°РїРєСѓ РґР»СЏ Р±Р»СЋРїСЂРёРЅС‚РѕРІ
     EnsureBlueprintFolderExists();
 
-    // Получаем все классы проекта
+    // РџРѕР»СѓС‡Р°РµРј РІСЃРµ РєР»Р°СЃСЃС‹ РїСЂРѕРµРєС‚Р°
     TArray<UClass*> ProjectClasses;
     GetAllProjectClasses(ProjectClasses);
 
-    UE_LOG(LogTemp, Warning, TEXT("?? Найдено классов для создания блюпринтов: %d"), ProjectClasses.Num());
+    UE_LOG(LogTemp, Warning, TEXT("рџ“‹ РќР°Р№РґРµРЅРѕ РєР»Р°СЃСЃРѕРІ РґР»СЏ СЃРѕР·РґР°РЅРёСЏ Р±Р»СЋРїСЂРёРЅС‚РѕРІ: %d"), ProjectClasses.Num());
 
-    // Создаем блюпринты для каждого класса
+    // РЎРѕР·РґР°РµРј Р±Р»СЋРїСЂРёРЅС‚С‹ РґР»СЏ РєР°Р¶РґРѕРіРѕ РєР»Р°СЃСЃР°
     for (UClass* Class : ProjectClasses)
     {
         if (Class)
@@ -33,24 +33,24 @@ void UBlueprintManager::CreateAllBlueprints()
         }
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("? Создание всех блюпринтов завершено!"));
+    UE_LOG(LogTemp, Warning, TEXT("вњ… РЎРѕР·РґР°РЅРёРµ РІСЃРµС… Р±Р»СЋРїСЂРёРЅС‚РѕРІ Р·Р°РІРµСЂС€РµРЅРѕ!"));
 }
 
 bool UBlueprintManager::CreateBlueprintFromClass(UClass* SourceClass, const FString& BlueprintName, const FString& PackagePath)
 {
     if (!SourceClass)
     {
-        UE_LOG(LogTemp, Error, TEXT("? Неверный исходный класс для создания блюпринта!"));
+        UE_LOG(LogTemp, Error, TEXT("вќЊ РќРµРІРµСЂРЅС‹Р№ РёСЃС…РѕРґРЅС‹Р№ РєР»Р°СЃСЃ РґР»СЏ СЃРѕР·РґР°РЅРёСЏ Р±Р»СЋРїСЂРёРЅС‚Р°!"));
         return false;
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("??? Создаем блюпринт %s из класса %s"),
+    UE_LOG(LogTemp, Warning, TEXT("рџ› пёЏ РЎРѕР·РґР°РµРј Р±Р»СЋРїСЂРёРЅС‚ %s РёР· РєР»Р°СЃСЃР° %s"),
         *BlueprintName, *SourceClass->GetName());
 
-    // Здесь будет реальное создание блюпринта
-    // Пока просто логируем
-    UE_LOG(LogTemp, Warning, TEXT("   ?? Путь: %s"), *PackagePath);
-    UE_LOG(LogTemp, Warning, TEXT("   ?? Класс: %s"), *SourceClass->GetName());
+    // Р—РґРµСЃСЊ Р±СѓРґРµС‚ СЂРµР°Р»СЊРЅРѕРµ СЃРѕР·РґР°РЅРёРµ Р±Р»СЋРїСЂРёРЅС‚Р°
+    // РџРѕРєР° РїСЂРѕСЃС‚Рѕ Р»РѕРіРёСЂСѓРµРј
+    UE_LOG(LogTemp, Warning, TEXT("   рџ“Ѓ РџСѓС‚СЊ: %s"), *PackagePath);
+    UE_LOG(LogTemp, Warning, TEXT("   рџЋЇ РљР»Р°СЃСЃ: %s"), *SourceClass->GetName());
 
     return true;
 }
@@ -63,21 +63,21 @@ void UBlueprintManager::EnsureBlueprintFolderExists()
     if (!PlatformFile.DirectoryExists(*BlueprintDir))
     {
         PlatformFile.CreateDirectoryTree(*BlueprintDir);
-        UE_LOG(LogTemp, Warning, TEXT("?? Создана папка для блюпринтов: %s"), *BlueprintDir);
+        UE_LOG(LogTemp, Warning, TEXT("рџ“Ѓ РЎРѕР·РґР°РЅР° РїР°РїРєР° РґР»СЏ Р±Р»СЋРїСЂРёРЅС‚РѕРІ: %s"), *BlueprintDir);
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("?? Папка для блюпринтов уже существует: %s"), *BlueprintDir);
+        UE_LOG(LogTemp, Warning, TEXT("рџ“Ѓ РџР°РїРєР° РґР»СЏ Р±Р»СЋРїСЂРёРЅС‚РѕРІ СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚: %s"), *BlueprintDir);
     }
 }
 
 void UBlueprintManager::GetAllProjectClasses(TArray<UClass*>& OutClasses)
 {
-    // Пока возвращаем тестовые классы
-    // В будущем будем автоматически находить все классы проекта
+    // РџРѕРєР° РІРѕР·РІСЂР°С‰Р°РµРј С‚РµСЃС‚РѕРІС‹Рµ РєР»Р°СЃСЃС‹
+    // Р’ Р±СѓРґСѓС‰РµРј Р±СѓРґРµРј Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РЅР°С…РѕРґРёС‚СЊ РІСЃРµ РєР»Р°СЃСЃС‹ РїСЂРѕРµРєС‚Р°
 
-    UE_LOG(LogTemp, Warning, TEXT("?? Ищем C++ классы проекта..."));
+    UE_LOG(LogTemp, Warning, TEXT("рџ”Ќ РС‰РµРј C++ РєР»Р°СЃСЃС‹ РїСЂРѕРµРєС‚Р°..."));
 
-    // Здесь будет автоматическое обнаружение классов
-    // Пока возвращаем заглушку
+    // Р—РґРµСЃСЊ Р±СѓРґРµС‚ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРѕРµ РѕР±РЅР°СЂСѓР¶РµРЅРёРµ РєР»Р°СЃСЃРѕРІ
+    // РџРѕРєР° РІРѕР·РІСЂР°С‰Р°РµРј Р·Р°РіР»СѓС€РєСѓ
 }

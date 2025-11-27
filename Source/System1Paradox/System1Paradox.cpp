@@ -1,6 +1,7 @@
 ﻿#include "System1Paradox.h"
 #include "Modules/ModuleManager.h"
 #include "HAL/IConsoleManager.h"
+#include "BlueprintManager.h" // ← ДОБАВЬТЕ ЭТУ СТРОКУ
 
 // 🔥 ТЕСТОВАЯ КОМАНДА
 static void TestCommand(const TArray<FString>& Args)
@@ -19,11 +20,10 @@ static void HealthCheck(const TArray<FString>& Args)
 }
 
 
-// 🔥 КОМАНДА ДЛЯ СОЗДАНИЯ BLUEPRINTS
+// 🔥 КОМАНДА ДЛЯ СОЗДАНИЯ BLUEPRINTS (ОБНОВЛЕННАЯ ВЕРСИЯ)
 static void CreateBlueprintsCommand(const TArray<FString>& Args)
 {
     UE_LOG(LogTemp, Warning, TEXT("=== 🛠️ НАЧИНАЕМ СОЗДАНИЕ BLUEPRINTS ==="));
-    UE_LOG(LogTemp, Warning, TEXT("📁 Создаем Blueprints из C++ классов..."));
 
     // Создаем менеджер блюпринтов
     UBlueprintManager* BlueprintManager = NewObject<UBlueprintManager>();
@@ -47,6 +47,7 @@ static void CreateBlueprintsCommand(const TArray<FString>& Args)
         }
     }
 }
+
 
 // РЕГИСТРАЦИЯ КОМАНД
 static FAutoConsoleCommand TestCmd(
