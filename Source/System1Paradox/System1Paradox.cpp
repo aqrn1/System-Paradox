@@ -18,13 +18,26 @@ static void HealthCheck(const TArray<FString>& Args)
     UE_LOG(LogTemp, Warning, TEXT("✅ Live Coding работает"));
 }
 
+
 // 🔥 КОМАНДА ДЛЯ СОЗДАНИЯ BLUEPRINTS
 static void CreateBlueprintsCommand(const TArray<FString>& Args)
 {
     UE_LOG(LogTemp, Warning, TEXT("=== 🛠️ НАЧИНАЕМ СОЗДАНИЕ BLUEPRINTS ==="));
     UE_LOG(LogTemp, Warning, TEXT("📁 Создаем Blueprints из C++ классов..."));
 
-    // Простая проверка - выводим аргументы
+    // Создаем менеджер блюпринтов
+    UBlueprintManager* BlueprintManager = NewObject<UBlueprintManager>();
+    if (BlueprintManager)
+    {
+        BlueprintManager->CreateAllBlueprints();
+        UE_LOG(LogTemp, Warning, TEXT("✅ BlueprintManager успешно создал все блюпринты!"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("❌ Не удалось создать BlueprintManager!"));
+    }
+
+    // Выводим аргументы если есть
     if (Args.Num() > 0)
     {
         UE_LOG(LogTemp, Warning, TEXT("📊 Аргументы команды:"));
@@ -33,8 +46,6 @@ static void CreateBlueprintsCommand(const TArray<FString>& Args)
             UE_LOG(LogTemp, Warning, TEXT("   - %s"), *Arg);
         }
     }
-
-    UE_LOG(LogTemp, Warning, TEXT("✅ Команда создания Blueprints активирована!"));
 }
 
 // РЕГИСТРАЦИЯ КОМАНД

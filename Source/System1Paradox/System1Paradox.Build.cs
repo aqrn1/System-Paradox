@@ -8,14 +8,16 @@ public class System1Paradox : ModuleRules
 
         PublicDependencyModuleNames.AddRange(new string[] {
             "Core",
-            "CoreUObject", 
+            "CoreUObject",
             "Engine",
             "InputCore",
             "EnhancedInput",
             "GameplayTags",
-            "UnrealEd",
-            "BlueprintGraph",
-            "KismetCompiler"
+            "UnrealEd",           // Для редакторских функций
+            "BlueprintGraph",     // Для работы с блюпринтами
+            "KismetCompiler",     // Для компиляции блюпринтов
+            "Kismet",            // Для KismetEditorUtilities
+            "AssetTools"         // Для создания ассетов
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });
