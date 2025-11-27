@@ -49,25 +49,81 @@ bool UBlueprintManager::CreateBlueprintFromClass(UClass* SourceClass, const FStr
         return false;
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("🛠️ Создаем блюпринт %s из класса %s"),
+    UE_LOG(LogTemp, Warning, TEXT("🛠️ СОЗДАЕМ БЛЮПРИНТ %s из класса %s"),
         *BlueprintName, *SourceClass->GetName());
 
     FString FullPackagePath = FString::Printf(TEXT("%s/%s"), *PackagePath, *BlueprintName);
 
     UE_LOG(LogTemp, Warning, TEXT("   📁 Полный путь: %s"), *FullPackagePath);
     UE_LOG(LogTemp, Warning, TEXT("   🎯 Родительский класс: %s"), *SourceClass->GetName());
-    UE_LOG(LogTemp, Warning, TEXT("   📝 Имя класса: %s"), *SourceClass->GetFullName());
 
-    // Проверяем, является ли класс валидным для создания блюпринта
-    if (!SourceClass->HasAnyClassFlags(CLASS_EditInlineNew) && !SourceClass->IsChildOf<AActor>())
+    // РЕАЛЬНОЕ СОЗДАНИЕ BLUEPRINT!
+    UPackage* Package = CreatePackage(*FullPackagePath);
+    if (!Package)
     {
-        UE_LOG(LogTemp, Warning, TEXT("   ⚠️ Класс не наследуется от AActor - могут быть ограничения"));
+        UE_LOG(LogTemp, Error, TEXT("   ❌ Не удалось создать пакет для блюпринта!"));
+        return false;
     }
 
-    // Пока просто логируем - в следующей версии добавим реальное создание
-    UE_LOG(LogTemp, Warning, TEXT("   ✅ Логирование завершено (реальное создание в следующей версии)"));
+    // Создаем блюпринт
+    UBlueprint* NewBlueprint = FKismetEditorUtilities::CreateBlueprint(
+        SourceClass,
+        Package,
+        *BlueprintName,
+        BPTYPE_Normal,
+        UBlueprint::StaticClass(),
+        UBlueprintGeneratedClass::StaticClass()
+    );
 
-    return true;
+    if (NewBlueprint)
+    {
+        // Сохраняем блюпринт
+        Package->MarkPackageDirty();
+        FAssetRegistryModule::AssetCreated(NewBlueprint);
+
+        FString PackageFileName = FPackageName::LongPackageNameToFilename(
+            FullPackagePath,
+            FPackageName::GetAssetPackageExtension()
+        );
+
+        // Сохраняем файл
+        bool bSaved = UPackage::SavePackage(
+            Package,
+            NewBlueprint,
+            RF_Public | RF_Standalone,
+            *PackageFileName,
+            GError,
+            nullptr,
+            true,
+            true,
+            SAVE_NoError
+        );
+
+        if (bSaved)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("   ✅ БЛЮПРИНТ УСПЕШНО СОЗДАН И СОХРАНЕН!"));
+            UE_LOG(LogTemp, Warning, TEXT("   💾 Файл: %s"), *PackageFileName);
+
+            // Выводим сообщение на экран
+            if (GEngine)
+            {
+                FString Message = FString::Printf(TEXT("✅ Создан блюпринт: %s"), *BlueprintName);
+                GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, Message);
+            }
+
+            return true;
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("   ❌ Не удалось сохранить блюпринт!"));
+            return false;
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("   ❌ Не удалось создать блюпринт через FKismetEditorUtilities!"));
+        return false;
+    }
 }
 
 void UBlueprintManager::EnsureBlueprintFolderExists()

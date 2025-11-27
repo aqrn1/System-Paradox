@@ -1,4 +1,4 @@
-using UnrealBuildTool;
+п»їusing UnrealBuildTool;
 
 public class System1Paradox : ModuleRules
 {
@@ -13,11 +13,12 @@ public class System1Paradox : ModuleRules
             "InputCore",
             "EnhancedInput",
             "GameplayTags",
-            "UnrealEd",           // Для редакторских функций
-            "BlueprintGraph",     // Для работы с блюпринтами
-            "KismetCompiler",     // Для компиляции блюпринтов
-            "Kismet",            // Для KismetEditorUtilities
-            "AssetTools"         // Для создания ассетов
+            "UnrealEd",           // Р”Р»СЏ СЂРµРґР°РєС‚РѕСЂСЃРєРёС… С„СѓРЅРєС†РёР№
+            "BlueprintGraph",     // Р”Р»СЏ СЂР°Р±РѕС‚С‹ СЃ Р±Р»СЋРїСЂРёРЅС‚Р°РјРё
+            "KismetCompiler",     // Р”Р»СЏ РєРѕРјРїРёР»СЏС†РёРё Р±Р»СЋРїСЂРёРЅС‚РѕРІ
+            "Kismet",            // Р”Р»СЏ KismetEditorUtilities
+            "AssetTools",        // Р”Р»СЏ СЃРѕР·РґР°РЅРёСЏ Р°СЃСЃРµС‚РѕРІ
+            "AssetRegistry"      // Р”Р»СЏ СЂРµРіРёСЃС‚СЂР°С†РёРё Р°СЃСЃРµС‚РѕРІ в†ђ Р”РћР‘РђР’Р¬РўР• Р­РўРЈ РЎРўР РћРљРЈ!
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });
