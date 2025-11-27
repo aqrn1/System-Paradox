@@ -6,16 +6,24 @@ public class System1Paradox : ModuleRules
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
+        // днаюбкъел мсфмше лндскх дкъ юбрнлюрхгюжхх
         PublicDependencyModuleNames.AddRange(new string[] {
             "Core",
             "CoreUObject",
             "Engine",
             "InputCore",
             "EnhancedInput",
-            "GameplayTags"
+            "GameplayTags",
+            "UnrealEd",           // дкъ педюйрнпю
+            "BlueprintGraph",     // дкъ BLUEPRINTS
+            "KismetCompiler",     // дкъ йнлохкъжхх BLUEPRINTS
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] {
+            "Slate",
+            "SlateCore",
+            "EditorFramework",
+            "AssetTools"
         });
     }
 }
