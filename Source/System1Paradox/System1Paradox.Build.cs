@@ -8,16 +8,16 @@ public class System1Paradox : ModuleRules
 
         // днаюбкъел мсфмше лндскх дкъ юбрнлюрхгюжхх
         PublicDependencyModuleNames.AddRange(new string[] {
-            "Core",
-            "CoreUObject",
-            "Engine",
-            "InputCore",
-            "EnhancedInput",
-            "GameplayTags",
-            "UnrealEd",           // дкъ педюйрнпю
-            "BlueprintGraph",     // дкъ BLUEPRINTS
-            "KismetCompiler",     // дкъ йнлохкъжхх BLUEPRINTS
-        });
+    "Core",
+    "CoreUObject",
+    "Engine",
+    "InputCore",
+    "EnhancedInput",
+    "GameplayTags",
+    "UnrealEd",
+    "BlueprintGraph",
+    "KismetCompiler"
+});
 
         PrivateDependencyModuleNames.AddRange(new string[] {
             "Slate",
