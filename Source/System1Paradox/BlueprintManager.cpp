@@ -1,214 +1,219 @@
 ﻿#include "BlueprintManager.h"
 #include "Engine/Blueprint.h"
-#include "Kismet2/KismetEditorUtilities.h"
 #include "Misc/MessageDialog.h"
 #include "HAL/PlatformFilemanager.h"
 #include "HAL/PlatformFile.h"
 #include "Misc/Paths.h"
+#include "Kismet2/KismetEditorUtilities.h"
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "UObject/Package.h"
+#include "Misc/PackageName.h"
 
 UBlueprintManager::UBlueprintManager()
 {
-    UE_LOG(LogTemp, Warning, TEXT("🔧 BlueprintManager создан!"));
+	UE_LOG(LogTemp, Warning, TEXT("🔧 BlueprintManager создан!"));
 }
 
 void UBlueprintManager::CreateAllBlueprints()
 {
-    UE_LOG(LogTemp, Warning, TEXT("=== 🚀 НАЧИНАЕМ СОЗДАНИЕ ВСЕХ BLUEPRINTS ==="));
+	UE_LOG(LogTemp, Warning, TEXT("=== 🚀 НАЧИНАЕМ СОЗДАНИЕ ВСЕХ BLUEPRINTS ==="));
 
-    // Создаем папку для блюпринтов
-    EnsureBlueprintFolderExists();
+	// Создаем папку для блюпринтов
+	EnsureBlueprintFolderExists();
 
-    // Получаем все классы проекта для создания блюпринтов
-    TArray<UClass*> ProjectClasses;
-    GetAllProjectClasses(ProjectClasses);
+	// Получаем все классы проекта для создания блюпринтов
+	TArray<UClass*> ProjectClasses;
+	GetAllProjectClasses(ProjectClasses);
 
-    UE_LOG(LogTemp, Warning, TEXT("📋 Найдено классов для создания блюпринтов: %d"), ProjectClasses.Num());
+	UE_LOG(LogTemp, Warning, TEXT("📋 Найдено классов для создания блюпринтов: %d"), ProjectClasses.Num());
 
-    // Создаем блюпринты для каждого класса
-    int32 CreatedCount = 0;
-    for (UClass* Class : ProjectClasses)
-    {
-        if (Class && IsClassSuitableForBlueprint(Class))
-        {
-            FString BlueprintName = FString::Printf(TEXT("BP_%s"), *Class->GetName());
-            if (CreateBlueprintFromClass(Class, BlueprintName))
-            {
-                CreatedCount++;
-            }
-        }
-    }
+	// Создаем блюпринты для каждого класса
+	int32 CreatedCount = 0;
+	for (UClass* Class : ProjectClasses)
+	{
+		if (Class && IsClassSuitableForBlueprint(Class))
+		{
+			FString BlueprintName = FString::Printf(TEXT("BP_%s"), *Class->GetName());
+			if (CreateBlueprintFromClass(Class, BlueprintName))
+			{
+				CreatedCount++;
+			}
+		}
+	}
 
-    UE_LOG(LogTemp, Warning, TEXT("✅ Создание блюпринтов завершено! Создано: %d"), CreatedCount);
+	UE_LOG(LogTemp, Warning, TEXT("✅ Создание блюпринтов завершено! Создано: %d"), CreatedCount);
+
+	// Выводим сообщение на экран
+	if (GEngine)
+	{
+		FString Message = FString::Printf(TEXT("✅ BlueprintManager: создано %d блюпринтов!"), CreatedCount);
+		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, Message);
+	}
 }
 
 bool UBlueprintManager::CreateBlueprintFromClass(UClass* SourceClass, const FString& BlueprintName, const FString& PackagePath)
 {
-    if (!SourceClass)
-    {
-        UE_LOG(LogTemp, Error, TEXT("❌ Неверный исходный класс для создания блюпринта!"));
-        return false;
-    }
+	if (!SourceClass)
+	{
+		UE_LOG(LogTemp, Error, TEXT("❌ Неверный исходный класс для создания блюпринта!"));
+		return false;
+	}
 
-    UE_LOG(LogTemp, Warning, TEXT("🛠️ СОЗДАЕМ БЛЮПРИНТ %s из класса %s"),
-        *BlueprintName, *SourceClass->GetName());
+	UE_LOG(LogTemp, Warning, TEXT("🛠️ СОЗДАЕМ БЛЮПРИНТ %s из класса %s"),
+		*BlueprintName, *SourceClass->GetName());
 
-    FString FullPackagePath = FString::Printf(TEXT("%s/%s"), *PackagePath, *BlueprintName);
+	FString FullPackagePath = FString::Printf(TEXT("%s/%s"), *PackagePath, *BlueprintName);
 
-    UE_LOG(LogTemp, Warning, TEXT("   📁 Полный путь: %s"), *FullPackagePath);
-    UE_LOG(LogTemp, Warning, TEXT("   🎯 Родительский класс: %s"), *SourceClass->GetName());
+	UE_LOG(LogTemp, Warning, TEXT("   📁 Полный путь: %s"), *FullPackagePath);
+	UE_LOG(LogTemp, Warning, TEXT("   🎯 Родительский класс: %s"), *SourceClass->GetName());
 
-    // РЕАЛЬНОЕ СОЗДАНИЕ BLUEPRINT!
-    UPackage* Package = CreatePackage(*FullPackagePath);
-    if (!Package)
-    {
-        UE_LOG(LogTemp, Error, TEXT("   ❌ Не удалось создать пакет для блюпринта!"));
-        return false;
-    }
+	// 🔥 РЕАЛЬНОЕ СОЗДАНИЕ BLUEPRINT!
+	UPackage* Package = CreatePackage(*FullPackagePath);
+	if (!Package)
+	{
+		UE_LOG(LogTemp, Error, TEXT("   ❌ Не удалось создать пакет для блюпринта!"));
+		return false;
+	}
 
-    // Создаем блюпринт
-    UBlueprint* NewBlueprint = FKismetEditorUtilities::CreateBlueprint(
-        SourceClass,
-        Package,
-        *BlueprintName,
-        BPTYPE_Normal,
-        UBlueprint::StaticClass(),
-        UBlueprintGeneratedClass::StaticClass()
-    );
+	// Создаем блюпринт
+	UBlueprint* NewBlueprint = FKismetEditorUtilities::CreateBlueprint(
+		SourceClass,
+		Package,
+		*BlueprintName,
+		BPTYPE_Normal,
+		UBlueprint::StaticClass(),
+		UBlueprintGeneratedClass::StaticClass()
+	);
 
-    if (NewBlueprint)
-    {
-        // Сохраняем блюпринт
-        Package->MarkPackageDirty();
-        FAssetRegistryModule::AssetCreated(NewBlueprint);
+	if (NewBlueprint)
+	{
+		// Сохраняем блюпринт
+		Package->MarkPackageDirty();
 
-        FString PackageFileName = FPackageName::LongPackageNameToFilename(
-            FullPackagePath,
-            FPackageName::GetAssetPackageExtension()
-        );
+		// Уведомляем Asset Registry о создании нового ассета
+		FAssetRegistryModule::AssetCreated(NewBlueprint);
 
-        // Сохраняем файл
-        bool bSaved = UPackage::SavePackage(
-            Package,
-            NewBlueprint,
-            RF_Public | RF_Standalone,
-            *PackageFileName,
-            GError,
-            nullptr,
-            true,
-            true,
-            SAVE_NoError
-        );
+		// Формируем имя файла
+		FString PackageFileName = FPackageName::LongPackageNameToFilename(
+			FullPackagePath,
+			FPackageName::GetAssetPackageExtension()
+		);
 
-        if (bSaved)
-        {
-            UE_LOG(LogTemp, Warning, TEXT("   ✅ БЛЮПРИНТ УСПЕШНО СОЗДАН И СОХРАНЕН!"));
-            UE_LOG(LogTemp, Warning, TEXT("   💾 Файл: %s"), *PackageFileName);
+		// Сохраняем пакет
+		bool bSaved = UPackage::SavePackage(
+			Package,
+			NewBlueprint,
+			RF_Public | RF_Standalone,
+			*PackageFileName
+		);
 
-            // Выводим сообщение на экран
-            if (GEngine)
-            {
-                FString Message = FString::Printf(TEXT("✅ Создан блюпринт: %s"), *BlueprintName);
-                GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, Message);
-            }
+		if (bSaved)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("   ✅ БЛЮПРИНТ УСПЕШНО СОЗДАН И СОХРАНЕН!"));
+			UE_LOG(LogTemp, Warning, TEXT("   💾 Файл: %s"), *PackageFileName);
 
-            return true;
-        }
-        else
-        {
-            UE_LOG(LogTemp, Error, TEXT("   ❌ Не удалось сохранить блюпринт!"));
-            return false;
-        }
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("   ❌ Не удалось создать блюпринт через FKismetEditorUtilities!"));
-        return false;
-    }
+			// Выводим сообщение на экран
+			if (GEngine)
+			{
+				FString Message = FString::Printf(TEXT("✅ Создан блюпринт: %s"), *BlueprintName);
+				GEngine->AddOnScreenDebugMessage(-1, 8.0f, FColor::Green, Message);
+			}
+
+			return true;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("   ❌ Не удалось сохранить блюпринт!"));
+			return false;
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("   ❌ Не удалось создать блюпринт через FKismetEditorUtilities!"));
+		return false;
+	}
 }
 
 void UBlueprintManager::EnsureBlueprintFolderExists()
 {
-    FString BlueprintDir = FPaths::ProjectContentDir() / TEXT("Blueprints/AutoGenerated");
+	FString BlueprintDir = FPaths::ProjectContentDir() / TEXT("Blueprints/AutoGenerated");
 
-    IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-    if (!PlatformFile.DirectoryExists(*BlueprintDir))
-    {
-        PlatformFile.CreateDirectoryTree(*BlueprintDir);
-        UE_LOG(LogTemp, Warning, TEXT("📁 Создана папка для блюпринтов: %s"), *BlueprintDir);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("📁 Папка для блюпринтов уже существует: %s"), *BlueprintDir);
-    }
+	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+	if (!PlatformFile.DirectoryExists(*BlueprintDir))
+	{
+		PlatformFile.CreateDirectoryTree(*BlueprintDir);
+		UE_LOG(LogTemp, Warning, TEXT("📁 Создана папка для блюпринтов: %s"), *BlueprintDir);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("📁 Папка для блюпринтов уже существует: %s"), *BlueprintDir);
+	}
 }
 
 void UBlueprintManager::GetAllProjectClasses(TArray<UClass*>& OutClasses)
 {
-    UE_LOG(LogTemp, Warning, TEXT("🔍 Ищем C++ классы проекта..."));
+	UE_LOG(LogTemp, Warning, TEXT("🔍 Ищем C++ классы проекта..."));
 
-    // Способ 1: Прямое добавление классов через StaticClass()
-    UE_LOG(LogTemp, Warning, TEXT("📋 Добавляем классы вручную..."));
+	// Добавляем основные классы проекта
+	UClass* CharacterClass = ASystem1ParadoxCharacter::StaticClass();
+	UClass* GameModeClass = ASystem1ParadoxGameMode::StaticClass();
+	UClass* PlayerControllerClass = ASystem1ParadoxPlayerController::StaticClass();
+	UClass* CameraManagerClass = ASystem1ParadoxCameraManager::StaticClass();
 
-    // Добавляем основные классы проекта
-    UClass* CharacterClass = ASystem1ParadoxCharacter::StaticClass();
-    UClass* GameModeClass = ASystem1ParadoxGameMode::StaticClass();
-    UClass* PlayerControllerClass = ASystem1ParadoxPlayerController::StaticClass();
-    UClass* CameraManagerClass = ASystem1ParadoxCameraManager::StaticClass();
+	if (CharacterClass)
+	{
+		OutClasses.Add(CharacterClass);
+		UE_LOG(LogTemp, Warning, TEXT("   ✅ Добавлен: %s"), *CharacterClass->GetName());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("   ❌ System1ParadoxCharacter не найден!"));
+	}
 
-    if (CharacterClass)
-    {
-        OutClasses.Add(CharacterClass);
-        UE_LOG(LogTemp, Warning, TEXT("   ✅ Добавлен: %s"), *CharacterClass->GetName());
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("   ❌ System1ParadoxCharacter не найден!"));
-    }
+	if (GameModeClass)
+	{
+		OutClasses.Add(GameModeClass);
+		UE_LOG(LogTemp, Warning, TEXT("   ✅ Добавлен: %s"), *GameModeClass->GetName());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("   ❌ System1ParadoxGameMode не найден!"));
+	}
 
-    if (GameModeClass)
-    {
-        OutClasses.Add(GameModeClass);
-        UE_LOG(LogTemp, Warning, TEXT("   ✅ Добавлен: %s"), *GameModeClass->GetName());
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("   ❌ System1ParadoxGameMode не найден!"));
-    }
+	if (PlayerControllerClass)
+	{
+		OutClasses.Add(PlayerControllerClass);
+		UE_LOG(LogTemp, Warning, TEXT("   ✅ Добавлен: %s"), *PlayerControllerClass->GetName());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("   ❌ System1ParadoxPlayerController не найден!"));
+	}
 
-    if (PlayerControllerClass)
-    {
-        OutClasses.Add(PlayerControllerClass);
-        UE_LOG(LogTemp, Warning, TEXT("   ✅ Добавлен: %s"), *PlayerControllerClass->GetName());
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("   ❌ System1ParadoxPlayerController не найден!"));
-    }
+	if (CameraManagerClass)
+	{
+		OutClasses.Add(CameraManagerClass);
+		UE_LOG(LogTemp, Warning, TEXT("   ✅ Добавлен: %s"), *CameraManagerClass->GetName());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("   ❌ System1ParadoxCameraManager не найден!"));
+	}
 
-    if (CameraManagerClass)
-    {
-        OutClasses.Add(CameraManagerClass);
-        UE_LOG(LogTemp, Warning, TEXT("   ✅ Добавлен: %s"), *CameraManagerClass->GetName());
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("   ❌ System1ParadoxCameraManager не найден!"));
-    }
-
-    UE_LOG(LogTemp, Warning, TEXT("📋 Итоговое количество классов: %d"), OutClasses.Num());
+	UE_LOG(LogTemp, Warning, TEXT("📋 Итоговое количество классов: %d"), OutClasses.Num());
 }
 
 bool UBlueprintManager::IsClassSuitableForBlueprint(UClass* Class)
 {
-    if (!Class) return false;
+	if (!Class) return false;
 
-    // Исключаем некоторые классы
-    FString ClassName = Class->GetName();
-    if (ClassName.Contains(TEXT("BlueprintManager")) ||
-        ClassName.Contains(TEXT("Module")))
-    {
-        return false;
-    }
+	// Исключаем некоторые классы
+	FString ClassName = Class->GetName();
+	if (ClassName.Contains(TEXT("BlueprintManager")) ||
+		ClassName.Contains(TEXT("Module")))
+	{
+		return false;
+	}
 
-    return true;
+	return true;
 }
