@@ -173,9 +173,36 @@ bool UBlueprintManager::BindBlueprintToProject(const FString& BlueprintPath, con
 	UE_LOG(LogTemp, Warning, TEXT("🔗 Привязываем блюпринт: %s"), *BlueprintPath);
 	UE_LOG(LogTemp, Warning, TEXT("   ⚙️  Настройка: %s"), *SettingName);
 
-	// Здесь будет логика привязки блюпринта к настройкам проекта
-	// Пока просто логируем успех
+	// 🔥 РЕАЛЬНАЯ ПРИВЯЗКА К КОНФИГУРАЦИИ ПРОЕКТА
+
+	// Получаем конфигурацию проекта
+	FString ConfigPath = FPaths::ProjectConfigDir() + TEXT("DefaultEngine.ini");
+	FString ConfigSection = TEXT("/Script/EngineSettings.GameMapsSettings");
+	FString ConfigKey = SettingName;
+
+	// Проверяем существование блюпринта
+	UBlueprint* BlueprintAsset = LoadObject<UBlueprint>(nullptr, *BlueprintPath);
+	if (!BlueprintAsset)
+	{
+		UE_LOG(LogTemp, Error, TEXT("   ❌ Блюпринт не найден по пути: %s"), *BlueprintPath);
+		return false;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("   ✅ Блюпринт загружен: %s"), *BlueprintAsset->GetName());
+
+	// Записываем в конфигурацию
+	GConfig->SetString(
+		*ConfigSection,
+		*ConfigKey,
+		*BlueprintPath,
+		ConfigPath
+	);
+
+	// Принудительно сохраняем конфигурацию
+	GConfig->Flush(false, ConfigPath);
+
 	UE_LOG(LogTemp, Warning, TEXT("   ✅ Блюпринт привязан к настройке: %s"), *SettingName);
+	UE_LOG(LogTemp, Warning, TEXT("   📁 Конфиг: %s"), *ConfigPath);
 
 	return true;
 }
@@ -189,10 +216,17 @@ void UBlueprintManager::SaveProjectConfig()
 {
 	UE_LOG(LogTemp, Warning, TEXT("💾 Сохраняем конфигурацию проекта..."));
 
-	// Здесь будет логика сохранения конфигурации
-	// Пока просто логируем
+	// Принудительно сохраняем все конфигурационные файлы
+	GConfig->Flush(true);
 
 	UE_LOG(LogTemp, Warning, TEXT("✅ Конфигурация проекта сохранена"));
+
+	// Выводим информационное сообщение
+	if (GEngine)
+	{
+		FString Message = TEXT("💾 Конфигурация проекта обновлена! Перезапустите редактор для применения изменений.");
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Orange, Message);
+	}
 }
 
 void UBlueprintManager::EnsureBlueprintFolderExists()

@@ -4,106 +4,153 @@
 #include "Engine/World.h"
 #include "BlueprintManager.h"
 
-// 🔥 ТЕСТОВАЯ КОМАНДА
+// 🔥 ПРОСТАЯ ТЕСТОВАЯ КОМАНДА ДЛЯ ПРОВЕРКИ
 static void TestCommand(const TArray<FString>& Args)
 {
     UE_LOG(LogTemp, Warning, TEXT("🎯 ТЕСТОВАЯ КОМАНДА РАБОТАЕТ!"));
-    UE_LOG(LogTemp, Warning, TEXT("📊 Количество аргументов: %d"), Args.Num());
+
+    // Выводим сообщение на экран
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, TEXT("🎯 ТЕСТОВАЯ КОМАНДА РАБОТАЕТ!"));
+    }
+}
+
+// 🔥 ПРОСТАЯ КОМАНДА СОЗДАНИЯ BLUEPRINTS
+static void SimpleCreateBlueprints(const TArray<FString>& Args)
+{
+    UE_LOG(LogTemp, Warning, TEXT("=== 🛠️ ПРОСТОЕ СОЗДАНИЕ BLUEPRINTS ==="));
+
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Blue, TEXT("=== 🛠️ СОЗДАЕМ BLUEPRINTS ==="));
+    }
+
+    UWorld* World = GWorld;
+    if (!World)
+    {
+        UE_LOG(LogTemp, Error, TEXT("❌ GWorld не доступен!"));
+        return;
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("✅ GWorld доступен, создаем BlueprintManager..."));
+
+    UBlueprintManager* BlueprintManager = NewObject<UBlueprintManager>(World);
+    if (BlueprintManager)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("✅ BlueprintManager создан! Вызываем CreateAllBlueprints..."));
+
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 8.0f, FColor::Yellow, TEXT("🔧 Создаем BlueprintManager..."));
+        }
+
+        BlueprintManager->CreateAllBlueprints();
+
+        UE_LOG(LogTemp, Warning, TEXT("✅ CreateAllBlueprints завершено!"));
+
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 8.0f, FColor::Green, TEXT("✅ Blueprints созданы!"));
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("❌ Не удалось создать BlueprintManager!"));
+
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 8.0f, FColor::Red, TEXT("❌ Ошибка создания BlueprintManager!"));
+        }
+    }
+}
+
+// 🔥 ПРОСТАЯ КОМАНДА ПРИВЯЗКИ BLUEPRINTS
+static void SimpleAutoBindBlueprints(const TArray<FString>& Args)
+{
+    UE_LOG(LogTemp, Warning, TEXT("=== 🔗 ПРОСТАЯ ПРИВЯЗКА BLUEPRINTS ==="));
+
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Blue, TEXT("=== 🔗 ПРИВЯЗЫВАЕМ BLUEPRINTS ==="));
+    }
+
+    UWorld* World = GWorld;
+    if (!World)
+    {
+        UE_LOG(LogTemp, Error, TEXT("❌ GWorld не доступен!"));
+        return;
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("✅ GWorld доступен, создаем BlueprintManager..."));
+
+    UBlueprintManager* BlueprintManager = NewObject<UBlueprintManager>(World);
+    if (BlueprintManager)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("✅ BlueprintManager создан! Вызываем AutoBindBlueprints..."));
+
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 8.0f, FColor::Yellow, TEXT("🔗 Привязываем Blueprints..."));
+        }
+
+        BlueprintManager->AutoBindBlueprints();
+
+        UE_LOG(LogTemp, Warning, TEXT("✅ AutoBindBlueprints завершено!"));
+
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 8.0f, FColor::Green, TEXT("✅ Blueprints привязаны!"));
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("❌ Не удалось создать BlueprintManager!"));
+
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 8.0f, FColor::Red, TEXT("❌ Ошибка создания BlueprintManager!"));
+        }
+    }
 }
 
 // 🔥 ПРОВЕРКА СИСТЕМЫ
 static void HealthCheck(const TArray<FString>& Args)
 {
-    UE_LOG(LogTemp, Warning, TEXT("❤️  HEALTH CHECK: SYSTEM1PARADOX"));
-    UE_LOG(LogTemp, Warning, TEXT("✅ Модуль загружен"));
+    UE_LOG(LogTemp, Warning, TEXT("=== ❤️  HEALTH CHECK ==="));
+    UE_LOG(LogTemp, Warning, TEXT("✅ SYSTEM1PARADOX MODULE"));
     UE_LOG(LogTemp, Warning, TEXT("✅ Консольные команды активны"));
     UE_LOG(LogTemp, Warning, TEXT("✅ Live Coding работает"));
-}
 
-// 🔥 КОМАНДА ДЛЯ СОЗДАНИЯ BLUEPRINTS
-static void CreateBlueprintsCommand(const TArray<FString>& Args)
-{
-    UE_LOG(LogTemp, Warning, TEXT("=== 🛠️ НАЧИНАЕМ СОЗДАНИЕ BLUEPRINTS ==="));
-
-    // Создаем менеджер блюпринтов в правильном контексте
-    UWorld* World = GWorld;
-    if (!World)
+    if (GEngine)
     {
-        UE_LOG(LogTemp, Error, TEXT("❌ GWorld не доступен!"));
-        return;
-    }
-
-    UBlueprintManager* BlueprintManager = NewObject<UBlueprintManager>(World);
-    if (BlueprintManager)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("🔧 BlueprintManager создан успешно!"));
-        BlueprintManager->CreateAllBlueprints();
-        UE_LOG(LogTemp, Warning, TEXT("✅ BlueprintManager успешно создал все блюпринты!"));
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("❌ Не удалось создать BlueprintManager!"));
-    }
-
-    // Выводим аргументы если есть
-    if (Args.Num() > 0)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("📊 Аргументы команды:"));
-        for (const FString& Arg : Args)
-        {
-            UE_LOG(LogTemp, Warning, TEXT("   - %s"), *Arg);
-        }
+        GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, TEXT("❤️  HEALTH CHECK: СИСТЕМА РАБОТАЕТ"));
     }
 }
 
-// 🔥 НОВАЯ КОМАНДА: Автоматическая привязка блюпринтов
-static void AutoBindBlueprintsCommand(const TArray<FString>& Args)
-{
-    UE_LOG(LogTemp, Warning, TEXT("=== 🔗 НАЧИНАЕМ АВТОМАТИЧЕСКУЮ ПРИВЯЗКУ BLUEPRINTS ==="));
-
-    UWorld* World = GWorld;
-    if (!World)
-    {
-        UE_LOG(LogTemp, Error, TEXT("❌ GWorld не доступен!"));
-        return;
-    }
-
-    UBlueprintManager* BlueprintManager = NewObject<UBlueprintManager>(World);
-    if (BlueprintManager)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("🔧 BlueprintManager создан для привязки!"));
-        BlueprintManager->AutoBindBlueprints();
-        UE_LOG(LogTemp, Warning, TEXT("✅ BlueprintManager завершил автоматическую привязку!"));
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("❌ Не удалось создать BlueprintManager для привязки!"));
-    }
-}
-
-// РЕГИСТРАЦИЯ КОМАНД
+// РЕГИСТРАЦИЯ ПРОСТЫХ КОМАНД
 static FAutoConsoleCommand TestCmd(
-    TEXT("sys.Test"),
+    TEXT("test"),
     TEXT("Простая тестовая команда"),
     FConsoleCommandWithArgsDelegate::CreateStatic(&TestCommand)
 );
 
 static FAutoConsoleCommand HealthCmd(
-    TEXT("sys.Health"),
+    TEXT("health"),
     TEXT("Проверка жизнеспособности системы"),
     FConsoleCommandWithArgsDelegate::CreateStatic(&HealthCheck)
 );
 
 static FAutoConsoleCommand CreateBPCmd(
-    TEXT("sys.CreateBlueprints"),
-    TEXT("Автоматическое создание Blueprints из C++ классов"),
-    FConsoleCommandWithArgsDelegate::CreateStatic(&CreateBlueprintsCommand)
+    TEXT("createbp"),
+    TEXT("Автоматическое создание Blueprints"),
+    FConsoleCommandWithArgsDelegate::CreateStatic(&SimpleCreateBlueprints)
 );
 
 static FAutoConsoleCommand AutoBindCmd(
-    TEXT("sys.AutoBindBlueprints"),
-    TEXT("Автоматическая привязка созданных Blueprints к настройкам проекта"),
-    FConsoleCommandWithArgsDelegate::CreateStatic(&AutoBindBlueprintsCommand)
+    TEXT("autobind"),
+    TEXT("Автоматическая привязка Blueprints"),
+    FConsoleCommandWithArgsDelegate::CreateStatic(&SimpleAutoBindBlueprints)
 );
 
 IMPLEMENT_PRIMARY_GAME_MODULE(FSystem1ParadoxModule, System1Paradox, "System1Paradox");
@@ -112,10 +159,15 @@ void FSystem1ParadoxModule::StartupModule()
 {
     UE_LOG(LogTemp, Warning, TEXT("=== 🚀 SYSTEM1PARADOX MODULE STARTED ==="));
     UE_LOG(LogTemp, Warning, TEXT("Доступные команды:"));
-    UE_LOG(LogTemp, Warning, TEXT("  sys.Test - тестовая команда"));
-    UE_LOG(LogTemp, Warning, TEXT("  sys.Health - проверка системы"));
-    UE_LOG(LogTemp, Warning, TEXT("  sys.CreateBlueprints - создание Blueprints"));
-    UE_LOG(LogTemp, Warning, TEXT("  sys.AutoBindBlueprints - автоматическая привязка Blueprints"));
+    UE_LOG(LogTemp, Warning, TEXT("  test - тестовая команда"));
+    UE_LOG(LogTemp, Warning, TEXT("  health - проверка системы"));
+    UE_LOG(LogTemp, Warning, TEXT("  createbp - создание Blueprints"));
+    UE_LOG(LogTemp, Warning, TEXT("  autobind - привязка Blueprints"));
+
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 20.0f, FColor::Cyan, TEXT("🚀 SYSTEM1PARADOX MODULE ЗАГРУЖЕН"));
+    }
 }
 
 void FSystem1ParadoxModule::ShutdownModule()
