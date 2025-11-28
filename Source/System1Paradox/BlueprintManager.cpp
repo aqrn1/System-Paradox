@@ -41,7 +41,7 @@ void UBlueprintManager::CreateAllBlueprints()
 		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("✅ Создание блюпринтов завершено! Создано: %d"), CreatedCount));
+	UE_LOG(LogTemp, Warning, TEXT("✅ Создание блюпринтов завершено! Создано: %d"), CreatedCount);
 
 	// Выводим сообщение на экран
 	if (GEngine)
@@ -102,6 +102,10 @@ bool UBlueprintManager::CreateBlueprintFromClass(UClass* SourceClass, const FStr
 		// 🔥 ИСПРАВЛЕННЫЙ ВЫЗОВ SavePackage ДЛЯ UE5.7
 		FSavePackageArgs SaveArgs;
 		SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
+		SaveArgs.Error = GLog;
+		SaveArgs.bForceByteSwapping = true;
+		SaveArgs.bWarnOfLongFilename = true;
+		SaveArgs.SaveFlags = SAVE_NoError;
 
 		bool bSaved = UPackage::SavePackage(
 			Package,
