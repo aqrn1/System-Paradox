@@ -20,16 +20,23 @@ static void HealthCheck(const TArray<FString>& Args)
     UE_LOG(LogTemp, Warning, TEXT("✅ Live Coding работает"));
 }
 
-
-// 🔥 КОМАНДА ДЛЯ СОЗДАНИЯ BLUEPRINTS (ОБНОВЛЕННАЯ ВЕРСИЯ)
+// 🔥 КОМАНДА ДЛЯ СОЗДАНИЯ BLUEPRINTS
 static void CreateBlueprintsCommand(const TArray<FString>& Args)
 {
     UE_LOG(LogTemp, Warning, TEXT("=== 🛠️ НАЧИНАЕМ СОЗДАНИЕ BLUEPRINTS ==="));
 
-    // Создаем менеджер блюпринтов
-    UBlueprintManager* BlueprintManager = NewObject<UBlueprintManager>();
+    // Создаем менеджер блюпринтов в правильном контексте
+    UWorld* World = GWorld;
+    if (!World)
+    {
+        UE_LOG(LogTemp, Error, TEXT("❌ GWorld не доступен!"));
+        return;
+    }
+
+    UBlueprintManager* BlueprintManager = NewObject<UBlueprintManager>(World);
     if (BlueprintManager)
     {
+        UE_LOG(LogTemp, Warning, TEXT("🔧 BlueprintManager создан успешно!"));
         BlueprintManager->CreateAllBlueprints();
         UE_LOG(LogTemp, Warning, TEXT("✅ BlueprintManager успешно создал все блюпринты!"));
     }
@@ -49,6 +56,30 @@ static void CreateBlueprintsCommand(const TArray<FString>& Args)
     }
 }
 
+// 🔥 НОВАЯ КОМАНДА: Автоматическая привязка блюпринтов
+static void AutoBindBlueprintsCommand(const TArray<FString>& Args)
+{
+    UE_LOG(LogTemp, Warning, TEXT("=== 🔗 НАЧИНАЕМ АВТОМАТИЧЕСКУЮ ПРИВЯЗКУ BLUEPRINTS ==="));
+
+    UWorld* World = GWorld;
+    if (!World)
+    {
+        UE_LOG(LogTemp, Error, TEXT("❌ GWorld не доступен!"));
+        return;
+    }
+
+    UBlueprintManager* BlueprintManager = NewObject<UBlueprintManager>(World);
+    if (BlueprintManager)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("🔧 BlueprintManager создан для привязки!"));
+        BlueprintManager->AutoBindBlueprints();
+        UE_LOG(LogTemp, Warning, TEXT("✅ BlueprintManager завершил автоматическую привязку!"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("❌ Не удалось создать BlueprintManager для привязки!"));
+    }
+}
 
 // РЕГИСТРАЦИЯ КОМАНД
 static FAutoConsoleCommand TestCmd(
@@ -69,6 +100,12 @@ static FAutoConsoleCommand CreateBPCmd(
     FConsoleCommandWithArgsDelegate::CreateStatic(&CreateBlueprintsCommand)
 );
 
+static FAutoConsoleCommand AutoBindCmd(
+    TEXT("sys.AutoBindBlueprints"),
+    TEXT("Автоматическая привязка созданных Blueprints к настройкам проекта"),
+    FConsoleCommandWithArgsDelegate::CreateStatic(&AutoBindBlueprintsCommand)
+);
+
 IMPLEMENT_PRIMARY_GAME_MODULE(FSystem1ParadoxModule, System1Paradox, "System1Paradox");
 
 void FSystem1ParadoxModule::StartupModule()
@@ -78,6 +115,7 @@ void FSystem1ParadoxModule::StartupModule()
     UE_LOG(LogTemp, Warning, TEXT("  sys.Test - тестовая команда"));
     UE_LOG(LogTemp, Warning, TEXT("  sys.Health - проверка системы"));
     UE_LOG(LogTemp, Warning, TEXT("  sys.CreateBlueprints - создание Blueprints"));
+    UE_LOG(LogTemp, Warning, TEXT("  sys.AutoBindBlueprints - автоматическая привязка Blueprints"));
 }
 
 void FSystem1ParadoxModule::ShutdownModule()
