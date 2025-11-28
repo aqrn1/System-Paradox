@@ -10,9 +10,6 @@
 #include "Misc/PackageName.h"
 #include "Misc/ConfigCacheIni.h"
 
-// 🔥 ДОБАВЛЯЕМ НЕОБХОДИМЫЕ ЗАГОЛОВОЧНЫЕ ФАЙЛЫ ДЛЯ UE5.7
-#include "Misc/FeedbackContext.h"
-
 UBlueprintManager::UBlueprintManager()
 {
     UE_LOG(LogTemp, Warning, TEXT("🔧 BlueprintManager создан!"));
@@ -50,7 +47,7 @@ void UBlueprintManager::CreateAllBlueprints()
     // Выводим сообщение на экран
     if (GEngine)
     {
-        FString Message = FString::Printf(TEXT("✅ BlueprintManager: создано %d блюпринтов!"), CreatedCount);
+        FString Message = FString::Printf(TEXT("✅ BlueprintManager: создано %d блюпринтов! Используйте Ctrl+S для сохранения"), CreatedCount);
         GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, Message);
     }
 }
@@ -132,42 +129,21 @@ bool UBlueprintManager::CreateBlueprintFromClass(UClass* SourceClass, const FStr
 
     if (NewBlueprint)
     {
-        // 🔥 АВТОМАТИЧЕСКОЕ СОХРАНЕНИЕ БЛЮПРИНТА
-        FString PackageFileName = FPackageName::LongPackageNameToFilename(
-            FullPackagePath,
-            FPackageName::GetAssetPackageExtension()
-        );
-
-        // Сохраняем пакет
+        // Помечаем пакет как измененный (требует сохранения)
         Package->MarkPackageDirty();
+
+        // Уведомляем Asset Registry о создании нового ассета
         FAssetRegistryModule::AssetCreated(NewBlueprint);
 
-        // 🔥 ПРОБУЕМ СОХРАНИТЬ ПАКЕТ
-        bool bSaved = false;
-
-        // Способ 1: Используем SavePackage с простыми параметрами
-        bSaved = UPackage::SavePackage(
-            Package,
-            NewBlueprint,
-            *PackageFileName,
-            RF_Standalone | RF_Public
-        );
-
-        if (bSaved)
-        {
-            UE_LOG(LogTemp, Warning, TEXT("   ✅ БЛЮПРИНТ УСПЕШНО СОЗДАН И СОХРАНЕН НА ДИСК!"));
-            UE_LOG(LogTemp, Warning, TEXT("   💾 Файл: %s"), *PackageFileName);
-        }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("   🟡 Блюпринт создан, но требуется ручное сохранение (Ctrl+S)"));
-            UE_LOG(LogTemp, Warning, TEXT("   💡 Используйте Ctrl+S чтобы сохранить все блюпринты"));
-        }
+        UE_LOG(LogTemp, Warning, TEXT("   ✅ БЛЮПРИНТ УСПЕШНО СОЗДАН В ПАМЯТИ!"));
+        UE_LOG(LogTemp, Warning, TEXT("   💡 Имя: %s"), *BlueprintName);
+        UE_LOG(LogTemp, Warning, TEXT("   💡 Пакет: %s"), *FullPackagePath);
+        UE_LOG(LogTemp, Warning, TEXT("   💡 Используйте Ctrl+S чтобы сохранить блюпринт на диск"));
 
         // Выводим сообщение на экран
         if (GEngine)
         {
-            FString Message = FString::Printf(TEXT("✅ Создан блюпринт: %s"), *BlueprintName);
+            FString Message = FString::Printf(TEXT("✅ Создан блюпринт: %s (используйте Ctrl+S для сохранения)"), *BlueprintName);
             GEngine->AddOnScreenDebugMessage(-1, 8.0f, FColor::Green, Message);
         }
 
@@ -191,9 +167,7 @@ bool UBlueprintManager::BindBlueprintToProject(const FString& BlueprintPath, con
     UE_LOG(LogTemp, Warning, TEXT("🔗 Привязываем блюпринт: %s"), *BlueprintPath);
     UE_LOG(LogTemp, Warning, TEXT("   ⚙️  Настройка: %s"), *SettingName);
 
-    // 🔥 ИСПРАВЛЕННАЯ ПРОВЕРКА СУЩЕСТВОВАНИЯ БЛЮПРИНТА
-
-    // Проверяем существование файла
+    // Проверяем существование файла блюпринта
     FString FilePath = FPackageName::LongPackageNameToFilename(
         FPaths::GetBaseFilename(BlueprintPath),
         FPackageName::GetAssetPackageExtension()
@@ -201,15 +175,14 @@ bool UBlueprintManager::BindBlueprintToProject(const FString& BlueprintPath, con
 
     if (!FPaths::FileExists(FilePath))
     {
-        UE_LOG(LogTemp, Error, TEXT("   ❌ Файл блюпринта не существует: %s"), *FilePath);
+        UE_LOG(LogTemp, Error, TEXT("   ❌ Файл блюпринта не существует: %s"), *FPaths::GetCleanFilename(FilePath));
+        UE_LOG(LogTemp, Warning, TEXT("   💡 Создайте блюпринты командой 'createbp' и сохраните их (Ctrl+S)"));
         return false;
     }
 
     UE_LOG(LogTemp, Warning, TEXT("   ✅ Файл блюпринта существует: %s"), *FPaths::GetCleanFilename(FilePath));
 
-    // 🔥 РЕАЛЬНАЯ ПРИВЯЗКА К КОНФИГУРАЦИИ ПРОЕКТА
-
-    // Получаем конфигурацию проекта
+    // Записываем в конфигурацию проекта
     FString ConfigPath = FPaths::ProjectConfigDir() + TEXT("DefaultEngine.ini");
     FString ConfigSection = TEXT("/Script/EngineSettings.GameMapsSettings");
     FString ConfigKey = SettingName;
@@ -247,13 +220,6 @@ void UBlueprintManager::SaveProjectConfig()
         FString Message = TEXT("💾 Конфигурация проекта обновлена!");
         GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, Message);
     }
-
-    // 🔥 ВЫВОДИМ ИНФОРМАЦИЮ О ПРИВЯЗКЕ
-    UE_LOG(LogTemp, Warning, TEXT("📋 ПРИВЯЗАННЫЕ BLUEPRINTS:"));
-    UE_LOG(LogTemp, Warning, TEXT("   👤 Персонаж: %s"), *GetBlueprintPathForClass("System1ParadoxCharacter"));
-    UE_LOG(LogTemp, Warning, TEXT("   🎮 GameMode: %s"), *GetBlueprintPathForClass("System1ParadoxGameMode"));
-    UE_LOG(LogTemp, Warning, TEXT("   🎯 PlayerController: %s"), *GetBlueprintPathForClass("System1ParadoxPlayerController"));
-    UE_LOG(LogTemp, Warning, TEXT("   📷 CameraManager: %s"), *GetBlueprintPathForClass("System1ParadoxCameraManager"));
 }
 
 void UBlueprintManager::EnsureBlueprintFolderExists()
