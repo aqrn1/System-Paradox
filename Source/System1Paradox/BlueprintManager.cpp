@@ -208,16 +208,35 @@ void UBlueprintManager::SaveProjectConfig()
 {
     UE_LOG(LogTemp, Warning, TEXT("💾 Сохраняем конфигурацию проекта..."));
 
-    // Принудительно сохраняем конфигурацию
-    GConfig->Flush(false, FPaths::ProjectConfigDir() + TEXT("DefaultEngine.ini"));
+    // 🔥 ПРОСТОЕ СОХРАНЕНИЕ БЕЗ СЛОЖНЫХ ВЫЗОВОВ
+    FString ConfigPath = FPaths::ProjectConfigDir() + TEXT("DefaultEngine.ini");
 
-    UE_LOG(LogTemp, Warning, TEXT("✅ Конфигурация проекта сохранена"));
+    // Принудительно сохраняем конфигурацию
+    GConfig->Flush(false, ConfigPath);
+
+    UE_LOG(LogTemp, Warning, TEXT("✅ Конфигурация проекта сохранена: %s"), *ConfigPath);
 
     // Выводим информационное сообщение
     if (GEngine)
     {
         FString Message = TEXT("💾 Конфигурация проекта обновлена!");
         GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, Message);
+    }
+}
+
+    // 🔥 ВЫВОДИМ ПРОВЕРКУ КОНФИГА
+    UE_LOG(LogTemp, Warning, TEXT("📋 ПРОВЕРКА КОНФИГУРАЦИИ:"));
+
+    FString ConfigSection = TEXT("/Script/EngineSettings.GameMapsSettings");
+    FString Value;
+
+    if (GConfig->GetString(*ConfigSection, TEXT("DefaultPawnClass"), Value, ConfigPath))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("   ✅ DefaultPawnClass = %s"), *Value);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("   ❌ DefaultPawnClass не найден в конфиге!"));
     }
 }
 
