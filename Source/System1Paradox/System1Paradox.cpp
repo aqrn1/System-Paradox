@@ -128,6 +128,42 @@ static void HealthCheck(const TArray<FString>& Args)
     }
 }
 
+// 🔥 КОМАНДА ПРОВЕРКИ КОНФИГУРАЦИИ
+static void CheckConfigCommand(const TArray<FString>& Args)
+{
+    UE_LOG(LogTemp, Warning, TEXT("=== 🔍 ПРОВЕРКА КОНФИГУРАЦИИ ==="));
+
+    FString ConfigPath = FPaths::ProjectConfigDir() + TEXT("DefaultEngine.ini");
+    FString ConfigSection = TEXT("/Script/EngineSettings.GameMapsSettings");
+
+    TArray<FString> Settings = {
+        TEXT("DefaultPawnClass"),
+        TEXT("DefaultGameMode"),
+        TEXT("PlayerControllerClass"),
+        TEXT("PlayerCameraManagerClass")
+    };
+
+    for (const FString& Setting : Settings)
+    {
+        FString Value;
+        if (GConfig->GetString(*ConfigSection, *Setting, Value, ConfigPath))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("   ✅ %s = %s"), *Setting, *Value);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("   ❌ %s = НЕ УСТАНОВЛЕНО"), *Setting);
+        }
+    }
+}
+
+// Добавьте в регистрацию команд:
+static FAutoConsoleCommand CheckConfigCmd(
+    TEXT("checkconfig"),
+    TEXT("Проверка текущей конфигурации проекта"),
+    FConsoleCommandWithArgsDelegate::CreateStatic(&CheckConfigCommand)
+);
+
 // РЕГИСТРАЦИЯ ПРОСТЫХ КОМАНД
 static FAutoConsoleCommand TestCmd(
     TEXT("test"),
