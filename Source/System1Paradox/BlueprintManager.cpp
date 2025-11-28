@@ -41,7 +41,7 @@ void UBlueprintManager::CreateAllBlueprints()
 		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("✅ Создание блюпринтов завершено! Создано: %d"), CreatedCount);
+	UE_LOG(LogTemp, Warning, TEXT("✅ Создание блюпринтов завершено! Создано: %d"), CreatedCount));
 
 	// Выводим сообщение на экран
 	if (GEngine)
@@ -93,18 +93,21 @@ bool UBlueprintManager::CreateBlueprintFromClass(UClass* SourceClass, const FStr
 		// Уведомляем Asset Registry о создании нового ассета
 		FAssetRegistryModule::AssetCreated(NewBlueprint);
 
-		// Формируем имя файла
+		// Формируем имя файла для UE5.7
 		FString PackageFileName = FPackageName::LongPackageNameToFilename(
 			FullPackagePath,
 			FPackageName::GetAssetPackageExtension()
 		);
 
-		// Сохраняем пакет
+		// 🔥 ИСПРАВЛЕННЫЙ ВЫЗОВ SavePackage ДЛЯ UE5.7
+		FSavePackageArgs SaveArgs;
+		SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
+
 		bool bSaved = UPackage::SavePackage(
 			Package,
 			NewBlueprint,
-			RF_Public | RF_Standalone,
-			*PackageFileName
+			*PackageFileName,
+			SaveArgs
 		);
 
 		if (bSaved)

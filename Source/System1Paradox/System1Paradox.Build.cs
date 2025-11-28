@@ -13,12 +13,9 @@ public class System1Paradox : ModuleRules
             "InputCore",
             "EnhancedInput",
             "GameplayTags",
-            "UnrealEd",           // Для редакторских функций
-            "BlueprintGraph",     // Для работы с блюпринтами
-            "KismetCompiler",     // Для компиляции блюпринтов
-            "Kismet",            // Для KismetEditorUtilities
-            "AssetTools",        // Для создания ассетов
-            "AssetRegistry"      // Для регистрации ассетов ← ДОБАВЬТЕ ЭТУ СТРОКУ!
+            "UnrealEd",           // Для FKismetEditorUtilities
+            "AssetRegistry",      // Для FAssetRegistryModule
+            "Kismet"             // Для работы с блюпринтами
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });
