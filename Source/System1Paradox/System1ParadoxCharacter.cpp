@@ -115,7 +115,7 @@ void ASystem1ParadoxCharacter::StopJump()
 
 void ASystem1ParadoxCharacter::StartSprint()
 {
-    UE_LOG(LogTemp, Warning, TEXT("StartSprint called")); // днаюбэре щрс ярпнйс
+    UE_LOG(LogTemp, Warning, TEXT("StartSprint called"));
 
     if (!bIsCrouching)
     {
@@ -131,7 +131,7 @@ void ASystem1ParadoxCharacter::StartSprint()
 
 void ASystem1ParadoxCharacter::StopSprint()
 {
-    UE_LOG(LogTemp, Warning, TEXT("StopSprint called")); // днаюбэре щрс ярпнйс
+    UE_LOG(LogTemp, Warning, TEXT("StopSprint called"));
 
     bIsSprinting = false;
     GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
@@ -140,7 +140,7 @@ void ASystem1ParadoxCharacter::StopSprint()
 
 void ASystem1ParadoxCharacter::StartCrouch()
 {
-    UE_LOG(LogTemp, Warning, TEXT("StartCrouch called")); // днаюбэре щрс ярпнйс
+    UE_LOG(LogTemp, Warning, TEXT("StartCrouch called"));
 
     bIsCrouching = true;
 
@@ -160,7 +160,7 @@ void ASystem1ParadoxCharacter::StartCrouch()
 
 void ASystem1ParadoxCharacter::StopCrouch()
 {
-    UE_LOG(LogTemp, Warning, TEXT("StopCrouch called")); // днаюбэре щрс ярпнйс
+    UE_LOG(LogTemp, Warning, TEXT("StopCrouch called"));
 
     bIsCrouching = false;
 
@@ -176,4 +176,4 @@ void ASystem1ParadoxCharacter::StopCrouch()
     }
 
     UnCrouch();
-}}
+}
