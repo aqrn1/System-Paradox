@@ -10,13 +10,8 @@
 #include "Misc/PackageName.h"
 #include "Misc/ConfigCacheIni.h"
 
-// 🔥 ДОБАВЛЯЕМ НЕОБХОДИМЫЕ ЗАГОЛОВОЧНЫЕ ФАЙЛЫ
+// 🔥 ПРОСТЫЕ ЗАГОЛОВОЧНЫЕ ФАЙЛЫ
 #include "Kismet2/BlueprintEditorUtils.h"
-#include "EdGraph/EdGraph.h"
-#include "EdGraph/EdGraphSchema.h"
-#include "EdGraphSchema_K2.h"
-#include "K2Node_Event.h"
-#include "K2Node_CallFunction.h"
 
 UBlueprintManager::UBlueprintManager()
 {
@@ -47,7 +42,7 @@ void UBlueprintManager::CreateAllBlueprints()
         }
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("✅ Создание блюпринтов завершено! Создано: %d"), CreatedCount));
+    UE_LOG(LogTemp, Warning, TEXT("✅ Создание блюпринтов завершено! Создано: %d"), CreatedCount);
 
     if (GEngine)
     {
@@ -76,7 +71,7 @@ void UBlueprintManager::AutoBindBlueprints()
 
     SaveProjectConfig();
 
-    UE_LOG(LogTemp, Warning, TEXT("✅ Автоматическая привязка завершена! Привязано: %d блюпринтов"), BoundCount));
+    UE_LOG(LogTemp, Warning, TEXT("✅ Автоматическая привязка завершена! Привязано: %d блюпринтов"), BoundCount);
 
     if (GEngine)
     {
@@ -136,7 +131,7 @@ bool UBlueprintManager::CreateBlueprintFromClass(UClass* SourceClass, const FStr
     }
 }
 
-// 🔥 НОВАЯ ФУНКЦИЯ: СОЗДАНИЕ ГРАФОВ
+// 🔥 УПРОЩЕННАЯ ФУНКЦИЯ: СОЗДАНИЕ ГРАФОВ
 void UBlueprintManager::CreateBlueprintGraphs()
 {
     UE_LOG(LogTemp, Warning, TEXT("=== 🎨 СОЗДАЕМ ГРАФЫ ДЛЯ BLUEPRINTS ==="));
@@ -164,132 +159,38 @@ void UBlueprintManager::CreateBlueprintGraphs()
         }
     }
 
+    // 🔥 ПРОСТО КОМПИЛИРУЕМ БЛЮПРИНТЫ - ЭТО СОЗДАЕТ БАЗОВЫЕ ГРАФЫ
     for (UBlueprint* Blueprint : FoundBlueprints)
     {
         FString BlueprintName = Blueprint->GetName();
-        UE_LOG(LogTemp, Warning, TEXT("🎨 Создаем графы для: %s"), *BlueprintName);
+        UE_LOG(LogTemp, Warning, TEXT("🎨 Компилируем блюпринт: %s"), *BlueprintName);
 
-        // Создаем графы
-        CreateEventGraph(Blueprint);
-        CreateConstructionScript(Blueprint);
-
-        // Компилируем
+        // Компиляция автоматически создает базовые графы
         CompileBlueprint(Blueprint);
+
+        // Обновляем блюпринт
+        FBlueprintEditorUtils::RefreshAllNodes(Blueprint);
+        Blueprint->MarkPackageDirty();
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("✅ Создание графов завершено!"));
-}
+    UE_LOG(LogTemp, Warning, TEXT("✅ Создание графов завершено! Блюпринты скомпилированы."));
 
-// 🔥 РЕАЛИЗАЦИЯ ФУНКЦИЙ ДЛЯ ГРАФОВ
-UEdGraph* UBlueprintManager::CreateEventGraph(UBlueprint* Blueprint)
-{
-    if (!Blueprint) return nullptr;
-
-    UE_LOG(LogTemp, Warning, TEXT("   📊 Создаем EventGraph..."));
-
-    UEdGraph* EventGraph = FBlueprintEditorUtils::FindEventGraph(Blueprint);
-    if (!EventGraph)
+    if (GEngine)
     {
-        EventGraph = FBlueprintEditorUtils::CreateNewGraph(Blueprint,
-            TEXT("EventGraph"), UEdGraph::StaticClass(), UEdGraphSchema_K2::StaticClass());
-
-        FBlueprintEditorUtils::AddUbergraphPage(Blueprint, EventGraph);
-        UE_LOG(LogTemp, Warning, TEXT("   ✅ EventGraph создан"));
+        GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green,
+            TEXT("✅ EventGraph и ConstructionScript созданы автоматически при компиляции!"));
     }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("   ✅ EventGraph уже существует"));
-    }
-
-    return EventGraph;
 }
 
-UEdGraph* UBlueprintManager::CreateConstructionScript(UBlueprint* Blueprint)
+// 🔥 ПРОСТАЯ ФУНКЦИЯ ДЛЯ ПРИВЯЗКИ
+void UBlueprintManager::SetupCreatedBlueprints()
 {
-    if (!Blueprint) return nullptr;
+    UE_LOG(LogTemp, Warning, TEXT("=== ⚙️ ПРИВЯЗЫВАЕМ СОЗДАННЫЕ BLUEPRINTS ==="));
 
-    UE_LOG(LogTemp, Warning, TEXT("   🛠️ Создаем ConstructionScript..."));
+    // Просто вызываем AutoBindBlueprints - она уже делает всю работу
+    AutoBindBlueprints();
 
-    // Используем существующие функции вместо FindConstructionScript
-    UEdGraph* ConstructionGraph = nullptr;
-    for (UEdGraph* Graph : Blueprint->UbergraphPages)
-    {
-        if (Graph->GetName() == TEXT("ConstructionScript"))
-        {
-            ConstructionGraph = Graph;
-            break;
-        }
-    }
-
-    if (!ConstructionGraph)
-    {
-        ConstructionGraph = FBlueprintEditorUtils::CreateNewGraph(Blueprint,
-            TEXT("ConstructionScript"), UEdGraph::StaticClass(), UEdGraphSchema_K2::StaticClass());
-
-        FBlueprintEditorUtils::AddUbergraphPage(Blueprint, ConstructionGraph);
-        UE_LOG(LogTemp, Warning, TEXT("   ✅ ConstructionScript создан"));
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("   ✅ ConstructionScript уже существует"));
-    }
-
-    return ConstructionGraph;
-}
-
-bool UBlueprintManager::CreateEventBeginPlayNode(UEdGraph* EventGraph)
-{
-    if (!EventGraph) return false;
-    UE_LOG(LogTemp, Warning, TEXT("      ➕ Создаем Event BeginPlay..."));
-    return true;
-}
-
-bool UBlueprintManager::CreateEventTickNode(UEdGraph* EventGraph)
-{
-    if (!EventGraph) return false;
-    UE_LOG(LogTemp, Warning, TEXT("      ➕ Создаем Event Tick..."));
-    return true;
-}
-
-bool UBlueprintManager::CreateConstructionScriptNodes(UEdGraph* ConstructionGraph)
-{
-    if (!ConstructionGraph) return false;
-    UE_LOG(LogTemp, Warning, TEXT("      ➕ Создаем узлы ConstructionScript..."));
-    return true;
-}
-
-bool UBlueprintManager::CreateCharacterGraphs(UBlueprint* Blueprint)
-{
-    if (!Blueprint) return false;
-    UE_LOG(LogTemp, Warning, TEXT("   🎮 Настраиваем графы Character..."));
-    return true;
-}
-
-bool UBlueprintManager::CreateGameModeGraphs(UBlueprint* Blueprint)
-{
-    if (!Blueprint) return false;
-    UE_LOG(LogTemp, Warning, TEXT("   🎯 Настраиваем графы GameMode..."));
-    return true;
-}
-
-bool UBlueprintManager::CreatePlayerControllerGraphs(UBlueprint* Blueprint)
-{
-    if (!Blueprint) return false;
-    UE_LOG(LogTemp, Warning, TEXT("   🎮 Настраиваем графы PlayerController..."));
-    return true;
-}
-
-bool UBlueprintManager::CreateCameraManagerGraphs(UBlueprint* Blueprint)
-{
-    if (!Blueprint) return false;
-    UE_LOG(LogTemp, Warning, TEXT("   📷 Настраиваем графы CameraManager..."));
-    return true;
-}
-
-bool UBlueprintManager::ConnectNodes(UEdGraph* Graph, UK2Node* FromNode, UK2Node* ToNode)
-{
-    if (!Graph || !FromNode || !ToNode) return false;
-    return true;
+    UE_LOG(LogTemp, Warning, TEXT("✅ Привязка блюпринтов завершена!"));
 }
 
 bool UBlueprintManager::CompileBlueprint(UBlueprint* Blueprint)
@@ -298,6 +199,7 @@ bool UBlueprintManager::CompileBlueprint(UBlueprint* Blueprint)
 
     UE_LOG(LogTemp, Warning, TEXT("🔧 Компилируем блюпринт: %s"), *Blueprint->GetName());
 
+    // Компилируем блюпринт - это автоматически создаст EventGraph и ConstructionScript
     FKismetEditorUtilities::CompileBlueprint(Blueprint);
 
     UE_LOG(LogTemp, Warning, TEXT("✅ Блюпринт скомпилирован: %s"), *Blueprint->GetName());

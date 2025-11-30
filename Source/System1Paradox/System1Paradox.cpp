@@ -334,7 +334,7 @@ static void SetupBlueprintsCommand(const TArray<FString>& Args)
     }
 }
 
-// 🔥 КОМАНДА ДЛЯ СОЗДАНИЯ ГРАФОВ
+// 🔥 ПРОСТАЯ КОМАНДА ДЛЯ СОЗДАНИЯ ГРАФОВ
 static void CreateGraphsCommand(const TArray<FString>& Args)
 {
     UE_LOG(LogTemp, Warning, TEXT("=== 🎨 СОЗДАЕМ ГРАФЫ ДЛЯ BLUEPRINTS ==="));
@@ -360,18 +360,18 @@ static void CreateGraphsCommand(const TArray<FString>& Args)
     }
 }
 
-// РЕГИСТРАЦИЯ КОМАНД
-static FAutoConsoleCommand TestCmd(
-    TEXT("sys.Test"),
-    TEXT("Простая тестовая команда"),
-    FConsoleCommandWithArgsDelegate::CreateStatic(&TestCommand)
-);
-
 // РЕГИСТРАЦИЯ КОМАНДЫ
 static FAutoConsoleCommand CreateGraphsCmd(
     TEXT("creategraphs"),
     TEXT("Создание EventGraph и ConstructionScript для блюпринтов"),
     FConsoleCommandWithArgsDelegate::CreateStatic(&CreateGraphsCommand)
+);
+
+// РЕГИСТРАЦИЯ КОМАНД
+static FAutoConsoleCommand TestCmd(
+    TEXT("sys.Test"),
+    TEXT("Простая тестовая команда"),
+    FConsoleCommandWithArgsDelegate::CreateStatic(&TestCommand)
 );
 
 static FAutoConsoleCommand HealthCmd(
