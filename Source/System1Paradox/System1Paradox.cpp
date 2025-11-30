@@ -7,6 +7,62 @@
 #include "Components/InputComponent.h"
 #include "EnhancedInputSubsystems.h"  // 🔥 ДОБАВЛЕНО
 #include "EnhancedInputComponent.h"    // 🔥 ДОБАВЛЕНО
+#include "InputManager.h" // 🔥 ДОБАВЬТЕ ЭТОТ INCLUDE
+
+// 🔥 КОМАНДА ДЛЯ СОЗДАНИЯ INPUT СИСТЕМЫ
+static void CreateInputSystemCommand(const TArray<FString>& Args)
+{
+    UE_LOG(LogTemp, Warning, TEXT("=== 🎮 СОЗДАЕМ INPUT СИСТЕМУ ==="));
+
+    UWorld* World = GWorld;
+    if (!World)
+    {
+        UE_LOG(LogTemp, Error, TEXT("❌ GWorld не доступен!"));
+        return;
+    }
+
+    UInputManager* InputManager = NewObject<UInputManager>(World);
+    if (InputManager)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("🔧 InputManager создан!"));
+        InputManager->CreateInputSystem();
+        UE_LOG(LogTemp, Warning, TEXT("✅ Input система создана!"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("❌ Не удалось создать InputManager!"));
+    }
+}
+
+// 🔥 ПРОСТАЯ КОМАНДА ДЛЯ INPUT
+static void SimpleCreateInput(const TArray<FString>& Args)
+{
+    UE_LOG(LogTemp, Warning, TEXT("=== 🎮 ПРОСТОЕ СОЗДАНИЕ INPUT ==="));
+
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Blue, TEXT("=== 🎮 СОЗДАЕМ INPUT СИСТЕМУ ==="));
+    }
+
+    UWorld* World = GWorld;
+    if (!World)
+    {
+        UE_LOG(LogTemp, Error, TEXT("❌ GWorld не доступен!"));
+        return;
+    }
+
+    UInputManager* InputManager = NewObject<UInputManager>(World);
+    if (InputManager)
+    {
+        InputManager->CreateInputSystem();
+
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 8.0f, FColor::Green, TEXT("✅ Input система создана! Сохраните проект (Ctrl+S)"));
+        }
+    }
+}
+
 
 // 🔥 ТЕСТОВАЯ КОМАНДА
 static void TestCommand(const TArray<FString>& Args)
@@ -305,6 +361,19 @@ static FAutoConsoleCommand TestInputCmd(
     TEXT("testinput"),
     TEXT("Простая проверка управления"),
     FConsoleCommandWithArgsDelegate::CreateStatic(&TestInput)
+);
+
+// 🔥 РЕГИСТРАЦИЯ КОМАНД (добавьте с другими FAutoConsoleCommand)
+static FAutoConsoleCommand CreateInputCmd(
+    TEXT("createinput"),
+    TEXT("Автоматическое создание Input системы"),
+    FConsoleCommandWithArgsDelegate::CreateStatic(&SimpleCreateInput)
+);
+
+static FAutoConsoleCommand CreateInputFullCmd(
+    TEXT("sys.CreateInput"),
+    TEXT("Полное создание Input системы"),
+    FConsoleCommandWithArgsDelegate::CreateStatic(&CreateInputSystemCommand)
 );
 
 IMPLEMENT_PRIMARY_GAME_MODULE(FSystem1ParadoxModule, System1Paradox, "System1Paradox");
