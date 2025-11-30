@@ -314,26 +314,6 @@ static void TestInput(const TArray<FString>& Args)
     }
 }
 
-// 🔥 КОМАНДА ДЛЯ НАСТРОЙКИ БЛЮПРИНТОВ
-static void SetupBlueprintsCommand(const TArray<FString>& Args)
-{
-    UE_LOG(LogTemp, Warning, TEXT("=== ⚙️ НАСТРАИВАЕМ СОЗДАННЫЕ BLUEPRINTS ==="));
-
-    UWorld* World = GWorld;
-    if (!World)
-    {
-        UE_LOG(LogTemp, Error, TEXT("❌ GWorld не доступен!"));
-        return;
-    }
-
-    UBlueprintManager* BlueprintManager = NewObject<UBlueprintManager>(World);
-    if (BlueprintManager)
-    {
-        BlueprintManager->SetupCreatedBlueprints();
-        UE_LOG(LogTemp, Warning, TEXT("✅ BlueprintManager настроил все блюпринты!"));
-    }
-}
-
 // 🔥 ПРОСТАЯ КОМАНДА ДЛЯ СОЗДАНИЯ ГРАФОВ
 static void CreateGraphsCommand(const TArray<FString>& Args)
 {
@@ -429,12 +409,6 @@ static FAutoConsoleCommand CreateInputFullCmd(
     FConsoleCommandWithArgsDelegate::CreateStatic(&CreateInputSystemCommand)
 );
 
-// РЕГИСТРАЦИЯ КОМАНДЫ
-static FAutoConsoleCommand SetupBPCmd(
-    TEXT("setupbp"),
-    TEXT("Настройка созданных блюпринтов"),
-    FConsoleCommandWithArgsDelegate::CreateStatic(&SetupBlueprintsCommand)
-);
 
 IMPLEMENT_PRIMARY_GAME_MODULE(FSystem1ParadoxModule, System1Paradox, "System1Paradox");
 
