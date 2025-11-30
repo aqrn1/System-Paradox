@@ -39,6 +39,17 @@ void ASystem1ParadoxCharacter::BeginPlay()
 void ASystem1ParadoxCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+
+    // Îòëàäî÷íàÿ èíôîðìàöèÿ
+    if (GEngine)
+    {
+        FString DebugString = FString::Printf(TEXT("Speed: %.0f | Sprint: %s | Crouch: %s"),
+            GetVelocity().Size(),
+            bIsSprinting ? TEXT("ON") : TEXT("OFF"),
+            bIsCrouching ? TEXT("ON") : TEXT("OFF"));
+
+        GEngine->AddOnScreenDebugMessage(1, 0, FColor::Green, DebugString);
+    }
 }
 
 void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -53,9 +64,11 @@ void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* Player
     PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASystem1ParadoxCharacter::StartJump);
     PlayerInputComponent->BindAction("Jump", IE_Released, this, &ASystem1ParadoxCharacter::StopJump);
 
-    // Äîáàâëÿåì ñïðèíò
     PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASystem1ParadoxCharacter::StartSprint);
     PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASystem1ParadoxCharacter::StopSprint);
+
+    PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASystem1ParadoxCharacter::StartCrouch);
+    PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ASystem1ParadoxCharacter::StopCrouch);
 }
 
 void ASystem1ParadoxCharacter::MoveForward(float Value)
@@ -102,12 +115,65 @@ void ASystem1ParadoxCharacter::StopJump()
 
 void ASystem1ParadoxCharacter::StartSprint()
 {
-    bIsSprinting = true;
-    GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+    UE_LOG(LogTemp, Warning, TEXT("StartSprint called")); // ÄÎÁÀÂÜÒÅ ÝÒÓ ÑÒÐÎÊÓ
+
+    if (!bIsCrouching)
+    {
+        bIsSprinting = true;
+        GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+        UE_LOG(LogTemp, Warning, TEXT("SPRINT ACTIVATED - Speed: %f"), SprintSpeed);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Cannot sprint while crouching"));
+    }
 }
 
 void ASystem1ParadoxCharacter::StopSprint()
 {
+    UE_LOG(LogTemp, Warning, TEXT("StopSprint called")); // ÄÎÁÀÂÜÒÅ ÝÒÓ ÑÒÐÎÊÓ
+
     bIsSprinting = false;
     GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+    UE_LOG(LogTemp, Warning, TEXT("SPRINT DEACTIVATED - Speed: %f"), WalkSpeed);
 }
+
+void ASystem1ParadoxCharacter::StartCrouch()
+{
+    UE_LOG(LogTemp, Warning, TEXT("StartCrouch called")); // ÄÎÁÀÂÜÒÅ ÝÒÓ ÑÒÐÎÊÓ
+
+    bIsCrouching = true;
+
+    if (bIsSprinting)
+    {
+        GetCharacterMovement()->MaxWalkSpeed = CrouchSprintSpeed;
+        UE_LOG(LogTemp, Warning, TEXT("CROUCH SPRINT - Speed: %f"), CrouchSprintSpeed);
+    }
+    else
+    {
+        GetCharacterMovement()->MaxWalkSpeed = CrouchSpeed;
+        UE_LOG(LogTemp, Warning, TEXT("CROUCH - Speed: %f"), CrouchSpeed);
+    }
+
+    Crouch();
+}
+
+void ASystem1ParadoxCharacter::StopCrouch()
+{
+    UE_LOG(LogTemp, Warning, TEXT("StopCrouch called")); // ÄÎÁÀÂÜÒÅ ÝÒÓ ÑÒÐÎÊÓ
+
+    bIsCrouching = false;
+
+    if (bIsSprinting)
+    {
+        GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+        UE_LOG(LogTemp, Warning, TEXT("STAND UP (Sprinting) - Speed: %f"), SprintSpeed);
+    }
+    else
+    {
+        GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+        UE_LOG(LogTemp, Warning, TEXT("STAND UP - Speed: %f"), WalkSpeed);
+    }
+
+    UnCrouch();
+}}

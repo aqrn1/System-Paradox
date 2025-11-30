@@ -16,15 +16,6 @@ public:
     virtual void Tick(float DeltaTime) override;
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-    UFUNCTION(BlueprintCallable, Category = "Movement")
-    void StartSprint();
-
-    UFUNCTION(BlueprintCallable, Category = "Movement")
-    void StopSprint();
-
-    UFUNCTION(BlueprintPure, Category = "Movement")
-    bool GetIsSprinting() const { return bIsSprinting; }
-
 protected:
     virtual void BeginPlay() override;
 
@@ -34,6 +25,7 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
     USpringArmComponent* SpringArmComponent;
 
+    // Input functions
     UFUNCTION(BlueprintCallable, Category = "Input")
     void MoveForward(float Value);
 
@@ -52,12 +44,37 @@ protected:
     UFUNCTION(BlueprintCallable, Category = "Input")
     void StopJump();
 
+    // Sprint functions
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void StartSprint();
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void StopSprint();
+
+    // Crouch functions  
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void StartCrouch();
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void StopCrouch();
+
+    // Movement properties
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float WalkSpeed = 400.0f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float SprintSpeed = 600.0f;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    float CrouchSpeed = 200.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    float CrouchSprintSpeed = 300.0f;
+
+    // State variables
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
     bool bIsSprinting = false;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+    bool bIsCrouching = false;
 };
