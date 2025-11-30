@@ -4,8 +4,10 @@
 #include "GameFramework/Character.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Weapon.h" // ДОБАВЬТЕ ЭТУ СТРОКУ
 #include "System1ParadoxCharacter.generated.h"
+
+// Предварительное объявление класса Weapon чтобы избежать циклических зависимостей
+class AWeapon;
 
 UCLASS()
 class SYSTEM1PARADOX_API ASystem1ParadoxCharacter : public ACharacter
@@ -16,12 +18,6 @@ public:
     ASystem1ParadoxCharacter();
     virtual void Tick(float DeltaTime) override;
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-    // HUD функции
-    UFUNCTION(BlueprintCallable, Category = "HUD")
-    void UpdateHUD();
-
-    UFUNCTION(BlueprintCallable, Category = "HUD")
-    ASystem1ParadoxHUD* GetSystemHUD() const;
 
 protected:
     virtual void BeginPlay() override;
@@ -33,18 +29,12 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
     USpringArmComponent* SpringArmComponent;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
-    float MaxHealth = 100.0f;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
-    float CurrentHealth = 100.0f;
-
     // Оружие
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
     AWeapon* CurrentWeapon;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-    TSubclassOf<AWeapon> WeaponClass;
+    TSubclassOf<class AActor> WeaponClass;
 
     // Функции ввода
     UFUNCTION(BlueprintCallable, Category = "Input")
@@ -71,6 +61,20 @@ protected:
 
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     void StopFire();
+
+    // Функции для управления оружием
+    UFUNCTION(BlueprintCallable, Category = "Weapon")
+    void ReloadWeapon();
+
+    UFUNCTION(BlueprintCallable, Category = "Input")
+    void StartReload();
+
+    // HUD функции
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void UpdateHUD();
+
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    class ASystem1ParadoxHUD* GetSystemHUD() const;
 
     // Таймер для автоматической стрельбы
     FTimerHandle FireTimerHandle;
@@ -102,6 +106,13 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float CrouchSprintSpeed = 300.0f;
+
+    // Здоровье
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+    float MaxHealth = 100.0f;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
+    float CurrentHealth = 100.0f;
 
     // Переменные состояния
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")

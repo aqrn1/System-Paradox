@@ -3,36 +3,11 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Engine/Engine.h"
-#include "Weapon.h" // ДОБАВЬТЕ ЭТУ СТРОКУ
+#include "Weapon.h"
 #include "System1ParadoxHUD.h"
 
 ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
 {
-    PrimaryActorTick.bCanEverTick = true;
-
-    SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-    SpringArmComponent->SetupAttachment(RootComponent);
-    SpringArmComponent->TargetArmLength = 0.0f;
-    SpringArmComponent->bUsePawnControlRotation = true;
-    SpringArmComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 70.0f));
-
-    CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-    CameraComponent->SetupAttachment(SpringArmComponent, USpringArmComponent::SocketName);
-    CameraComponent->bUsePawnControlRotation = false;
-    CameraComponent->SetFieldOfView(90.0f);
-
-    bUseControllerRotationPitch = true;
-    bUseControllerRotationYaw = true;
-    bUseControllerRotationRoll = false;
-
-    GetCharacterMovement()->bOrientRotationToMovement = false;
-    GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f);
-    GetCharacterMovement()->JumpZVelocity = 300.0f;
-    GetCharacterMovement()->AirControl = 0.2f;
-    GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-    GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
-
-    // Существующий код конструктора...
     PrimaryActorTick.bCanEverTick = true;
 
     SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
@@ -78,7 +53,6 @@ void ASystem1ParadoxCharacter::BeginPlay()
     }
 }
 
-
 void ASystem1ParadoxCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
@@ -86,14 +60,11 @@ void ASystem1ParadoxCharacter::Tick(float DeltaTime)
     // Обновляем HUD каждый кадр
     UpdateHUD();
 
-    // Отладочная информация (можно закомментировать позже)
+    // Отладочная информация
     if (GEngine)
     {
-        FString AmmoInfo = CurrentWeapon ? FString::Printf(TEXT("Ammo: %.0f/%.0f"),
-            CurrentWeapon->CurrentAmmo, CurrentWeapon->MaxAmmo) : TEXT("Ammo: No Weapon");
-
+        FString AmmoInfo = CurrentWeapon ? FString::Printf(TEXT("Ammo: %d"), CurrentWeapon->CurrentAmmo) : TEXT("Ammo: No Weapon");
         FString HealthInfo = FString::Printf(TEXT("Health: %.0f"), CurrentHealth);
-
         FString DebugString = FString::Printf(TEXT("Speed: %.0f | %s | %s"),
             GetVelocity().Size(),
             *HealthInfo,
@@ -102,7 +73,6 @@ void ASystem1ParadoxCharacter::Tick(float DeltaTime)
         GEngine->AddOnScreenDebugMessage(1, 0, FColor::Green, DebugString);
     }
 }
-
 
 void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -119,6 +89,9 @@ void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* Player
     // Добавляем стрельбу
     PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASystem1ParadoxCharacter::StartFire);
     PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASystem1ParadoxCharacter::StopFire);
+
+    // Добавляем перезарядку
+    PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ASystem1ParadoxCharacter::StartReload);
 }
 
 void ASystem1ParadoxCharacter::MoveForward(float Value)
@@ -163,80 +136,12 @@ void ASystem1ParadoxCharacter::StopJump()
     StopJumping();
 }
 
-void ASystem1ParadoxCharacter::StartSprint()
-{
-    UE_LOG(LogTemp, Warning, TEXT("StartSprint called"));
-
-    if (!bIsCrouching)
-    {
-        bIsSprinting = true;
-        GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
-        UE_LOG(LogTemp, Warning, TEXT("SPRINT ACTIVATED - Speed: %f"), SprintSpeed);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Cannot sprint while crouching"));
-    }
-}
-
-void ASystem1ParadoxCharacter::StopSprint()
-{
-    UE_LOG(LogTemp, Warning, TEXT("StopSprint called"));
-
-    bIsSprinting = false;
-    GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-    UE_LOG(LogTemp, Warning, TEXT("SPRINT DEACTIVATED - Speed: %f"), WalkSpeed);
-}
-
-void ASystem1ParadoxCharacter::StartCrouch()
-{
-    UE_LOG(LogTemp, Warning, TEXT("StartCrouch called"));
-
-    bIsCrouching = true;
-
-    if (bIsSprinting)
-    {
-        GetCharacterMovement()->MaxWalkSpeed = CrouchSprintSpeed;
-        UE_LOG(LogTemp, Warning, TEXT("CROUCH SPRINT - Speed: %f"), CrouchSprintSpeed);
-    }
-    else
-    {
-        GetCharacterMovement()->MaxWalkSpeed = CrouchSpeed;
-        UE_LOG(LogTemp, Warning, TEXT("CROUCH - Speed: %f"), CrouchSpeed);
-    }
-
-    Crouch();
-}
-
-void ASystem1ParadoxCharacter::StopCrouch()
-{
-    UE_LOG(LogTemp, Warning, TEXT("StopCrouch called"));
-
-    bIsCrouching = false;
-
-    if (bIsSprinting)
-    {
-        GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
-        UE_LOG(LogTemp, Warning, TEXT("STAND UP (Sprinting) - Speed: %f"), SprintSpeed);
-    }
-    else
-    {
-        GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-        UE_LOG(LogTemp, Warning, TEXT("STAND UP - Speed: %f"), WalkSpeed);
-    }
-
-    UnCrouch();
-}
-
 void ASystem1ParadoxCharacter::StartFire()
 {
     if (CurrentWeapon && !bIsFiring)
     {
         bIsFiring = true;
-        // НЕПОСРЕДСТВЕННО ВЫЗЫВАЕМ Fire() при первом нажатии
-        CurrentWeapon->Fire();
-        // Устанавливаем таймер для повторяющейся стрельбы
-        GetWorldTimerManager().SetTimer(FireTimerHandle, CurrentWeapon, &AWeapon::Fire, CurrentWeapon->FireRate, true);
+        CurrentWeapon->StartFire();
         UE_LOG(LogTemp, Warning, TEXT("Started firing"));
     }
 }
@@ -246,9 +151,22 @@ void ASystem1ParadoxCharacter::StopFire()
     if (bIsFiring)
     {
         bIsFiring = false;
-        GetWorldTimerManager().ClearTimer(FireTimerHandle);
+        CurrentWeapon->StopFire();
         UE_LOG(LogTemp, Warning, TEXT("Stopped firing"));
     }
+}
+
+void ASystem1ParadoxCharacter::ReloadWeapon()
+{
+    if (CurrentWeapon)
+    {
+        CurrentWeapon->Reload();
+    }
+}
+
+void ASystem1ParadoxCharacter::StartReload()
+{
+    ReloadWeapon();
 }
 
 ASystem1ParadoxHUD* ASystem1ParadoxCharacter::GetSystemHUD() const
@@ -270,3 +188,9 @@ void ASystem1ParadoxCharacter::UpdateHUD()
         HUD->UpdateAmmo(CurrentWeapon->CurrentAmmo, CurrentWeapon->MaxAmmo);
     }
 }
+
+// Остальные функции (sprint, crouch) пока остаются пустыми
+void ASystem1ParadoxCharacter::StartSprint() {}
+void ASystem1ParadoxCharacter::StopSprint() {}
+void ASystem1ParadoxCharacter::StartCrouch() {}
+void ASystem1ParadoxCharacter::StopCrouch() {}
