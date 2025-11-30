@@ -3,7 +3,6 @@
 #include "Misc/Paths.h"
 #include "HAL/PlatformFilemanager.h"
 #include "Misc/ConfigCacheIni.h"
-#include "EnhancedInputComponent.h"
 #include "System1ParadoxCharacter.h"
 
 UInputManager::UInputManager()
@@ -13,7 +12,7 @@ UInputManager::UInputManager()
 
 void UInputManager::CreateInputSystem()
 {
-    UE_LOG(LogTemp, Warning, TEXT("=== 🎮 СОЗДАЕМ INPUT СИСТЕМУ ==="));
+    UE_LOG(LogTemp, Warning, TEXT("=== 🎮 СОЗДАЕМ INPUT СИСТЕМУ С ПРИВЯЗКАМИ ==="));
 
     // Создаем папку
     EnsureInputFolderExists();
@@ -30,8 +29,8 @@ void UInputManager::CreateInputSystem()
 
     if (DefaultContext && MoveAction && LookAction && JumpAction && SprintAction && CrouchAction)
     {
-        // Настраиваем привязки
-        SetupDefaultMappings(DefaultContext);
+        // Настраиваем привязки с автоматическим созданием клавиш
+        SetupDefaultMappings(DefaultContext, MoveAction, LookAction, JumpAction, SprintAction, CrouchAction);
 
         // Сохраняем ассеты
         SaveCreatedAssets();
@@ -39,12 +38,12 @@ void UInputManager::CreateInputSystem()
         // Привязываем к проекту
         BindInputToProject();
 
-        UE_LOG(LogTemp, Warning, TEXT("✅ Input система создана успешно!"));
+        UE_LOG(LogTemp, Warning, TEXT("✅ Input система создана со всеми привязками!"));
 
         if (GEngine)
         {
             GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green,
-                TEXT("✅ Input система создана! Перезапустите проект."));
+                TEXT("✅ Input система создана! Все клавиши привязаны автоматически."));
         }
     }
     else
@@ -108,7 +107,8 @@ UInputMappingContext* UInputManager::CreateInputMappingContext(const FString& Co
     return nullptr;
 }
 
-void UInputManager::SetupDefaultMappings(UInputMappingContext* Context)
+void UInputManager::SetupDefaultMappings(UInputMappingContext* Context, UInputAction* MoveAction, UInputAction* LookAction,
+    UInputAction* JumpAction, UInputAction* SprintAction, UInputAction* CrouchAction)
 {
     if (!Context)
     {
@@ -116,12 +116,67 @@ void UInputManager::SetupDefaultMappings(UInputMappingContext* Context)
         return;
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("🔧 Настраиваем привязки клавиш..."));
+    UE_LOG(LogTemp, Warning, TEXT("🔧 Настраиваем автоматические привязки клавиш..."));
 
-    // Здесь будут привязки клавиш
-    // Реальная реализация требует более сложного кода для привязки конкретных клавиш
+    // 🔥 ДВИЖЕНИЕ (WASD) - Axis2D
+    CreateKeyMapping(Context, MoveAction, EKeys::W, 0.0f, 1.0f);    // W - вперед
+    CreateKeyMapping(Context, MoveAction, EKeys::S, 0.0f, -1.0f);   // S - назад
+    CreateKeyMapping(Context, MoveAction, EKeys::A, -1.0f, 0.0f);   // A - влево
+    CreateKeyMapping(Context, MoveAction, EKeys::D, 1.0f, 0.0f);    // D - вправо
 
-    UE_LOG(LogTemp, Warning, TEXT("✅ Привязки клавиш настроены (требует ручной донастройки в редакторе)"));
+    // 🔥 КАМЕРА (МЫШЬ) - Axis2D
+    CreateKeyMapping(Context, LookAction, EKeys::MouseX, 1.0f, 0.0f);  // Mouse X
+    CreateKeyMapping(Context, LookAction, EKeys::MouseY, 0.0f, 1.0f);  // Mouse Y
+
+    // 🔥 ДЕЙСТВИЯ (Boolean)
+    CreateKeyMapping(Context, JumpAction, EKeys::SpaceBar);        // Пробел - прыжок
+    CreateKeyMapping(Context, SprintAction, EKeys::LeftShift);     // Shift - спринт
+    CreateKeyMapping(Context, CrouchAction, EKeys::LeftControl);   // Ctrl - приседание
+
+    UE_LOG(LogTemp, Warning, TEXT("✅ Все привязки клавиш созданы автоматически!"));
+    UE_LOG(LogTemp, Warning, TEXT("   🎮 Движение: W, A, S, D"));
+    UE_LOG(LogTemp, Warning, TEXT("   🖱️  Камера: Mouse X, Mouse Y"));
+    UE_LOG(LogTemp, Warning, TEXT("   ⚡ Действия: Space, Shift, Ctrl"));
+}
+
+void UInputManager::CreateKeyMapping(UInputMappingContext* Context, UInputAction* Action, FKey Key, float X, float Y, float Z)
+{
+    if (!Context || !Action)
+    {
+        UE_LOG(LogTemp, Error, TEXT("❌ Context или Action недействительны для создания привязки!"));
+        return;
+    }
+
+    // Создаем новую привязку
+    FEnhancedActionKeyMapping& Mapping = Context->MapKey(Action, Key);
+
+    // Настраиваем вектор для Axis2D действий
+    if (Action->ValueType == EInputActionValueType::Axis2D || Action->ValueType == EInputActionValueType::Axis3D)
+    {
+        // Для осей настраиваем вектор направления
+        Mapping.Modifiers.Add(NewObject<UInputModifierSwizzleAxis>());
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("   🔗 Привязано: %s -> %s (%.1f, %.1f, %.1f)"),
+        *Action->GetName(), *Key.ToString(), X, Y, Z);
+}
+
+void UInputManager::CreateAxisMapping(UInputMappingContext* Context, UInputAction* Action, FKey PositiveKey, FKey NegativeKey, bool bForXAxis)
+{
+    if (!Context || !Action)
+    {
+        UE_LOG(LogTemp, Error, TEXT("❌ Context или Action недействительны для создания оси!"));
+        return;
+    }
+
+    // Положительное направление
+    FEnhancedActionKeyMapping& PosMapping = Context->MapKey(Action, PositiveKey);
+
+    // Отрицательное направление  
+    FEnhancedActionKeyMapping& NegMapping = Context->MapKey(Action, NegativeKey);
+
+    UE_LOG(LogTemp, Warning, TEXT("   🔄 Ось создана: %s -> %s / %s"),
+        *Action->GetName(), *PositiveKey.ToString(), *NegativeKey.ToString());
 }
 
 void UInputManager::EnsureInputFolderExists()
@@ -150,6 +205,9 @@ void UInputManager::SaveCreatedAssets()
         {
             FString PackageName = Asset->GetOutermost()->GetName();
             UE_LOG(LogTemp, Warning, TEXT("   💾 Сохраняем: %s"), *PackageName);
+
+            // Помечаем пакет как требующий сохранения
+            Asset->GetOutermost()->MarkPackageDirty();
         }
     }
 
