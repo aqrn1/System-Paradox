@@ -12,9 +12,12 @@ class SYSTEM1PARADOX_API ASystem1ParadoxGameMode : public AGameModeBase
 public:
     ASystem1ParadoxGameMode();
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
+    TSubclassOf<class UUserWidget> MainHUDWidgetClass;
+
 protected:
     virtual void BeginPlay() override;
 
-public:
-    virtual void Tick(float DeltaTime) override;
+private:
+    class UUserWidget* MainHUDWidget;
 };

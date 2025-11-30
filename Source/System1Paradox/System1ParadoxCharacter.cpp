@@ -3,9 +3,35 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Engine/Engine.h"
+#include "Weapon.h" // ДОБАВЬТЕ ЭТУ СТРОКУ
 
 ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
 {
+    PrimaryActorTick.bCanEverTick = true;
+
+    SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+    SpringArmComponent->SetupAttachment(RootComponent);
+    SpringArmComponent->TargetArmLength = 0.0f;
+    SpringArmComponent->bUsePawnControlRotation = true;
+    SpringArmComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 70.0f));
+
+    CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+    CameraComponent->SetupAttachment(SpringArmComponent, USpringArmComponent::SocketName);
+    CameraComponent->bUsePawnControlRotation = false;
+    CameraComponent->SetFieldOfView(90.0f);
+
+    bUseControllerRotationPitch = true;
+    bUseControllerRotationYaw = true;
+    bUseControllerRotationRoll = false;
+
+    GetCharacterMovement()->bOrientRotationToMovement = false;
+    GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f);
+    GetCharacterMovement()->JumpZVelocity = 300.0f;
+    GetCharacterMovement()->AirControl = 0.2f;
+    GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+    GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+
+    // Существующий код конструктора...
     PrimaryActorTick.bCanEverTick = true;
 
     SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
@@ -34,7 +60,23 @@ ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
 void ASystem1ParadoxCharacter::BeginPlay()
 {
     Super::BeginPlay();
+
+    // Создаем оружие при старте игры
+    if (WeaponClass)
+    {
+        FActorSpawnParameters SpawnParams;
+        SpawnParams.Owner = this;
+        SpawnParams.Instigator = GetInstigator();
+
+        CurrentWeapon = GetWorld()->SpawnActor<AWeapon>(WeaponClass, SpawnParams);
+        if (CurrentWeapon)
+        {
+            CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("hand_r"));
+            UE_LOG(LogTemp, Warning, TEXT("Weapon spawned and attached!"));
+        }
+    }
 }
+
 
 void ASystem1ParadoxCharacter::Tick(float DeltaTime)
 {
@@ -43,31 +85,34 @@ void ASystem1ParadoxCharacter::Tick(float DeltaTime)
     // Отладочная информация
     if (GEngine)
     {
-        FString DebugString = FString::Printf(TEXT("Speed: %.0f | Sprint: %s | Crouch: %s"),
+        FString AmmoInfo = CurrentWeapon ? FString::Printf(TEXT("Ammo: %.0f/%.0f"),
+            CurrentWeapon->CurrentAmmo, CurrentWeapon->MaxAmmo) : TEXT("Ammo: No Weapon");
+
+        FString DebugString = FString::Printf(TEXT("Speed: %.0f | %s | Firing: %s"),
             GetVelocity().Size(),
-            bIsSprinting ? TEXT("ON") : TEXT("OFF"),
-            bIsCrouching ? TEXT("ON") : TEXT("OFF"));
+            *AmmoInfo,
+            bIsFiring ? TEXT("YES") : TEXT("NO"));
 
         GEngine->AddOnScreenDebugMessage(1, 0, FColor::Green, DebugString);
     }
 }
 
+
 void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-    // Привязка осей (движение)
     PlayerInputComponent->BindAxis("MoveForward", this, &ASystem1ParadoxCharacter::MoveForward);
     PlayerInputComponent->BindAxis("MoveRight", this, &ASystem1ParadoxCharacter::MoveRight);
     PlayerInputComponent->BindAxis("Turn", this, &ASystem1ParadoxCharacter::Turn);
     PlayerInputComponent->BindAxis("LookUp", this, &ASystem1ParadoxCharacter::LookUp);
 
-    // Привязка действий (прыжок, спринт, приседание)
     PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASystem1ParadoxCharacter::StartJump);
-    PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASystem1ParadoxCharacter::StartSprint);
-    PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASystem1ParadoxCharacter::StopSprint);
-    PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASystem1ParadoxCharacter::StartCrouch);
-    PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ASystem1ParadoxCharacter::StopCrouch);
+    PlayerInputComponent->BindAction("Jump", IE_Released, this, &ASystem1ParadoxCharacter::StopJump);
+
+    // Добавляем стрельбу
+    PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASystem1ParadoxCharacter::StartFire);
+    PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASystem1ParadoxCharacter::StopFire);
 }
 
 void ASystem1ParadoxCharacter::MoveForward(float Value)
@@ -175,4 +220,27 @@ void ASystem1ParadoxCharacter::StopCrouch()
     }
 
     UnCrouch();
+}
+
+void ASystem1ParadoxCharacter::StartFire()
+{
+    if (CurrentWeapon && !bIsFiring)
+    {
+        bIsFiring = true;
+        // НЕПОСРЕДСТВЕННО ВЫЗЫВАЕМ Fire() при первом нажатии
+        CurrentWeapon->Fire();
+        // Устанавливаем таймер для повторяющейся стрельбы
+        GetWorldTimerManager().SetTimer(FireTimerHandle, CurrentWeapon, &AWeapon::Fire, CurrentWeapon->FireRate, true);
+        UE_LOG(LogTemp, Warning, TEXT("Started firing"));
+    }
+}
+
+void ASystem1ParadoxCharacter::StopFire()
+{
+    if (bIsFiring)
+    {
+        bIsFiring = false;
+        GetWorldTimerManager().ClearTimer(FireTimerHandle);
+        UE_LOG(LogTemp, Warning, TEXT("Stopped firing"));
+    }
 }

@@ -4,6 +4,7 @@
 #include "GameFramework/Character.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Weapon.h" // ДОБАВЬТЕ ЭТУ СТРОКУ
 #include "System1ParadoxCharacter.generated.h"
 
 UCLASS()
@@ -19,13 +20,21 @@ public:
 protected:
     virtual void BeginPlay() override;
 
+    // Компоненты камеры
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
     UCameraComponent* CameraComponent;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
     USpringArmComponent* SpringArmComponent;
 
-    // Input functions
+    // Оружие
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+    AWeapon* CurrentWeapon;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+    TSubclassOf<AWeapon> WeaponClass;
+
+    // Функции ввода
     UFUNCTION(BlueprintCallable, Category = "Input")
     void MoveForward(float Value);
 
@@ -44,21 +53,32 @@ protected:
     UFUNCTION(BlueprintCallable, Category = "Input")
     void StopJump();
 
-    // Sprint functions
+    // Функции стрельбы
+    UFUNCTION(BlueprintCallable, Category = "Weapon")
+    void StartFire();
+
+    UFUNCTION(BlueprintCallable, Category = "Weapon")
+    void StopFire();
+
+    // Таймер для автоматической стрельбы
+    FTimerHandle FireTimerHandle;
+    bool bIsFiring = false;
+
+    // Sprint функции (пока не активны)
     UFUNCTION(BlueprintCallable, Category = "Movement")
     void StartSprint();
 
     UFUNCTION(BlueprintCallable, Category = "Movement")
     void StopSprint();
 
-    // Crouch functions  
+    // Crouch функции (пока не активны)
     UFUNCTION(BlueprintCallable, Category = "Movement")
     void StartCrouch();
 
     UFUNCTION(BlueprintCallable, Category = "Movement")
     void StopCrouch();
 
-    // Movement properties
+    // Свойства движения
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float WalkSpeed = 400.0f;
 
@@ -71,7 +91,7 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float CrouchSprintSpeed = 300.0f;
 
-    // State variables
+    // Переменные состояния
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
     bool bIsSprinting = false;
 
