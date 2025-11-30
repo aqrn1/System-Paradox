@@ -314,11 +314,64 @@ static void TestInput(const TArray<FString>& Args)
     }
 }
 
+// 🔥 КОМАНДА ДЛЯ НАСТРОЙКИ БЛЮПРИНТОВ
+static void SetupBlueprintsCommand(const TArray<FString>& Args)
+{
+    UE_LOG(LogTemp, Warning, TEXT("=== ⚙️ НАСТРАИВАЕМ СОЗДАННЫЕ BLUEPRINTS ==="));
+
+    UWorld* World = GWorld;
+    if (!World)
+    {
+        UE_LOG(LogTemp, Error, TEXT("❌ GWorld не доступен!"));
+        return;
+    }
+
+    UBlueprintManager* BlueprintManager = NewObject<UBlueprintManager>(World);
+    if (BlueprintManager)
+    {
+        BlueprintManager->SetupCreatedBlueprints();
+        UE_LOG(LogTemp, Warning, TEXT("✅ BlueprintManager настроил все блюпринты!"));
+    }
+}
+
+// 🔥 КОМАНДА ДЛЯ СОЗДАНИЯ ГРАФОВ
+static void CreateGraphsCommand(const TArray<FString>& Args)
+{
+    UE_LOG(LogTemp, Warning, TEXT("=== 🎨 СОЗДАЕМ ГРАФЫ ДЛЯ BLUEPRINTS ==="));
+
+    UWorld* World = GWorld;
+    if (!World)
+    {
+        UE_LOG(LogTemp, Error, TEXT("❌ GWorld не доступен!"));
+        return;
+    }
+
+    UBlueprintManager* BlueprintManager = NewObject<UBlueprintManager>(World);
+    if (BlueprintManager)
+    {
+        BlueprintManager->CreateBlueprintGraphs();
+        UE_LOG(LogTemp, Warning, TEXT("✅ Графы созданы для всех блюпринтов!"));
+
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green,
+                TEXT("✅ EventGraph и ConstructionScript созданы! Сохраните проект (Ctrl+S)"));
+        }
+    }
+}
+
 // РЕГИСТРАЦИЯ КОМАНД
 static FAutoConsoleCommand TestCmd(
     TEXT("sys.Test"),
     TEXT("Простая тестовая команда"),
     FConsoleCommandWithArgsDelegate::CreateStatic(&TestCommand)
+);
+
+// РЕГИСТРАЦИЯ КОМАНДЫ
+static FAutoConsoleCommand CreateGraphsCmd(
+    TEXT("creategraphs"),
+    TEXT("Создание EventGraph и ConstructionScript для блюпринтов"),
+    FConsoleCommandWithArgsDelegate::CreateStatic(&CreateGraphsCommand)
 );
 
 static FAutoConsoleCommand HealthCmd(
@@ -374,6 +427,13 @@ static FAutoConsoleCommand CreateInputFullCmd(
     TEXT("sys.CreateInput"),
     TEXT("Полное создание Input системы"),
     FConsoleCommandWithArgsDelegate::CreateStatic(&CreateInputSystemCommand)
+);
+
+// РЕГИСТРАЦИЯ КОМАНДЫ
+static FAutoConsoleCommand SetupBPCmd(
+    TEXT("setupbp"),
+    TEXT("Настройка созданных блюпринтов"),
+    FConsoleCommandWithArgsDelegate::CreateStatic(&SetupBlueprintsCommand)
 );
 
 IMPLEMENT_PRIMARY_GAME_MODULE(FSystem1ParadoxModule, System1Paradox, "System1Paradox");
