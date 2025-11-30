@@ -10,12 +10,7 @@ public class System1Paradox : ModuleRules
             "Core",
             "CoreUObject",
             "Engine",
-            "InputCore",
-            "EnhancedInput",
-            "GameplayTags",
-            "UnrealEd",           // Для FKismetEditorUtilities
-            "AssetRegistry",      // Для FAssetRegistryModule
-            "Kismet"             // Для работы с блюпринтами
+            "InputCore"  // ОСТАВИТЬ ТОЛЬКО InputCore, УБРАТЬ EnhancedInput
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });
