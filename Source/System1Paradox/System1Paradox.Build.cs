@@ -10,7 +10,10 @@ public class System1Paradox : ModuleRules
             "Core",
             "CoreUObject",
             "Engine",
-            "InputCore"  // ОСТАВИТЬ ТОЛЬКО InputCore, УБРАТЬ EnhancedInput
+            "InputCore",
+            "UnrealEd",
+            "AssetRegistry",
+            "Kismet"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });

@@ -4,65 +4,6 @@
 #include "Engine/World.h"
 #include "BlueprintManager.h"
 #include "GameFramework/PlayerController.h"
-#include "Components/InputComponent.h"
-#include "EnhancedInputSubsystems.h"  // 🔥 ДОБАВЛЕНО
-#include "EnhancedInputComponent.h"    // 🔥 ДОБАВЛЕНО
-#include "InputManager.h" // 🔥 ДОБАВЬТЕ ЭТОТ INCLUDE
-
-// 🔥 КОМАНДА ДЛЯ СОЗДАНИЯ INPUT СИСТЕМЫ
-static void CreateInputSystemCommand(const TArray<FString>& Args)
-{
-    UE_LOG(LogTemp, Warning, TEXT("=== 🎮 СОЗДАЕМ INPUT СИСТЕМУ ==="));
-
-    UWorld* World = GWorld;
-    if (!World)
-    {
-        UE_LOG(LogTemp, Error, TEXT("❌ GWorld не доступен!"));
-        return;
-    }
-
-    UInputManager* InputManager = NewObject<UInputManager>(World);
-    if (InputManager)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("🔧 InputManager создан!"));
-        InputManager->CreateInputSystem();
-        UE_LOG(LogTemp, Warning, TEXT("✅ Input система создана!"));
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("❌ Не удалось создать InputManager!"));
-    }
-}
-
-// 🔥 ПРОСТАЯ КОМАНДА ДЛЯ INPUT
-static void SimpleCreateInput(const TArray<FString>& Args)
-{
-    UE_LOG(LogTemp, Warning, TEXT("=== 🎮 ПРОСТОЕ СОЗДАНИЕ INPUT ==="));
-
-    if (GEngine)
-    {
-        GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Blue, TEXT("=== 🎮 СОЗДАЕМ INPUT СИСТЕМУ ==="));
-    }
-
-    UWorld* World = GWorld;
-    if (!World)
-    {
-        UE_LOG(LogTemp, Error, TEXT("❌ GWorld не доступен!"));
-        return;
-    }
-
-    UInputManager* InputManager = NewObject<UInputManager>(World);
-    if (InputManager)
-    {
-        InputManager->CreateInputSystem();
-
-        if (GEngine)
-        {
-            GEngine->AddOnScreenDebugMessage(-1, 8.0f, FColor::Green, TEXT("✅ Input система создана! Сохраните проект (Ctrl+S)"));
-        }
-    }
-}
-
 
 // 🔥 ТЕСТОВАЯ КОМАНДА
 static void TestCommand(const TArray<FString>& Args)
@@ -239,60 +180,6 @@ static void SimpleAutoBindBlueprints(const TArray<FString>& Args)
     }
 }
 
-// 🔥 КОМАНДА ПРОВЕРКИ УПРАВЛЕНИЯ - ИСПРАВЛЕННАЯ ВЕРСИЯ
-static void CheckInputCommand(const TArray<FString>& Args)
-{
-    UE_LOG(LogTemp, Warning, TEXT("🎮 ПРОВЕРКА СИСТЕМЫ УПРАВЛЕНИЯ"));
-
-    UWorld* World = GWorld;
-    if (World && World->GetFirstPlayerController())
-    {
-        APlayerController* PC = World->GetFirstPlayerController();
-        UE_LOG(LogTemp, Warning, TEXT("✅ Player Controller доступен: %s"), *PC->GetName());
-
-        if (PC->InputComponent)
-        {
-            UE_LOG(LogTemp, Warning, TEXT("✅ Input Component подключен"));
-
-            // 🔥 УПРОЩЕННАЯ ПРОВЕРКА Enhanced Input
-            ULocalPlayer* LocalPlayer = PC->GetLocalPlayer();
-            if (LocalPlayer)
-            {
-                UE_LOG(LogTemp, Warning, TEXT("✅ Local Player доступен"));
-
-                // Проверяем Enhanced Input более простым способом
-                if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
-                {
-                    UE_LOG(LogTemp, Warning, TEXT("✅ Enhanced Input Subsystem доступен"));
-                }
-                else
-                {
-                    UE_LOG(LogTemp, Warning, TEXT("⚠️ Enhanced Input Subsystem не доступен"));
-                }
-            }
-        }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("❌ Input Component не подключен!"));
-        }
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("❌ Player Controller не доступен!"));
-    }
-
-    // Проверяем существование Input Assets
-    FString InputDir = FPaths::ProjectContentDir() / TEXT("Input");
-    if (FPaths::DirectoryExists(InputDir))
-    {
-        UE_LOG(LogTemp, Warning, TEXT("✅ Папка Input существует: %s"), *InputDir);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("❌ Папка Input не существует! Создайте папку Content/Input/"));
-    }
-}
-
 // 🔥 ПРОСТАЯ КОМАНДА ДЛЯ ПРОВЕРКИ (альтернатива)
 static void TestInput(const TArray<FString>& Args)
 {
@@ -372,23 +259,12 @@ static FAutoConsoleCommand AutoBindCmd(
     FConsoleCommandWithArgsDelegate::CreateStatic(&AutoBindBlueprintsCommand)
 );
 
-static FAutoConsoleCommand SimpleCreateCmd(
-    TEXT("createbp"),
-    TEXT("Простое создание Blueprints"),
-    FConsoleCommandWithArgsDelegate::CreateStatic(&SimpleCreateBlueprints)
-);
-
 static FAutoConsoleCommand SimpleAutoBindCmd(
     TEXT("autobind"),
     TEXT("Простая привязка Blueprints"),
     FConsoleCommandWithArgsDelegate::CreateStatic(&SimpleAutoBindBlueprints)
 );
 
-static FAutoConsoleCommand CheckInputCmd(
-    TEXT("checkinput"),
-    TEXT("Проверка системы управления"),
-    FConsoleCommandWithArgsDelegate::CreateStatic(&CheckInputCommand)
-);
 
 static FAutoConsoleCommand TestInputCmd(
     TEXT("testinput"),
@@ -396,18 +272,6 @@ static FAutoConsoleCommand TestInputCmd(
     FConsoleCommandWithArgsDelegate::CreateStatic(&TestInput)
 );
 
-// 🔥 РЕГИСТРАЦИЯ КОМАНД (добавьте с другими FAutoConsoleCommand)
-static FAutoConsoleCommand CreateInputCmd(
-    TEXT("createinput"),
-    TEXT("Автоматическое создание Input системы"),
-    FConsoleCommandWithArgsDelegate::CreateStatic(&SimpleCreateInput)
-);
-
-static FAutoConsoleCommand CreateInputFullCmd(
-    TEXT("sys.CreateInput"),
-    TEXT("Полное создание Input системы"),
-    FConsoleCommandWithArgsDelegate::CreateStatic(&CreateInputSystemCommand)
-);
 
 
 IMPLEMENT_PRIMARY_GAME_MODULE(FSystem1ParadoxModule, System1Paradox, "System1Paradox");
