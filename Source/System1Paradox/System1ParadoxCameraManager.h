@@ -11,14 +11,4 @@ class SYSTEM1PARADOX_API ASystem1ParadoxCameraManager : public APlayerCameraMana
 
 public:
     ASystem1ParadoxCameraManager();
-
-protected:
-    virtual void BeginPlay() override;
-
-public:
-    virtual void Tick(float DeltaTime) override;
-    virtual void UpdateCamera(float DeltaTime) override;
-
-private:
-    float DefaultFOV = 90.0f;
 };

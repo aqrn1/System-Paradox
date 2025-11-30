@@ -52,6 +52,10 @@ void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* Player
 
     PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASystem1ParadoxCharacter::StartJump);
     PlayerInputComponent->BindAction("Jump", IE_Released, this, &ASystem1ParadoxCharacter::StopJump);
+
+    // Добавляем спринт
+    PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASystem1ParadoxCharacter::StartSprint);
+    PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASystem1ParadoxCharacter::StopSprint);
 }
 
 void ASystem1ParadoxCharacter::MoveForward(float Value)
@@ -94,4 +98,16 @@ void ASystem1ParadoxCharacter::StartJump()
 void ASystem1ParadoxCharacter::StopJump()
 {
     StopJumping();
+}
+
+void ASystem1ParadoxCharacter::StartSprint()
+{
+    bIsSprinting = true;
+    GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+}
+
+void ASystem1ParadoxCharacter::StopSprint()
+{
+    bIsSprinting = false;
+    GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }

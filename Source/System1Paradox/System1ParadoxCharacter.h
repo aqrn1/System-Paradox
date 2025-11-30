@@ -16,6 +16,15 @@ public:
     virtual void Tick(float DeltaTime) override;
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void StartSprint();
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void StopSprint();
+
+    UFUNCTION(BlueprintPure, Category = "Movement")
+    bool GetIsSprinting() const { return bIsSprinting; }
+
 protected:
     virtual void BeginPlay() override;
 
