@@ -88,12 +88,25 @@ bool UBlueprintManager::CreateBlueprintFromClass(UClass* SourceClass, const FStr
         return false;
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("🛠️ СОЗДАЕМ БЛЮПРИНТ %s из класса %s"), *BlueprintName, *SourceClass->GetName());
-
     FString FullPackagePath = FString::Printf(TEXT("%s/%s"), *PackagePath, *BlueprintName);
 
-    UPackage* Package = CreatePackage(*FullPackagePath);
+    // 🔥 ДОБАВЛЕННАЯ ПРОВЕРКА: Загружаем пакет для проверки его существования
+    UPackage* ExistingPackage = FindPackage(nullptr, *FullPackagePath);
+    if (ExistingPackage != nullptr)
+    {
+        // Пакет существует, проверяем, есть ли в нем наш блюпринт
+        UBlueprint* ExistingBlueprint = FindObject<UBlueprint>(ExistingPackage, *BlueprintName);
+        if (ExistingBlueprint)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("ℹ️ Блюпринт %s уже существует. Пропускаем создание."), *BlueprintName);
+            return true; // Возвращаем true, так как блюпринт уже есть, и это не ошибка
+        }
+    }
 
+    UE_LOG(LogTemp, Warning, TEXT("🛠️ СОЗДАЕМ БЛЮПРИНТ %s из класса %s"), *BlueprintName, *SourceClass->GetName());
+
+    // Создаем новый пакет, если блюпринт не существует
+    UPackage* Package = CreatePackage(*FullPackagePath);
     if (!Package)
     {
         UE_LOG(LogTemp, Error, TEXT("❌ Не удалось создать пакет для блюпринта!"));
@@ -113,20 +126,12 @@ bool UBlueprintManager::CreateBlueprintFromClass(UClass* SourceClass, const FStr
     {
         Package->MarkPackageDirty();
         FAssetRegistryModule::AssetCreated(NewBlueprint);
-
-        UE_LOG(LogTemp, Warning, TEXT("✅ БЛЮПРИНТ УСПЕШНО СОЗДАН В ПАМЯТИ!"));
-
-        if (GEngine)
-        {
-            FString Message = FString::Printf(TEXT("✅ Создан блюпринт: %s (используйте Ctrl+S для сохранения)"), *BlueprintName);
-            GEngine->AddOnScreenDebugMessage(-1, 8.0f, FColor::Green, Message);
-        }
-
+        UE_LOG(LogTemp, Warning, TEXT("✅ БЛЮПРИНТ УСПЕШНО СОЗДАН!"));
         return true;
     }
     else
     {
-        UE_LOG(LogTemp, Error, TEXT("❌ Не удалось создать блюпринт через FKismetEditorUtilities!"));
+        UE_LOG(LogTemp, Error, TEXT("❌ Не удалось создать блюпринт!"));
         return false;
     }
 }
