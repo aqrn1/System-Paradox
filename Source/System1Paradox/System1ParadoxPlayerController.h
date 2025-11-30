@@ -11,11 +11,4 @@ class SYSTEM1PARADOX_API ASystem1ParadoxPlayerController : public APlayerControl
 
 public:
     ASystem1ParadoxPlayerController();
-
-protected:
-    virtual void BeginPlay() override;
-    virtual void SetupInputComponent() override;
-
-public:
-    virtual void Tick(float DeltaTime) override;
 };

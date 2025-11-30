@@ -1,12 +1,26 @@
 ﻿#include "System1Paradox.h"
 #include "Modules/ModuleManager.h"
-#include "BlueprintManager.h"
+#include "HAL/IConsoleManager.h"
 #include "Engine/World.h"
+#include "BlueprintManager.h"
 
-// КОМАНДЫ ДЛЯ BLUEPRINTS
+// ТЕСТОВАЯ КОМАНДА
+static void TestCommand(const TArray<FString>& Args)
+{
+    UE_LOG(LogTemp, Warning, TEXT("🎯 ТЕСТОВАЯ КОМАНДА РАБОТАЕТ!"));
+}
+
+// ПРОВЕРКА СИСТЕМЫ
+static void HealthCheck(const TArray<FString>& Args)
+{
+    UE_LOG(LogTemp, Warning, TEXT("❤️ HEALTH CHECK: SYSTEM1PARADOX"));
+    UE_LOG(LogTemp, Warning, TEXT("✅ Модуль загружен"));
+}
+
+// КОМАНДА ДЛЯ СОЗДАНИЯ BLUEPRINTS
 static void CreateBlueprintsCommand(const TArray<FString>& Args)
 {
-    UE_LOG(LogTemp, Warning, TEXT("=== 🛠️ СОЗДАЕМ BLUEPRINTS ==="));
+    UE_LOG(LogTemp, Warning, TEXT("=== 🛠️ НАЧИНАЕМ СОЗДАНИЕ BLUEPRINTS ==="));
 
     UWorld* World = GWorld;
     if (!World) return;
@@ -18,6 +32,7 @@ static void CreateBlueprintsCommand(const TArray<FString>& Args)
     }
 }
 
+// КОМАНДА ДЛЯ ПРИВЯЗКИ BLUEPRINTS
 static void AutoBindBlueprintsCommand(const TArray<FString>& Args)
 {
     UE_LOG(LogTemp, Warning, TEXT("=== 🔗 ПРИВЯЗЫВАЕМ BLUEPRINTS ==="));
@@ -32,14 +47,9 @@ static void AutoBindBlueprintsCommand(const TArray<FString>& Args)
     }
 }
 
-// ПРОСТЫЕ КОМАНДЫ
-static void TestCommand(const TArray<FString>& Args)
-{
-    UE_LOG(LogTemp, Warning, TEXT("🎯 СИСТЕМА РАБОТАЕТ!"));
-}
-
 // РЕГИСТРАЦИЯ КОМАНД
 static FAutoConsoleCommand TestCmd(TEXT("sys.Test"), TEXT("Тестовая команда"), FConsoleCommandWithArgsDelegate::CreateStatic(&TestCommand));
+static FAutoConsoleCommand HealthCmd(TEXT("sys.Health"), TEXT("Проверка системы"), FConsoleCommandWithArgsDelegate::CreateStatic(&HealthCheck));
 static FAutoConsoleCommand CreateBPCmd(TEXT("createbp"), TEXT("Создание Blueprints"), FConsoleCommandWithArgsDelegate::CreateStatic(&CreateBlueprintsCommand));
 static FAutoConsoleCommand AutoBindCmd(TEXT("autobind"), TEXT("Привязка Blueprints"), FConsoleCommandWithArgsDelegate::CreateStatic(&AutoBindBlueprintsCommand));
 

@@ -9,8 +9,6 @@
 #include "UObject/Package.h"
 #include "Misc/PackageName.h"
 #include "Misc/ConfigCacheIni.h"
-
-// 🔥 ПРОСТЫЕ ЗАГОЛОВОЧНЫЕ ФАЙЛЫ
 #include "Kismet2/BlueprintEditorUtils.h"
 
 UBlueprintManager::UBlueprintManager()
@@ -21,7 +19,6 @@ UBlueprintManager::UBlueprintManager()
 void UBlueprintManager::CreateAllBlueprints()
 {
     UE_LOG(LogTemp, Warning, TEXT("=== 🚀 НАЧИНАЕМ СОЗДАНИЕ ВСЕХ BLUEPRINTS ==="));
-
     EnsureBlueprintFolderExists();
 
     TArray<UClass*> ProjectClasses;
@@ -43,12 +40,6 @@ void UBlueprintManager::CreateAllBlueprints()
     }
 
     UE_LOG(LogTemp, Warning, TEXT("✅ Создание блюпринтов завершено! Создано: %d"), CreatedCount);
-
-    if (GEngine)
-    {
-        FString Message = FString::Printf(TEXT("✅ BlueprintManager: создано %d блюпринтов! Используйте Ctrl+S для сохранения"), CreatedCount);
-        GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, Message);
-    }
 }
 
 void UBlueprintManager::AutoBindBlueprints()
@@ -56,62 +47,37 @@ void UBlueprintManager::AutoBindBlueprints()
     UE_LOG(LogTemp, Warning, TEXT("=== 🔗 НАЧИНАЕМ АВТОМАТИЧЕСКУЮ ПРИВЯЗКУ BLUEPRINTS ==="));
 
     int32 BoundCount = 0;
-
-    if (BindBlueprintToProject(GetBlueprintPathForClass("System1ParadoxCharacter"), "DefaultPawnClass"))
-        BoundCount++;
-
-    if (BindBlueprintToProject(GetBlueprintPathForClass("System1ParadoxGameMode"), "DefaultGameMode"))
-        BoundCount++;
-
-    if (BindBlueprintToProject(GetBlueprintPathForClass("System1ParadoxPlayerController"), "PlayerControllerClass"))
-        BoundCount++;
-
-    if (BindBlueprintToProject(GetBlueprintPathForClass("System1ParadoxCameraManager"), "PlayerCameraManagerClass"))
-        BoundCount++;
+    if (BindBlueprintToProject(GetBlueprintPathForClass("System1ParadoxCharacter"), "DefaultPawnClass")) BoundCount++;
+    if (BindBlueprintToProject(GetBlueprintPathForClass("System1ParadoxGameMode"), "DefaultGameMode")) BoundCount++;
+    if (BindBlueprintToProject(GetBlueprintPathForClass("System1ParadoxPlayerController"), "PlayerControllerClass")) BoundCount++;
+    if (BindBlueprintToProject(GetBlueprintPathForClass("System1ParadoxCameraManager"), "PlayerCameraManagerClass")) BoundCount++;
 
     SaveProjectConfig();
-
     UE_LOG(LogTemp, Warning, TEXT("✅ Автоматическая привязка завершена! Привязано: %d блюпринтов"), BoundCount);
-
-    if (GEngine)
-    {
-        FString Message = FString::Printf(TEXT("✅ Автоматическая привязка завершена! Привязано %d блюпринтов"), BoundCount);
-        GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, Message);
-    }
 }
 
 bool UBlueprintManager::CreateBlueprintFromClass(UClass* SourceClass, const FString& BlueprintName, const FString& PackagePath)
 {
-    if (!SourceClass)
-    {
-        UE_LOG(LogTemp, Error, TEXT("❌ Неверный исходный класс для создания блюпринта!"));
-        return false;
-    }
+    if (!SourceClass) return false;
 
     FString FullPackagePath = FString::Printf(TEXT("%s/%s"), *PackagePath, *BlueprintName);
 
-    // 🔥 ДОБАВЛЕННАЯ ПРОВЕРКА: Загружаем пакет для проверки его существования
     UPackage* ExistingPackage = FindPackage(nullptr, *FullPackagePath);
     if (ExistingPackage != nullptr)
     {
-        // Пакет существует, проверяем, есть ли в нем наш блюпринт
         UBlueprint* ExistingBlueprint = FindObject<UBlueprint>(ExistingPackage, *BlueprintName);
         if (ExistingBlueprint)
         {
             UE_LOG(LogTemp, Warning, TEXT("ℹ️ Блюпринт %s уже существует. Пропускаем создание."), *BlueprintName);
-            return true; // Возвращаем true, так как блюпринт уже есть, и это не ошибка
+            return true;
         }
     }
 
+    // СТАЛО (исправлено):
     UE_LOG(LogTemp, Warning, TEXT("🛠️ СОЗДАЕМ БЛЮПРИНТ %s из класса %s"), *BlueprintName, *SourceClass->GetName());
 
-    // Создаем новый пакет, если блюпринт не существует
     UPackage* Package = CreatePackage(*FullPackagePath);
-    if (!Package)
-    {
-        UE_LOG(LogTemp, Error, TEXT("❌ Не удалось создать пакет для блюпринта!"));
-        return false;
-    }
+    if (!Package) return false;
 
     UBlueprint* NewBlueprint = FKismetEditorUtilities::CreateBlueprint(
         SourceClass,
@@ -129,20 +95,14 @@ bool UBlueprintManager::CreateBlueprintFromClass(UClass* SourceClass, const FStr
         UE_LOG(LogTemp, Warning, TEXT("✅ БЛЮПРИНТ УСПЕШНО СОЗДАН!"));
         return true;
     }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("❌ Не удалось создать блюпринт!"));
-        return false;
-    }
+    return false;
 }
 
-// 🔥 УПРОЩЕННАЯ ФУНКЦИЯ: СОЗДАНИЕ ГРАФОВ
 void UBlueprintManager::CreateBlueprintGraphs()
 {
     UE_LOG(LogTemp, Warning, TEXT("=== 🎨 СОЗДАЕМ ГРАФЫ ДЛЯ BLUEPRINTS ==="));
 
     TArray<UBlueprint*> FoundBlueprints;
-
     FString BlueprintPaths[] = {
         TEXT("/Game/Blueprints/AutoGenerated/BP_System1ParadoxCharacter"),
         TEXT("/Game/Blueprints/AutoGenerated/BP_System1ParadoxGameMode"),
@@ -153,70 +113,39 @@ void UBlueprintManager::CreateBlueprintGraphs()
     for (const FString& Path : BlueprintPaths)
     {
         UBlueprint* Blueprint = LoadObject<UBlueprint>(nullptr, *Path);
-        if (Blueprint)
-        {
-            FoundBlueprints.Add(Blueprint);
-            UE_LOG(LogTemp, Warning, TEXT("✅ Найден блюпринт для создания графов: %s"), *Blueprint->GetName());
-        }
-        else
-        {
-            UE_LOG(LogTemp, Error, TEXT("❌ Не удалось найти блюпринт: %s"), *Path);
-        }
+        if (Blueprint) FoundBlueprints.Add(Blueprint);
     }
 
-    // 🔥 ПРОСТО КОМПИЛИРУЕМ БЛЮПРИНТЫ - ЭТО СОЗДАЕТ БАЗОВЫЕ ГРАФЫ
     for (UBlueprint* Blueprint : FoundBlueprints)
     {
         FString BlueprintName = Blueprint->GetName();
         UE_LOG(LogTemp, Warning, TEXT("🎨 Компилируем блюпринт: %s"), *BlueprintName);
-
-        // Компиляция автоматически создает базовые графы
         CompileBlueprint(Blueprint);
-
-        // Обновляем блюпринт
         FBlueprintEditorUtils::RefreshAllNodes(Blueprint);
         Blueprint->MarkPackageDirty();
     }
 
     UE_LOG(LogTemp, Warning, TEXT("✅ Создание графов завершено! Блюпринты скомпилированы."));
-
-    if (GEngine)
-    {
-        GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green,
-            TEXT("✅ EventGraph и ConstructionScript созданы автоматически при компиляции!"));
-    }
 }
 
-// 🔥 ПРОСТАЯ ФУНКЦИЯ ДЛЯ ПРИВЯЗКИ
 void UBlueprintManager::SetupCreatedBlueprints()
 {
     UE_LOG(LogTemp, Warning, TEXT("=== ⚙️ ПРИВЯЗЫВАЕМ СОЗДАННЫЕ BLUEPRINTS ==="));
-
-    // Просто вызываем AutoBindBlueprints - она уже делает всю работу
     AutoBindBlueprints();
-
-    UE_LOG(LogTemp, Warning, TEXT("✅ Привязка блюпринтов завершена!"));
 }
 
 bool UBlueprintManager::CompileBlueprint(UBlueprint* Blueprint)
 {
     if (!Blueprint) return false;
-
     UE_LOG(LogTemp, Warning, TEXT("🔧 Компилируем блюпринт: %s"), *Blueprint->GetName());
-
-    // Компилируем блюпринт - это автоматически создаст EventGraph и ConstructionScript
     FKismetEditorUtilities::CompileBlueprint(Blueprint);
-
     UE_LOG(LogTemp, Warning, TEXT("✅ Блюпринт скомпилирован: %s"), *Blueprint->GetName());
-
     return true;
 }
 
-// 🔥 ОСТАВШИЕСЯ ФУНКЦИИ (без изменений)
 bool UBlueprintManager::BindBlueprintToProject(const FString& BlueprintPath, const FString& SettingName)
 {
     if (BlueprintPath.IsEmpty()) return false;
-
     FString BlueprintDir = FPaths::ProjectContentDir() / TEXT("Blueprints/AutoGenerated");
     if (!FPaths::DirectoryExists(BlueprintDir)) return false;
 
@@ -224,7 +153,6 @@ bool UBlueprintManager::BindBlueprintToProject(const FString& BlueprintPath, con
     FString ConfigSection = TEXT("/Script/EngineSettings.GameMapsSettings");
 
     GConfig->SetString(*ConfigSection, *SettingName, *BlueprintPath, ConfigPath);
-
     return true;
 }
 

@@ -4,7 +4,6 @@
 #include "GameFramework/Character.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "InputActionValue.h"
 #include "System1ParadoxCharacter.generated.h"
 
 UCLASS()
@@ -14,62 +13,42 @@ class SYSTEM1PARADOX_API ASystem1ParadoxCharacter : public ACharacter
 
 public:
     ASystem1ParadoxCharacter();
+    virtual void Tick(float DeltaTime) override;
+    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
     virtual void BeginPlay() override;
-    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-    // Компоненты камеры
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
     UCameraComponent* CameraComponent;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
     USpringArmComponent* SpringArmComponent;
 
-    // Enhanced Input Actions
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-    class UInputAction* MoveAction;
+    UFUNCTION(BlueprintCallable, Category = "Input")
+    void MoveForward(float Value);
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-    class UInputAction* LookAction;
+    UFUNCTION(BlueprintCallable, Category = "Input")
+    void MoveRight(float Value);
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-    class UInputAction* JumpAction;
+    UFUNCTION(BlueprintCallable, Category = "Input")
+    void LookUp(float Value);
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-    class UInputAction* SprintAction;
+    UFUNCTION(BlueprintCallable, Category = "Input")
+    void Turn(float Value);
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-    class UInputAction* CrouchAction;
-
-    // Enhanced Input Functions
-    void Move(const FInputActionValue& Value);
-    void Look(const FInputActionValue& Value);
+    UFUNCTION(BlueprintCallable, Category = "Input")
     void StartJump();
-    void StopJump();
-    void StartSprint();
-    void StopSprint();
-    void StartCrouch();
-    void StopCrouch();
 
-    // Переменные движения
+    UFUNCTION(BlueprintCallable, Category = "Input")
+    void StopJump();
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float WalkSpeed = 400.0f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float SprintSpeed = 600.0f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-    float CrouchSpeed = 200.0f;
-
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
     bool bIsSprinting = false;
-
-public:
-    virtual void Tick(float DeltaTime) override;
-
-    // Геттеры
-    FORCEINLINE UCameraComponent* GetCameraComponent() const { return CameraComponent; }
-    FORCEINLINE USpringArmComponent* GetSpringArmComponent() const { return SpringArmComponent; }
-    FORCEINLINE bool GetIsSprinting() const { return bIsSprinting; }
 };
