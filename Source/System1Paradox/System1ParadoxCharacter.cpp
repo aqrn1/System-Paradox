@@ -4,6 +4,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Engine/Engine.h"
 #include "Weapon.h" // ДОБАВЬТЕ ЭТУ СТРОКУ
+#include "System1ParadoxHUD.h"
 
 ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
 {
@@ -82,16 +83,21 @@ void ASystem1ParadoxCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    // Отладочная информация
+    // Обновляем HUD каждый кадр
+    UpdateHUD();
+
+    // Отладочная информация (можно закомментировать позже)
     if (GEngine)
     {
         FString AmmoInfo = CurrentWeapon ? FString::Printf(TEXT("Ammo: %.0f/%.0f"),
             CurrentWeapon->CurrentAmmo, CurrentWeapon->MaxAmmo) : TEXT("Ammo: No Weapon");
 
-        FString DebugString = FString::Printf(TEXT("Speed: %.0f | %s | Firing: %s"),
+        FString HealthInfo = FString::Printf(TEXT("Health: %.0f"), CurrentHealth);
+
+        FString DebugString = FString::Printf(TEXT("Speed: %.0f | %s | %s"),
             GetVelocity().Size(),
-            *AmmoInfo,
-            bIsFiring ? TEXT("YES") : TEXT("NO"));
+            *HealthInfo,
+            *AmmoInfo);
 
         GEngine->AddOnScreenDebugMessage(1, 0, FColor::Green, DebugString);
     }
@@ -242,5 +248,25 @@ void ASystem1ParadoxCharacter::StopFire()
         bIsFiring = false;
         GetWorldTimerManager().ClearTimer(FireTimerHandle);
         UE_LOG(LogTemp, Warning, TEXT("Stopped firing"));
+    }
+}
+
+ASystem1ParadoxHUD* ASystem1ParadoxCharacter::GetSystemHUD() const
+{
+    APlayerController* PC = Cast<APlayerController>(GetController());
+    if (PC)
+    {
+        return Cast<ASystem1ParadoxHUD>(PC->GetHUD());
+    }
+    return nullptr;
+}
+
+void ASystem1ParadoxCharacter::UpdateHUD()
+{
+    ASystem1ParadoxHUD* HUD = GetSystemHUD();
+    if (HUD && CurrentWeapon)
+    {
+        HUD->UpdateHealth(CurrentHealth);
+        HUD->UpdateAmmo(CurrentWeapon->CurrentAmmo, CurrentWeapon->MaxAmmo);
     }
 }

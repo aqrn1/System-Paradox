@@ -16,6 +16,12 @@ public:
     ASystem1ParadoxCharacter();
     virtual void Tick(float DeltaTime) override;
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+    // HUD функции
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void UpdateHUD();
+
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    ASystem1ParadoxHUD* GetSystemHUD() const;
 
 protected:
     virtual void BeginPlay() override;
@@ -26,6 +32,12 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
     USpringArmComponent* SpringArmComponent;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+    float MaxHealth = 100.0f;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
+    float CurrentHealth = 100.0f;
 
     // Оружие
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
