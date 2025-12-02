@@ -14,6 +14,7 @@ public class System1Paradox : ModuleRules
             "UnrealEd",
             "AssetRegistry",
             "Kismet"
+            "AnimGraphRuntime"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });

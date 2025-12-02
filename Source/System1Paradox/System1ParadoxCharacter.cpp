@@ -5,6 +5,8 @@
 #include "Engine/Engine.h"
 #include "Weapon.h"
 #include "System1ParadoxHUD.h"
+#include "CharacterAnimInstance.h" // Подключите новый заголовочный файл
+#include "GameFramework/CharacterMovementComponent.h"
 
 ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
 {
@@ -114,6 +116,40 @@ void ASystem1ParadoxCharacter::MoveRight(float Value)
         const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
         AddMovementInput(Direction, Value);
     }
+}
+
+void ASystem1ParadoxCharacter::PostInitializeComponents()
+{
+    Super::PostInitializeComponents();
+
+    // Получаем наш кастомный AnimInstance
+    if (GetMesh())
+    {
+        AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());
+    }
+}
+
+void ASystem1ParadoxCharacter::UpdateAnimationState()
+{
+    if (AnimInstance)
+    {
+        // Передаем базовые данные
+        AnimInstance->Speed = GetVelocity().Size2D();
+        AnimInstance->bIsInAir = GetCharacterMovement()->IsFalling();
+
+        // Здесь логика определения типа оружия
+        // AnimInstance->CurrentWeaponType = ...;
+
+        // Здесь логика перезарядки
+        // AnimInstance->bIsReloading = ...;
+    }
+}
+
+// В Tick() добавьте вызов обновления анимации
+void ASystem1ParadoxCharacter::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+    UpdateAnimationState(); // Добавьте эту строку
 }
 
 void ASystem1ParadoxCharacter::LookUp(float Value)

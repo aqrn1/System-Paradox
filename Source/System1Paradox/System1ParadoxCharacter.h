@@ -29,6 +29,15 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
     USpringArmComponent* SpringArmComponent;
 
+    UPROPERTY(BlueprintReadOnly)
+    UCharacterAnimInstance* AnimInstance;
+
+    // Функция для обновления переменных анимации
+    void UpdateAnimationState();
+
+    // Переопределим функцию для получения AnimInstance
+    virtual void PostInitializeComponents() override;
+    
     // Оружие
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
     AWeapon* CurrentWeapon;
