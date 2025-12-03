@@ -34,6 +34,7 @@ protected:
     UPROPERTY(BlueprintReadOnly)
     UCharacterAnimInstance* AnimInstance;
 
+
     // Функция для обновления переменных анимации
     void UpdateAnimationState();
 
@@ -131,4 +132,22 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
     bool bIsCrouching = false;
+
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+    class UAnimSequence* IdleAnimation;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+    class UAnimSequence* WalkAnimation;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+    class UAnimSequence* RunAnimation;
+
+    // Текущая анимация
+    class UAnimSequence* CurrentAnimation;
+
+    // Функция для проигрывания анимации
+    void PlayAnimation(class UAnimSequence* NewAnimation);
+    // ===============================================
 };
+

@@ -4,6 +4,8 @@
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
+// ЗАМЕНИТЕ существующее содержимое Weapon.h на этот код:
+
 UCLASS()
 class SYSTEM1PARADOX_API AWeapon : public AActor
 {

@@ -5,8 +5,6 @@
 #include "Engine/Engine.h"
 #include "Weapon.h"
 #include "System1ParadoxHUD.h"
-#include "CharacterAnimInstance.h" // Подключите новый заголовочный файл
-#include "GameFramework/CharacterMovementComponent.h"
 
 ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
 {
@@ -50,7 +48,6 @@ void ASystem1ParadoxCharacter::BeginPlay()
         if (CurrentWeapon)
         {
             CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("hand_r"));
-            UE_LOG(LogTemp, Warning, TEXT("Weapon spawned and attached!"));
         }
     }
 }
@@ -61,6 +58,33 @@ void ASystem1ParadoxCharacter::Tick(float DeltaTime)
 
     // Обновляем HUD каждый кадр
     UpdateHUD();
+
+    // ======== ЛОГИКА ВЫБОРА АНИМАЦИИ ========
+    // Выбираем анимацию в зависимости от скорости
+    float Speed = GetVelocity().Size2D();
+    bool bIsFalling = GetCharacterMovement()->IsFalling();
+
+    UAnimSequence* DesiredAnimation = IdleAnimation; // По умолчанию
+
+    if (bIsFalling)
+    {
+        // Если есть анимация прыжка - можно добавить
+    }
+    else if (Speed > 300.0f && RunAnimation) // Бег
+    {
+        DesiredAnimation = RunAnimation;
+    }
+    else if (Speed > 10.0f && WalkAnimation) // Ходьба
+    {
+        DesiredAnimation = WalkAnimation;
+    }
+
+    // Проигрываем выбранную анимацию
+    if (DesiredAnimation)
+    {
+        PlayAnimation(DesiredAnimation);
+    }
+    // =========================================
 
     // Отладочная информация
     if (GEngine)
@@ -88,11 +112,9 @@ void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* Player
     PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASystem1ParadoxCharacter::StartJump);
     PlayerInputComponent->BindAction("Jump", IE_Released, this, &ASystem1ParadoxCharacter::StopJump);
 
-    // Добавляем стрельбу
     PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASystem1ParadoxCharacter::StartFire);
     PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASystem1ParadoxCharacter::StopFire);
 
-    // Добавляем перезарядку
     PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ASystem1ParadoxCharacter::StartReload);
 }
 
@@ -116,40 +138,6 @@ void ASystem1ParadoxCharacter::MoveRight(float Value)
         const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
         AddMovementInput(Direction, Value);
     }
-}
-
-void ASystem1ParadoxCharacter::PostInitializeComponents()
-{
-    Super::PostInitializeComponents();
-
-    // Получаем наш кастомный AnimInstance
-    if (GetMesh())
-    {
-        AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());
-    }
-}
-
-void ASystem1ParadoxCharacter::UpdateAnimationState()
-{
-    if (AnimInstance)
-    {
-        // Передаем базовые данные
-        AnimInstance->Speed = GetVelocity().Size2D();
-        AnimInstance->bIsInAir = GetCharacterMovement()->IsFalling();
-
-        // Здесь логика определения типа оружия
-        // AnimInstance->CurrentWeaponType = ...;
-
-        // Здесь логика перезарядки
-        // AnimInstance->bIsReloading = ...;
-    }
-}
-
-// В Tick() добавьте вызов обновления анимации
-void ASystem1ParadoxCharacter::Tick(float DeltaTime)
-{
-    Super::Tick(DeltaTime);
-    UpdateAnimationState(); // Добавьте эту строку
 }
 
 void ASystem1ParadoxCharacter::LookUp(float Value)
@@ -178,7 +166,6 @@ void ASystem1ParadoxCharacter::StartFire()
     {
         bIsFiring = true;
         CurrentWeapon->StartFire();
-        UE_LOG(LogTemp, Warning, TEXT("Started firing"));
     }
 }
 
@@ -188,7 +175,6 @@ void ASystem1ParadoxCharacter::StopFire()
     {
         bIsFiring = false;
         CurrentWeapon->StopFire();
-        UE_LOG(LogTemp, Warning, TEXT("Stopped firing"));
     }
 }
 
@@ -225,8 +211,28 @@ void ASystem1ParadoxCharacter::UpdateHUD()
     }
 }
 
-// Остальные функции (sprint, crouch) пока остаются пустыми
-void ASystem1ParadoxCharacter::StartSprint() {}
-void ASystem1ParadoxCharacter::StopSprint() {}
-void ASystem1ParadoxCharacter::StartCrouch() {}
-void ASystem1ParadoxCharacter::StopCrouch() {}
+// ======== ФУНКЦИЯ PLAYANIMATION ========
+void ASystem1ParadoxCharacter::PlayAnimation(UAnimSequence* NewAnimation)
+{
+    if (!GetMesh() || !GetMesh()->GetAnimInstance() || !NewAnimation)
+        return;
+
+    // Если уже проигрывается эта анимация - ничего не делаем
+    if (CurrentAnimation == NewAnimation)
+        return;
+
+    CurrentAnimation = NewAnimation;
+
+    // Проигрываем анимацию
+    GetMesh()->GetAnimInstance()->PlaySlotAnimationAsDynamicMontage(
+        NewAnimation,        // Сама анимация
+        FName("DefaultSlot"), // Слот для проигрывания
+        0.25f,               // Плавное начало
+        0.25f,               // Плавный конец
+        1.0f,                // Скорость проигрывания
+        1,                   // Сколько раз проиграть (1 = бесконечно)
+        0.0f,                // Начальное смещение
+        0.0f                 // Стартовое время
+    );
+}
+// =======================================

@@ -1,9 +1,9 @@
 #include "Weapon.h"
+// ”ƒјЋ»“≈ #include "System1ParadoxCharacter.h" если он есть
 #include "Components/StaticMeshComponent.h"
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
-#include "System1ParadoxCharacter.h"
 
 AWeapon::AWeapon()
 {

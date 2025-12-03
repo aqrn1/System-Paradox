@@ -6,15 +6,12 @@ public class System1Paradox : ModuleRules
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
+        // ТОЛЬКО ОСНОВНЫЕ ЗАВИСИМОСТИ
         PublicDependencyModuleNames.AddRange(new string[] {
             "Core",
             "CoreUObject",
             "Engine",
-            "InputCore",
-            "UnrealEd",
-            "AssetRegistry",
-            "Kismet",
-            "AnimGraphRuntime" // <-- Убедитесь, что перед этой строкой есть запятая
+            "InputCore"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });
