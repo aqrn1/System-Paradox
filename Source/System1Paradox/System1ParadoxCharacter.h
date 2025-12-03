@@ -9,6 +9,8 @@
 // Предварительное объявление класса Weapon чтобы избежать циклических зависимостей
 class AWeapon;
 
+class UCharacterAnimInstance;
+
 UCLASS()
 class SYSTEM1PARADOX_API ASystem1ParadoxCharacter : public ACharacter
 {

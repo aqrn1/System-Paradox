@@ -13,8 +13,8 @@ public class System1Paradox : ModuleRules
             "InputCore",
             "UnrealEd",
             "AssetRegistry",
-            "Kismet"
-            "AnimGraphRuntime"
+            "Kismet",
+            "AnimGraphRuntime" // <-- Убедитесь, что перед этой строкой есть запятая
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });
