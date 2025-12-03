@@ -92,20 +92,6 @@ protected:
     FTimerHandle FireTimerHandle;
     bool bIsFiring = false;
 
-    // Sprint функции (пока не активны)
-    UFUNCTION(BlueprintCallable, Category = "Movement")
-    void StartSprint();
-
-    UFUNCTION(BlueprintCallable, Category = "Movement")
-    void StopSprint();
-
-    // Crouch функции (пока не активны)
-    UFUNCTION(BlueprintCallable, Category = "Movement")
-    void StartCrouch();
-
-    UFUNCTION(BlueprintCallable, Category = "Movement")
-    void StopCrouch();
-
     // Свойства движения
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float WalkSpeed = 400.0f;

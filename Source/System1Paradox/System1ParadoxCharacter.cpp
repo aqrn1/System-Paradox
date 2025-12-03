@@ -235,4 +235,9 @@ void ASystem1ParadoxCharacter::PlayAnimation(UAnimSequence* NewAnimation)
         0.0f                 // Стартовое время
     );
 }
-// =======================================
+
+void ASystem1ParadoxCharacter::PostInitializeComponents()
+{
+    Super::PostInitializeComponents();
+    // Пустая реализация - просто удовлетворяем линкер
+}

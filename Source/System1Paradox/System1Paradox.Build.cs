@@ -6,14 +6,21 @@ public class System1Paradox : ModuleRules
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        // ТОЛЬКО ОСНОВНЫЕ ЗАВИСИМОСТИ
         PublicDependencyModuleNames.AddRange(new string[] {
             "Core",
             "CoreUObject",
             "Engine",
-            "InputCore"
+            "InputCore",
+            "UMG",           // ДЛЯ UI ВИДЖЕТОВ (GameMode)
+            "Slate",
+            "SlateCore"
         });
 
-        PrivateDependencyModuleNames.AddRange(new string[] { });
+        PrivateDependencyModuleNames.AddRange(new string[] {
+            "UnrealEd",      // ДЛЯ BlueprintManager
+            "AssetRegistry",
+            "Kismet",
+            "BlueprintGraph"
+        });
     }
 }

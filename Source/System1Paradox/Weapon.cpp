@@ -4,6 +4,7 @@
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
+//#include "System1ParadoxCharacter.h"
 
 AWeapon::AWeapon()
 {
@@ -132,12 +133,13 @@ void AWeapon::FireShot()
     }
 
     // Простая отдача
-    ASystem1ParadoxCharacter* OwnerCharacter = Cast<ASystem1ParadoxCharacter>(GetOwner());
-    if (OwnerCharacter)
-    {
-        // Легкая вертикальная отдача
-        OwnerCharacter->AddControllerPitchInput(-0.1f);
-    }
+   // УДАЛИТЕ или ЗАКОММЕНТИРУЙТЕ этот блок:
+// ASystem1ParadoxCharacter* OwnerCharacter = Cast<ASystem1ParadoxCharacter>(GetOwner());
+// if (OwnerCharacter)
+// {
+//     // Легкая вертикальная отдача
+//     OwnerCharacter->AddControllerPitchInput(-0.1f);
+// }
 
     UE_LOG(LogTemp, Warning, TEXT("Fired! Ammo: %d"), CurrentAmmo);
 }
