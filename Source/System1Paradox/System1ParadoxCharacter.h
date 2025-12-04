@@ -33,7 +33,7 @@ protected:
     class AWeapon* CurrentWeapon;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-    TSubclassOf<class AActor> WeaponClass;
+    TSubclassOf<class AWeapon> WeaponClass;
 
     // Функции ввода
     UFUNCTION(BlueprintCallable, Category = "Input")
