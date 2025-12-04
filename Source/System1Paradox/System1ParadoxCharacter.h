@@ -16,6 +16,16 @@ public:
     virtual void Tick(float DeltaTime) override;
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
     virtual void PostInitializeComponents() override;
+    // В public или protected секции добавь:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+    FVector WeaponOffset = FVector(30.0f, 10.0f, -10.0f);
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+    FRotator WeaponRotation = FRotator(0.0f, 90.0f, 0.0f);
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+    FVector WeaponScale = FVector(0.5f);
+
 
 protected:
     virtual void BeginPlay() override;

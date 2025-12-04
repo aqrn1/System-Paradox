@@ -77,17 +77,20 @@ void ASystem1ParadoxCharacter::BeginPlay()
         CurrentWeapon = GetWorld()->SpawnActor<AWeapon>(WeaponClass, SpawnParams);
         if (CurrentWeapon)
         {
-            // Прикрепляем к кости руки
+            // Прикрепляем к камере для FPS
             CurrentWeapon->AttachToComponent(
-                GetMesh(),
-                FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-                FName("hand_r")  // Кость правой руки
+                CameraComponent,
+                FAttachmentTransformRules::KeepRelativeTransform, // KeepRelative чтобы сохранял offset
+                NAME_None
             );
 
-            // Настрой позицию если нужно
-            // CurrentWeapon->SetActorRelativeLocation(FVector(10.0f, 5.0f, -5.0f));
-            // CurrentWeapon->SetActorRelativeRotation(FRotator(0.0f, 90.0f, 0.0f));
+            // Устанавливаем трансформы
+            CurrentWeapon->SetActorRelativeLocation(WeaponOffset);
+            CurrentWeapon->SetActorRelativeRotation(WeaponRotation);
+            CurrentWeapon->SetActorScale3D(WeaponScale);
         }
+
+      
     }
 
 }
