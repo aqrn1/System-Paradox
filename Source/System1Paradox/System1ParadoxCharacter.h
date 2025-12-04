@@ -83,14 +83,7 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float SprintSpeed = 600.0f;
 
-    // Здоровье
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
-    float MaxHealth = 100.0f;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
-    float CurrentHealth = 100.0f;
-
-    // Параметры торможения (ДОБАВИЛИ НОВЫЕ)
+    // Параметры торможения
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float WalkingDeceleration = 2048.0f;
 
@@ -98,6 +91,44 @@ protected:
     float SprintingDeceleration = 1024.0f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-    float CrouchingDeceleration = 512.0f;  // ВНИМАНИЕ: здесь должна быть точка с запятой!
+    float CrouchingDeceleration = 512.0f;
+
+    // === ВАЖНО: ДОБАВЬ ЭТИ ПЕРЕМЕННЫЕ ===
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+    bool bIsSprinting = false;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+    bool bIsCrouching = false;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    float SprintMultiplier = 1.5f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    float CrouchSpeed = 200.0f;
+
+    // === ВАЖНО: ДОБАВЬ ЭТИ ФУНКЦИИ ===
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void StartSprint();
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void StopSprint();
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void StartCrouch();
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void StopCrouch();
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void UpdateMovementSpeed();
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    bool CanSprint() const;
+
+    // Здоровье
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+    float MaxHealth = 100.0f;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
+    float CurrentHealth = 100.0f;
 };
-// Класс заканчивается здесь - после закрывающей скобки точки с запятой НЕ нужно

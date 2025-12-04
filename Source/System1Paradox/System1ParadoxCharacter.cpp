@@ -40,6 +40,13 @@ ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
     // ======================================
 
     GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+
+    // Инициализация новых переменных
+    SprintMultiplier = 1.5f;
+    CrouchSpeed = 200.0f;
+
+    // Начальные настройки скорости
+    UpdateMovementSpeed();
 }
 
 void ASystem1ParadoxCharacter::BeginPlay()
@@ -71,6 +78,12 @@ void ASystem1ParadoxCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
+    // Автоматически выключаем спринт если условия изменились
+    if (bIsSprinting && !CanSprint())
+    {
+        StopSprint();
+    }
+
     // Обновляем HUD каждый кадр
     UpdateHUD();
 
@@ -85,6 +98,15 @@ void ASystem1ParadoxCharacter::Tick(float DeltaTime)
             *AmmoInfo);
 
         GEngine->AddOnScreenDebugMessage(1, 0, FColor::Green, DebugString);
+    }
+    // Отладочная информация
+    if (GEngine)
+    {
+        FString StateInfo = FString::Printf(TEXT("Спринт: %s | Присед: %s"),
+            bIsSprinting ? TEXT("ДА") : TEXT("НЕТ"),
+            bIsCrouching ? TEXT("ДА") : TEXT("НЕТ"));
+
+        GEngine->AddOnScreenDebugMessage(2, 0, FColor::White, StateInfo);
     }
 }
 
@@ -104,6 +126,13 @@ void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* Player
     PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASystem1ParadoxCharacter::StopFire);
 
     PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ASystem1ParadoxCharacter::StartReload);
+
+    PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASystem1ParadoxCharacter::StartSprint);
+    PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASystem1ParadoxCharacter::StopSprint);
+
+    // Приседание (удерживать Ctrl)
+    PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASystem1ParadoxCharacter::StartCrouch);
+    PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ASystem1ParadoxCharacter::StopCrouch);
 }
 
 void ASystem1ParadoxCharacter::MoveForward(float Value)
@@ -196,5 +225,105 @@ void ASystem1ParadoxCharacter::UpdateHUD()
     {
         HUD->UpdateHealth(CurrentHealth);
         HUD->UpdateAmmo(CurrentWeapon->CurrentAmmo, CurrentWeapon->MaxAmmo);
+    }
+}
+
+void ASystem1ParadoxCharacter::StartSprint()
+{
+    if (CanSprint())
+    {
+        bIsSprinting = true;
+        UpdateMovementSpeed();
+
+        // Отладочное сообщение
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("СПРИНТ: ВКЛ"));
+        }
+    }
+}
+
+void ASystem1ParadoxCharacter::StopSprint()
+{
+    bIsSprinting = false;
+    UpdateMovementSpeed();
+
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("СПРИНТ: ВЫКЛ"));
+    }
+}
+
+bool ASystem1ParadoxCharacter::CanSprint() const
+{
+    // Можно спринтовать только когда:
+    // 1. Не присели
+    // 2. Двигаемся вперед
+    // 3. Не в воздухе
+    // 4. Не перезаряжаемся (если есть оружие)
+
+    return !bIsCrouching &&
+        GetVelocity().Size() > 10.0f &&
+        !GetCharacterMovement()->IsFalling();
+}
+
+void ASystem1ParadoxCharacter::StartCrouch()
+{
+    if (!bIsCrouching)
+    {
+        bIsCrouching = true;
+        Crouch();  // Встроенная функция Unreal Engine
+
+        UpdateMovementSpeed();
+
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("ПРИСЕД: ВКЛ"));
+        }
+    }
+}
+
+void ASystem1ParadoxCharacter::StopCrouch()
+{
+    if (bIsCrouching)
+    {
+        bIsCrouching = false;
+        UnCrouch();  // Встроенная функция
+
+        UpdateMovementSpeed();
+
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("ПРИСЕД: ВЫКЛ"));
+        }
+    }
+}
+
+void ASystem1ParadoxCharacter::UpdateMovementSpeed()
+{
+    if (bIsCrouching)
+    {
+        // В приседе
+        GetCharacterMovement()->MaxWalkSpeed = CrouchSpeed;
+        GetCharacterMovement()->BrakingDecelerationWalking = CrouchingDeceleration;
+    }
+    else if (bIsSprinting)
+    {
+        // Спринт
+        GetCharacterMovement()->MaxWalkSpeed = SprintSpeed * SprintMultiplier;
+        GetCharacterMovement()->BrakingDecelerationWalking = SprintingDeceleration;
+    }
+    else
+    {
+        // Обычная ходьба/бег
+        GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+        GetCharacterMovement()->BrakingDecelerationWalking = WalkingDeceleration;
+    }
+
+    // Отладка
+    if (GEngine)
+    {
+        FString SpeedMsg = FString::Printf(TEXT("СКОРОСТЬ: %.0f"), GetCharacterMovement()->MaxWalkSpeed);
+        GEngine->AddOnScreenDebugMessage(3, 2.0f, FColor::Cyan, SpeedMsg);
     }
 }
