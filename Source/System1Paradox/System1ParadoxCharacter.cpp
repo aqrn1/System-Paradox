@@ -66,6 +66,30 @@ void ASystem1ParadoxCharacter::BeginPlay()
             CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("hand_r"));
         }
     }
+
+    // Создаем оружие при старте игры
+    if (WeaponClass)
+    {
+        FActorSpawnParameters SpawnParams;
+        SpawnParams.Owner = this;
+        SpawnParams.Instigator = GetInstigator();
+
+        CurrentWeapon = GetWorld()->SpawnActor<AWeapon>(WeaponClass, SpawnParams);
+        if (CurrentWeapon)
+        {
+            // Прикрепляем к кости руки
+            CurrentWeapon->AttachToComponent(
+                GetMesh(),
+                FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+                FName("hand_r")  // Кость правой руки
+            );
+
+            // Настрой позицию если нужно
+            // CurrentWeapon->SetActorRelativeLocation(FVector(10.0f, 5.0f, -5.0f));
+            // CurrentWeapon->SetActorRelativeRotation(FRotator(0.0f, 90.0f, 0.0f));
+        }
+    }
+
 }
 
 void ASystem1ParadoxCharacter::PostInitializeComponents()
