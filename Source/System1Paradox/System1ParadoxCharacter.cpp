@@ -30,6 +30,15 @@ ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
     GetCharacterMovement()->JumpZVelocity = 300.0f;
     GetCharacterMovement()->AirControl = 0.2f;
     GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+
+    // === ÍÀÑÒÐÎÉÊÈ ÒÎÐÌÎÆÅÍÈß (ÄÎÁÀÂÈËÈ) ===
+    GetCharacterMovement()->BrakingDecelerationWalking = WalkingDeceleration;
+    GetCharacterMovement()->GroundFriction = 8.0f;
+    GetCharacterMovement()->BrakingFrictionFactor = 2.0f;
+    GetCharacterMovement()->MaxAcceleration = 2048.0f;
+    GetCharacterMovement()->bUseSeparateBrakingFriction = false;
+    // ======================================
+
     GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 }
 

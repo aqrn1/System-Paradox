@@ -89,4 +89,15 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
     float CurrentHealth = 100.0f;
+
+    // Параметры торможения (ДОБАВИЛИ НОВЫЕ)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    float WalkingDeceleration = 2048.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    float SprintingDeceleration = 1024.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    float CrouchingDeceleration = 512.0f;  // ВНИМАНИЕ: здесь должна быть точка с запятой!
 };
+// Класс заканчивается здесь - после закрывающей скобки точки с запятой НЕ нужно
