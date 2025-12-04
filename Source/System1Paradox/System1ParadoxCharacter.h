@@ -19,6 +19,7 @@ public:
 
 protected:
     virtual void BeginPlay() override;
+    void UpdateAnimationParameters();
 
     // Компоненты камеры
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -131,4 +132,6 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
     float CurrentHealth = 100.0f;
+
+
 };
