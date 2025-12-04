@@ -52,39 +52,18 @@ void ASystem1ParadoxCharacter::BeginPlay()
     }
 }
 
+void ASystem1ParadoxCharacter::PostInitializeComponents()
+{
+    Super::PostInitializeComponents();
+    // Пустая реализация, но она нужна для компиляции
+}
+
 void ASystem1ParadoxCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
     // Обновляем HUD каждый кадр
     UpdateHUD();
-
-    // ======== ЛОГИКА ВЫБОРА АНИМАЦИИ ========
-    // Выбираем анимацию в зависимости от скорости
-    float Speed = GetVelocity().Size2D();
-    bool bIsFalling = GetCharacterMovement()->IsFalling();
-
-    UAnimSequence* DesiredAnimation = IdleAnimation; // По умолчанию
-
-    if (bIsFalling)
-    {
-        // Если есть анимация прыжка - можно добавить
-    }
-    else if (Speed > 300.0f && RunAnimation) // Бег
-    {
-        DesiredAnimation = RunAnimation;
-    }
-    else if (Speed > 10.0f && WalkAnimation) // Ходьба
-    {
-        DesiredAnimation = WalkAnimation;
-    }
-
-    // Проигрываем выбранную анимацию
-    if (DesiredAnimation)
-    {
-        PlayAnimation(DesiredAnimation);
-    }
-    // =========================================
 
     // Отладочная информация
     if (GEngine)
@@ -209,35 +188,4 @@ void ASystem1ParadoxCharacter::UpdateHUD()
         HUD->UpdateHealth(CurrentHealth);
         HUD->UpdateAmmo(CurrentWeapon->CurrentAmmo, CurrentWeapon->MaxAmmo);
     }
-}
-
-// ======== ФУНКЦИЯ PLAYANIMATION ========
-void ASystem1ParadoxCharacter::PlayAnimation(UAnimSequence* NewAnimation)
-{
-    if (!GetMesh() || !GetMesh()->GetAnimInstance() || !NewAnimation)
-        return;
-
-    // Если уже проигрывается эта анимация - ничего не делаем
-    if (CurrentAnimation == NewAnimation)
-        return;
-
-    CurrentAnimation = NewAnimation;
-
-    // Проигрываем анимацию
-    GetMesh()->GetAnimInstance()->PlaySlotAnimationAsDynamicMontage(
-        NewAnimation,        // Сама анимация
-        FName("DefaultSlot"), // Слот для проигрывания
-        0.25f,               // Плавное начало
-        0.25f,               // Плавный конец
-        1.0f,                // Скорость проигрывания
-        1,                   // Сколько раз проиграть (1 = бесконечно)
-        0.0f,                // Начальное смещение
-        0.0f                 // Стартовое время
-    );
-}
-
-void ASystem1ParadoxCharacter::PostInitializeComponents()
-{
-    Super::PostInitializeComponents();
-    // Пустая реализация - просто удовлетворяем линкер
 }

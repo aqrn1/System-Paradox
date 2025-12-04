@@ -6,11 +6,6 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "System1ParadoxCharacter.generated.h"
 
-// Предварительное объявление класса Weapon чтобы избежать циклических зависимостей
-class AWeapon;
-
-class UCharacterAnimInstance;
-
 UCLASS()
 class SYSTEM1PARADOX_API ASystem1ParadoxCharacter : public ACharacter
 {
@@ -20,6 +15,7 @@ public:
     ASystem1ParadoxCharacter();
     virtual void Tick(float DeltaTime) override;
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+    virtual void PostInitializeComponents() override;
 
 protected:
     virtual void BeginPlay() override;
@@ -31,19 +27,9 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
     USpringArmComponent* SpringArmComponent;
 
-    UPROPERTY(BlueprintReadOnly)
-    UCharacterAnimInstance* AnimInstance;
-
-
-    // Функция для обновления переменных анимации
-    void UpdateAnimationState();
-
-    // Переопределим функцию для получения AnimInstance
-    virtual void PostInitializeComponents() override;
-    
     // Оружие
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-    AWeapon* CurrentWeapon;
+    class AWeapon* CurrentWeapon;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
     TSubclassOf<class AActor> WeaponClass;
@@ -67,14 +53,12 @@ protected:
     UFUNCTION(BlueprintCallable, Category = "Input")
     void StopJump();
 
-    // Функции стрельбы
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     void StartFire();
 
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     void StopFire();
 
-    // Функции для управления оружием
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     void ReloadWeapon();
 
@@ -99,41 +83,10 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float SprintSpeed = 600.0f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-    float CrouchSpeed = 200.0f;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-    float CrouchSprintSpeed = 300.0f;
-
     // Здоровье
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
     float MaxHealth = 100.0f;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
     float CurrentHealth = 100.0f;
-
-    // Переменные состояния
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
-    bool bIsSprinting = false;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
-    bool bIsCrouching = false;
-
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-    class UAnimSequence* IdleAnimation;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-    class UAnimSequence* WalkAnimation;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-    class UAnimSequence* RunAnimation;
-
-    // Текущая анимация
-    class UAnimSequence* CurrentAnimation;
-
-    // Функция для проигрывания анимации
-    void PlayAnimation(class UAnimSequence* NewAnimation);
-    // ===============================================
 };
-
