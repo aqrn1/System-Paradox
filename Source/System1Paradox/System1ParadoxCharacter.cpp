@@ -99,15 +99,17 @@ void ASystem1ParadoxCharacter::Tick(float DeltaTime)
 
         GEngine->AddOnScreenDebugMessage(1, 0, FColor::Green, DebugString);
     }
-    // Отладочная информация
-    if (GEngine)
-    {
-        FString StateInfo = FString::Printf(TEXT("Спринт: %s | Присед: %s"),
-            bIsSprinting ? TEXT("ДА") : TEXT("НЕТ"),
-            bIsCrouching ? TEXT("ДА") : TEXT("НЕТ"));
+    // ВРЕМЕННО УБРАТЬ ОТЛАДКУ - закомментируй или удали
+     /*
+     if (GEngine)
+     {
+         FString StateInfo = FString::Printf(TEXT("Sprint: %s | Crouch: %s"),
+             bIsSprinting ? TEXT("ON") : TEXT("OFF"),
+             bIsCrouching ? TEXT("ON") : TEXT("OFF"));
 
-        GEngine->AddOnScreenDebugMessage(2, 0, FColor::White, StateInfo);
-    }
+         GEngine->AddOnScreenDebugMessage(2, 0, FColor::White, StateInfo);
+     }
+     */
 }
 
 void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -235,10 +237,10 @@ void ASystem1ParadoxCharacter::StartSprint()
         bIsSprinting = true;
         UpdateMovementSpeed();
 
-        // Отладочное сообщение
+        // Отладочное сообщение (английский)
         if (GEngine)
         {
-            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("СПРИНТ: ВКЛ"));
+            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("SPRINT: ON"));
         }
     }
 }
@@ -250,7 +252,7 @@ void ASystem1ParadoxCharacter::StopSprint()
 
     if (GEngine)
     {
-        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("СПРИНТ: ВЫКЛ"));
+        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("SPRINT: OFF"));
     }
 }
 
@@ -272,13 +274,13 @@ void ASystem1ParadoxCharacter::StartCrouch()
     if (!bIsCrouching)
     {
         bIsCrouching = true;
-        Crouch();  // Встроенная функция Unreal Engine
+        Crouch();
 
         UpdateMovementSpeed();
 
         if (GEngine)
         {
-            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("ПРИСЕД: ВКЛ"));
+            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("CROUCH: ON"));
         }
     }
 }
@@ -288,13 +290,13 @@ void ASystem1ParadoxCharacter::StopCrouch()
     if (bIsCrouching)
     {
         bIsCrouching = false;
-        UnCrouch();  // Встроенная функция
+        UnCrouch();
 
         UpdateMovementSpeed();
 
         if (GEngine)
         {
-            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("ПРИСЕД: ВЫКЛ"));
+            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("CROUCH: OFF"));
         }
     }
 }

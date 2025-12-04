@@ -25,3 +25,4 @@ void ASystem1ParadoxGameMode::BeginPlay()
         }
     }
 }
+
