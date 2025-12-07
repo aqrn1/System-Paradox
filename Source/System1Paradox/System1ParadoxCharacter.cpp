@@ -31,22 +31,18 @@ ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
     GetCharacterMovement()->AirControl = 0.2f;
     GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 
-    // === НАСТРОЙКИ ТОРМОЖЕНИЯ (ДОБАВИЛИ) ===
+    // Настройки торможения
     GetCharacterMovement()->BrakingDecelerationWalking = WalkingDeceleration;
     GetCharacterMovement()->GroundFriction = 8.0f;
     GetCharacterMovement()->BrakingFrictionFactor = 2.0f;
     GetCharacterMovement()->MaxAcceleration = 2048.0f;
     GetCharacterMovement()->bUseSeparateBrakingFriction = false;
-    // ======================================
 
     GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 
     // Инициализация новых переменных
     SprintMultiplier = 1.5f;
     CrouchSpeed = 200.0f;
-
-    // Начальные настройки скорости
-    UpdateMovementSpeed();
 }
 
 void ASystem1ParadoxCharacter::BeginPlay()
@@ -81,13 +77,13 @@ void ASystem1ParadoxCharacter::BeginPlay()
             // 🔴 ПРИКРЕПЛЯЕМ К КАМЕРЕ (FPS стиль)
             CurrentWeapon->AttachToComponent(
                 CameraComponent,
-                FAttachmentTransformRules::SnapToTargetIncludingScale,  // 🟢 Включаем масштаб
+                FAttachmentTransformRules::SnapToTargetIncludingScale,
                 NAME_None
             );
 
             // 🟢 НОВЫЕ ЗНАЧЕНИЯ ПОЗИЦИИ ОРУЖИЯ:
             CurrentWeapon->SetActorRelativeLocation(FVector(50.0f, 20.0f, -20.0f));
-            CurrentWeapon->SetActorRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
+            CurrentWeapon->SetActorRelativeRotation(FRotator(0.0f, 90.0f, 0.0f));
             CurrentWeapon->SetActorScale3D(FVector(1.0f));
 
             // 🔴 АЛЬТЕРНАТИВА: Прикрепляем к кости скелета (если к камере не работает)
@@ -167,45 +163,15 @@ void ASystem1ParadoxCharacter::Tick(float DeltaTime)
     {
         if (CurrentWeapon)
         {
-            FVector WeaponPos = CurrentWeapon->GetActorRelativeLocation();
+            FVector WeaponPos = CurrentWeapon->GetActorLocation();  // 🟢 ИСПРАВЛЕНО!
             FString PosMsg = FString::Printf(
-                TEXT("🔫 Weapon Rel Pos: (%.1f, %.1f, %.1f)"),
+                TEXT("🔫 Weapon Pos: (%.1f, %.1f, %.1f)"),
                 WeaponPos.X, WeaponPos.Y, WeaponPos.Z
             );
             if (GEngine) GEngine->AddOnScreenDebugMessage(10, 2.1f, FColor::Cyan, PosMsg);
         }
         WeaponDebugTimer = 0.0f;
     }
-}
-    
-  
-
-}
-
-void ASystem1ParadoxCharacter::DebugWeaponPosition()
-{
-    if (!CurrentWeapon || !CameraComponent) return;
-
-    FVector WeaponWorldPos = CurrentWeapon->GetActorLocation();
-    FVector CameraWorldPos = CameraComponent->GetComponentLocation();
-    FVector RelativePos = WeaponWorldPos - CameraWorldPos;
-
-    FString DebugInfo = FString::Printf(
-        TEXT("=== 🔫 WEAPON DEBUG ===\n") +
-        TEXT("Weapon World: (%.1f, %.1f, %.1f)\n") +
-        TEXT("Camera World: (%.1f, %.1f, %.1f)\n") +
-        TEXT("Relative Offset: (%.1f, %.1f, %.1f)\n") +
-        TEXT("Weapon Scale: (%.2f, %.2f, %.2f)"),
-        WeaponWorldPos.X, WeaponWorldPos.Y, WeaponWorldPos.Z,
-        CameraWorldPos.X, CameraWorldPos.Y, CameraWorldPos.Z,
-        RelativePos.X, RelativePos.Y, RelativePos.Z,
-        CurrentWeapon->GetActorScale3D().X,
-        CurrentWeapon->GetActorScale3D().Y,
-        CurrentWeapon->GetActorScale3D().Z
-    );
-
-    if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Yellow, DebugInfo);
-    UE_LOG(LogTemp, Warning, TEXT("%s"), *DebugInfo);
 }
 
 void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -225,6 +191,7 @@ void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* Player
 
     PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ASystem1ParadoxCharacter::StartReload);
 
+    // Спринт (удерживать Shift)
     PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASystem1ParadoxCharacter::StartSprint);
     PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASystem1ParadoxCharacter::StopSprint);
 
@@ -232,75 +199,6 @@ void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* Player
     PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASystem1ParadoxCharacter::StartCrouch);
     PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ASystem1ParadoxCharacter::StopCrouch);
 }
-
-void ASystem1ParadoxCharacter::UpdateAnimationParameters()
-{
-    // Получаем AnimInstance из Mesh
-    UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-    if (!AnimInstance) return;
-
-    // 1. Передаем скорость
-    FProperty* SpeedProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("Speed"));
-    if (SpeedProp)
-    {
-        // Получаем указатель на переменную Speed в AnimInstance
-        float* SpeedValue = SpeedProp->ContainerPtrToValuePtr<float>(AnimInstance);
-        if (SpeedValue)
-        {
-            *SpeedValue = GetVelocity().Size(); // Устанавливаем текущую скорость
-        }
-    }
-
-    // 2. Передаем состояние приседания
-    FProperty* CrouchProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("bIsCrouching"));
-    if (!CrouchProp)
-    {
-        // Попробуем другое имя (иногда используют IsCrouching)
-        CrouchProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("IsCrouching"));
-    }
-
-    if (CrouchProp)
-    {
-        bool* CrouchValue = CrouchProp->ContainerPtrToValuePtr<bool>(AnimInstance);
-        if (CrouchValue)
-        {
-            *CrouchValue = bIsCrouching;
-        }
-    }
-
-    // 3. Передаем состояние спринта
-    FProperty* SprintProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("bIsSprinting"));
-    if (!SprintProp)
-    {
-        SprintProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("IsSprinting"));
-    }
-
-    if (SprintProp)
-    {
-        bool* SprintValue = SprintProp->ContainerPtrToValuePtr<bool>(AnimInstance);
-        if (SprintValue)
-        {
-            *SprintValue = bIsSprinting;
-        }
-    }
-
-    // 4. Передаем состояние в воздухе (опционально)
-    FProperty* InAirProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("bIsInAir"));
-    if (!InAirProp)
-    {
-        InAirProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("IsInAir"));
-    }
-
-    if (InAirProp)
-    {
-        bool* InAirValue = InAirProp->ContainerPtrToValuePtr<bool>(AnimInstance);
-        if (InAirValue)
-        {
-            *InAirValue = GetCharacterMovement()->IsFalling();
-        }
-    }
-}
-
 
 void ASystem1ParadoxCharacter::MoveForward(float Value)
 {
@@ -427,7 +325,6 @@ bool ASystem1ParadoxCharacter::CanSprint() const
     // 1. Не присели
     // 2. Двигаемся вперед
     // 3. Не в воздухе
-    // 4. Не перезаряжаемся (если есть оружие)
 
     return !bIsCrouching &&
         GetVelocity().Size() > 10.0f &&
@@ -439,7 +336,7 @@ void ASystem1ParadoxCharacter::StartCrouch()
     if (!bIsCrouching)
     {
         bIsCrouching = true;
-        Crouch();
+        Crouch();  // Встроенная функция Unreal Engine
 
         UpdateMovementSpeed();
 
@@ -455,7 +352,7 @@ void ASystem1ParadoxCharacter::StopCrouch()
     if (bIsCrouching)
     {
         bIsCrouching = false;
-        UnCrouch();
+        UnCrouch();  // Встроенная функция
 
         UpdateMovementSpeed();
 
@@ -490,7 +387,106 @@ void ASystem1ParadoxCharacter::UpdateMovementSpeed()
     // Отладка
     if (GEngine)
     {
-        FString SpeedMsg = FString::Printf(TEXT("СКОРОСТЬ: %.0f"), GetCharacterMovement()->MaxWalkSpeed);
+        FString SpeedMsg = FString::Printf(TEXT("SPEED: %.0f"), GetCharacterMovement()->MaxWalkSpeed);
         GEngine->AddOnScreenDebugMessage(3, 2.0f, FColor::Cyan, SpeedMsg);
     }
+}
+
+void ASystem1ParadoxCharacter::UpdateAnimationParameters()
+{
+    // Получаем AnimInstance из Mesh
+    UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+    if (!AnimInstance) return;
+
+    // 1. Передаем скорость
+    FProperty* SpeedProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("Speed"));
+    if (SpeedProp)
+    {
+        // Получаем указатель на переменную Speed в AnimInstance
+        float* SpeedValue = SpeedProp->ContainerPtrToValuePtr<float>(AnimInstance);
+        if (SpeedValue)
+        {
+            *SpeedValue = GetVelocity().Size(); // Устанавливаем текущую скорость
+        }
+    }
+
+    // 2. Передаем состояние приседания
+    FProperty* CrouchProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("bIsCrouching"));
+    if (!CrouchProp)
+    {
+        // Попробуем другое имя (иногда используют IsCrouching)
+        CrouchProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("IsCrouching"));
+    }
+
+    if (CrouchProp)
+    {
+        bool* CrouchValue = CrouchProp->ContainerPtrToValuePtr<bool>(AnimInstance);
+        if (CrouchValue)
+        {
+            *CrouchValue = bIsCrouching;
+        }
+    }
+
+    // 3. Передаем состояние спринта
+    FProperty* SprintProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("bIsSprinting"));
+    if (!SprintProp)
+    {
+        SprintProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("IsSprinting"));
+    }
+
+    if (SprintProp)
+    {
+        bool* SprintValue = SprintProp->ContainerPtrToValuePtr<bool>(AnimInstance);
+        if (SprintValue)
+        {
+            *SprintValue = bIsSprinting;
+        }
+    }
+
+    // 4. Передаем состояние в воздухе (опционально)
+    FProperty* InAirProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("bIsInAir"));
+    if (!InAirProp)
+    {
+        InAirProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("IsInAir"));
+    }
+
+    if (InAirProp)
+    {
+        bool* InAirValue = InAirProp->ContainerPtrToValuePtr<bool>(AnimInstance);
+        if (InAirValue)
+        {
+            *InAirValue = GetCharacterMovement()->IsFalling();
+        }
+    }
+}
+
+// 🔴 ДОБАВЛЯЕМ НОВУЮ ФУНКЦИЮ ДЛЯ ДЕБАГА
+void ASystem1ParadoxCharacter::DebugWeaponPosition()
+{
+    if (!CurrentWeapon || !CameraComponent) return;
+
+    FVector WeaponWorldPos = CurrentWeapon->GetActorLocation();
+    FVector CameraWorldPos = CameraComponent->GetComponentLocation();
+    FVector RelativePos = WeaponWorldPos - CameraWorldPos;
+
+    // 🟢 ИСПРАВЛЕННЫЙ КОД: Правильное форматирование строки
+    FString DebugInfo = FString::Printf(
+        TEXT("=== WEAPON DEBUG ===\n") \
+        TEXT("Weapon World: (%.1f, %.1f, %.1f)\n") \
+        TEXT("Camera World: (%.1f, %.1f, %.1f)\n") \
+        TEXT("Relative Offset: (%.1f, %.1f, %.1f)\n") \
+        TEXT("Weapon Scale: (%.2f, %.2f, %.2f)"),
+        WeaponWorldPos.X, WeaponWorldPos.Y, WeaponWorldPos.Z,
+        CameraWorldPos.X, CameraWorldPos.Y, CameraWorldPos.Z,
+        RelativePos.X, RelativePos.Y, RelativePos.Z,
+        CurrentWeapon->GetActorScale3D().X,
+        CurrentWeapon->GetActorScale3D().Y,
+        CurrentWeapon->GetActorScale3D().Z
+    );
+
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Yellow, DebugInfo);
+    }
+    UE_LOG(LogTemp, Warning, TEXT("%s"), *DebugInfo);
 }
