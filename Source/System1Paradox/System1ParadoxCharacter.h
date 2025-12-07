@@ -40,7 +40,11 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
     class AWeapon* CurrentWeapon;
 
-    // ССЫЛКИ НА КЛАССЫ ОРУЖИЯ
+    // 🟢 СТАРАЯ ПЕРЕМЕННАЯ (для совместимости)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+    TSubclassOf<class AWeapon> WeaponClass;
+
+    // 🟢 НОВЫЕ ПЕРЕМЕННЫЕ ДЛЯ СИСТЕМЫ СМЕНЫ ОРУЖИЯ
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
     TSubclassOf<class AWeapon> PistolClass;
 
@@ -109,7 +113,7 @@ protected:
     // Функция для обновления параметров анимации
     void UpdateAnimationParameters();
 
-    // Функции смены оружия
+    // 🟢 ФУНКЦИИ СМЕНЫ ОРУЖИЯ
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     void SwitchToPistol();
 
@@ -122,11 +126,11 @@ protected:
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     void EquipWeapon(EWeaponType NewWeaponType);
 
-    // Функция обновления анимаций
+    // 🟢 ФУНКЦИЯ ОБНОВЛЕНИЯ АНИМАЦИЙ
     UFUNCTION(BlueprintCallable, Category = "Animation")
     void UpdateWeaponAnimations();
 
-    // Дебаг функции
+    // 🟢 ДЕБАГ ФУНКЦИЯ
     UFUNCTION(BlueprintCallable, Category = "Debug")
     void DebugWeaponPosition();
 
@@ -182,7 +186,7 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
     float CurrentHealth = 100.0f;
 
-    // 🟢 НОВЫЕ ПЕРЕМЕННЫЕ ДЛЯ СИСТЕМЫ ОРУЖИЯ
+    // 🟢 ПЕРЕМЕННЫЕ ДЛЯ СИСТЕМЫ ОРУЖИЯ
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
     EWeaponType CurrentWeaponType = EWeaponType::Unarmed;
 
