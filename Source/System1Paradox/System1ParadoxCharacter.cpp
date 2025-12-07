@@ -1,4 +1,4 @@
-#include "System1ParadoxCharacter.h"
+ï»¿#include "System1ParadoxCharacter.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -31,7 +31,7 @@ ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
     GetCharacterMovement()->AirControl = 0.2f;
     GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 
-    // === ÍÀÑÒÐÎÉÊÈ ÒÎÐÌÎÆÅÍÈß (ÄÎÁÀÂÈËÈ) ===
+    // === ÐÐÐ¡Ð¢Ð ÐžÐ™ÐšÐ˜ Ð¢ÐžÐ ÐœÐžÐ–Ð•ÐÐ˜Ð¯ (Ð”ÐžÐ‘ÐÐ’Ð˜Ð›Ð˜) ===
     GetCharacterMovement()->BrakingDecelerationWalking = WalkingDeceleration;
     GetCharacterMovement()->GroundFriction = 8.0f;
     GetCharacterMovement()->BrakingFrictionFactor = 2.0f;
@@ -41,11 +41,11 @@ ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
 
     GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 
-    // Èíèöèàëèçàöèÿ íîâûõ ïåðåìåííûõ
+    // Ð˜Ð½Ð¸Ñ†Ð¸Ð°Ð»Ð¸Ð·Ð°Ñ†Ð¸Ñ Ð½Ð¾Ð²Ñ‹Ñ… Ð¿ÐµÑ€ÐµÐ¼ÐµÐ½Ð½Ñ‹Ñ…
     SprintMultiplier = 1.5f;
     CrouchSpeed = 200.0f;
 
-    // Íà÷àëüíûå íàñòðîéêè ñêîðîñòè
+    // ÐÐ°Ñ‡Ð°Ð»ÑŒÐ½Ñ‹Ðµ Ð½Ð°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸ ÑÐºÐ¾Ñ€Ð¾ÑÑ‚Ð¸
     UpdateMovementSpeed();
 }
 
@@ -53,21 +53,14 @@ void ASystem1ParadoxCharacter::BeginPlay()
 {
     Super::BeginPlay();
 
-    // Ñîçäàåì îðóæèå ïðè ñòàðòå èãðû
-    if (WeaponClass)
+    // Ð”Ð•Ð‘ÐÐ“: ÐŸÑ€Ð¾Ð²ÐµÑ€ÑÐµÐ¼ ÐºÐ¾Ð¼Ð¿Ð¾Ð½ÐµÐ½Ñ‚Ñ‹
+    if (!CameraComponent)
     {
-        FActorSpawnParameters SpawnParams;
-        SpawnParams.Owner = this;
-        SpawnParams.Instigator = GetInstigator();
-
-        CurrentWeapon = GetWorld()->SpawnActor<AWeapon>(WeaponClass, SpawnParams);
-        if (CurrentWeapon)
-        {
-            CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("hand_r"));
-        }
+        UE_LOG(LogTemp, Error, TEXT("CameraComponent is NULL!"));
+        return;
     }
 
-    // Ñîçäàåì îðóæèå ïðè ñòàðòå èãðû
+    // Ð¡Ð¾Ð·Ð´Ð°ÐµÐ¼ Ð¾Ñ€ÑƒÐ¶Ð¸Ðµ Ð¿Ñ€Ð¸ ÑÑ‚Ð°Ñ€Ñ‚Ðµ Ð¸Ð³Ñ€Ñ‹
     if (WeaponClass)
     {
         FActorSpawnParameters SpawnParams;
@@ -75,62 +68,144 @@ void ASystem1ParadoxCharacter::BeginPlay()
         SpawnParams.Instigator = GetInstigator();
 
         CurrentWeapon = GetWorld()->SpawnActor<AWeapon>(WeaponClass, SpawnParams);
-        if (CurrentWeapon)
+        if (CurrentWeapon && CameraComponent)
         {
-            // Ïðèêðåïëÿåì ê êàìåðå äëÿ FPS
+            // Ð’ÐÐ–ÐÐž: Ð¡Ð½Ð°Ñ‡Ð°Ð»Ð° Ð·Ð°Ð´Ð°ÐµÐ¼ Ð¿Ð¾Ð·Ð¸Ñ†Ð¸ÑŽ, Ð¿Ð¾Ñ‚Ð¾Ð¼ Ð¿Ñ€Ð¸ÐºÑ€ÐµÐ¿Ð»ÑÐµÐ¼
+            FVector SpawnLocation = CameraComponent->GetComponentLocation() +
+                CameraComponent->GetForwardVector() * 100.0f;
+            FRotator SpawnRotation = CameraComponent->GetComponentRotation();
+
+            CurrentWeapon->SetActorLocation(SpawnLocation);
+            CurrentWeapon->SetActorRotation(SpawnRotation);
+
+            // ðŸ”´ ÐŸÐ Ð˜ÐšÐ Ð•ÐŸÐ›Ð¯Ð•Ðœ Ðš ÐšÐÐœÐ•Ð Ð• (FPS ÑÑ‚Ð¸Ð»ÑŒ)
             CurrentWeapon->AttachToComponent(
                 CameraComponent,
-                FAttachmentTransformRules::KeepRelativeTransform, // KeepRelative ÷òîáû ñîõðàíÿë offset
+                FAttachmentTransformRules::SnapToTargetIncludingScale,  // ðŸŸ¢ Ð’ÐºÐ»ÑŽÑ‡Ð°ÐµÐ¼ Ð¼Ð°ÑÑˆÑ‚Ð°Ð±
                 NAME_None
             );
 
-            // Óñòàíàâëèâàåì òðàíñôîðìû
-            CurrentWeapon->SetActorRelativeLocation(WeaponOffset);
-            CurrentWeapon->SetActorRelativeRotation(WeaponRotation);
-            CurrentWeapon->SetActorScale3D(WeaponScale);
+            // ðŸŸ¢ ÐÐžÐ’Ð«Ð• Ð—ÐÐÐ§Ð•ÐÐ˜Ð¯ ÐŸÐžÐ—Ð˜Ð¦Ð˜Ð˜ ÐžÐ Ð£Ð–Ð˜Ð¯:
+            CurrentWeapon->SetActorRelativeLocation(FVector(50.0f, 20.0f, -20.0f));
+            CurrentWeapon->SetActorRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
+            CurrentWeapon->SetActorScale3D(FVector(1.0f));
+
+            // ðŸ”´ ÐÐ›Ð¬Ð¢Ð•Ð ÐÐÐ¢Ð˜Ð’Ð: ÐŸÑ€Ð¸ÐºÑ€ÐµÐ¿Ð»ÑÐµÐ¼ Ðº ÐºÐ¾ÑÑ‚Ð¸ ÑÐºÐµÐ»ÐµÑ‚Ð° (ÐµÑÐ»Ð¸ Ðº ÐºÐ°Ð¼ÐµÑ€Ðµ Ð½Ðµ Ñ€Ð°Ð±Ð¾Ñ‚Ð°ÐµÑ‚)
+            // Uncomment ÐµÑÐ»Ð¸ Ð¾Ñ€ÑƒÐ¶Ð¸Ðµ Ð²ÑÐµ ÐµÑ‰Ðµ Ð½Ðµ Ð²Ð¸Ð´Ð½Ð¾:
+            /*
+            if (GetMesh())
+            {
+                // ÐŸÐ¾Ð¿Ñ€Ð¾Ð±ÑƒÐµÐ¼ Ð¿Ñ€Ð¸ÐºÑ€ÐµÐ¿Ð¸Ñ‚ÑŒ Ðº Ð¿Ñ€Ð°Ð²Ð¾Ð¹ Ñ€ÑƒÐºÐµ
+                FName WeaponSocket = TEXT("hand_r");  // ÐŸÑ€Ð°Ð²Ð°Ñ Ñ€ÑƒÐºÐ°
+                if (GetMesh()->DoesSocketExist(WeaponSocket))
+                {
+                    CurrentWeapon->AttachToComponent(
+                        GetMesh(),
+                        FAttachmentTransformRules::SnapToTargetIncludingScale,
+                        WeaponSocket
+                    );
+                    CurrentWeapon->SetActorRelativeLocation(FVector(10.0f, 5.0f, -5.0f));
+                    CurrentWeapon->SetActorRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
+                }
+            }
+            */
+
+            // Ð”Ð•Ð‘ÐÐ“: Ð¡Ð¾Ð¾Ð±Ñ‰ÐµÐ½Ð¸Ðµ Ð´Ð»Ñ Ð¿Ñ€Ð¾Ð²ÐµÑ€ÐºÐ¸
+            if (GEngine)
+            {
+                FVector WeaponPos = CurrentWeapon->GetActorLocation();
+                FString DebugMsg = FString::Printf(
+                    TEXT("ðŸ”« WEAPON: Attached to Camera\nPosition: X=%.1f, Y=%.1f, Z=%.1f"),
+                    WeaponPos.X, WeaponPos.Y, WeaponPos.Z
+                );
+                GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, DebugMsg);
+            }
         }
+        else
+        {
+            // ÐžÑˆÐ¸Ð±ÐºÐ°
+            FString ErrorMsg = TEXT("âŒ ERROR: Failed to create weapon!");
+            if (!CameraComponent) ErrorMsg += TEXT(" (Camera is null)");
+            if (!CurrentWeapon) ErrorMsg += TEXT(" (Weapon spawn failed)");
 
-      
+            if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, ErrorMsg);
+        }
     }
-
+    else
+    {
+        if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red,
+            TEXT("âŒ WeaponClass not set! Check BP_System1ParadoxCharacter settings"));
+    }
 }
 
 void ASystem1ParadoxCharacter::PostInitializeComponents()
 {
     Super::PostInitializeComponents();
-    // Ïóñòàÿ ðåàëèçàöèÿ, íî îíà íóæíà äëÿ êîìïèëÿöèè
+    // ÐŸÑƒÑÑ‚Ð°Ñ Ñ€ÐµÐ°Ð»Ð¸Ð·Ð°Ñ†Ð¸Ñ, Ð½Ð¾ Ð¾Ð½Ð° Ð½ÑƒÐ¶Ð½Ð° Ð´Ð»Ñ ÐºÐ¾Ð¼Ð¿Ð¸Ð»ÑÑ†Ð¸Ð¸
 }
 
 void ASystem1ParadoxCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    // Àâòîìàòè÷åñêè âûêëþ÷àåì ñïðèíò åñëè óñëîâèÿ èçìåíèëèñü
+    // ÐÐ²Ñ‚Ð¾Ð¼Ð°Ñ‚Ð¸Ñ‡ÐµÑÐºÐ¸ Ð²Ñ‹ÐºÐ»ÑŽÑ‡Ð°ÐµÐ¼ ÑÐ¿Ñ€Ð¸Ð½Ñ‚ ÐµÑÐ»Ð¸ ÑƒÑÐ»Ð¾Ð²Ð¸Ñ Ð¸Ð·Ð¼ÐµÐ½Ð¸Ð»Ð¸ÑÑŒ
     if (bIsSprinting && !CanSprint())
     {
         StopSprint();
     }
 
-    // Îáíîâëÿåì HUD êàæäûé êàäð
+    // ÐžÐ±Ð½Ð¾Ð²Ð»ÑÐµÐ¼ HUD ÐºÐ°Ð¶Ð´Ñ‹Ð¹ ÐºÐ°Ð´Ñ€
     UpdateHUD();
 
+    // ÐžÐ±Ð½Ð¾Ð²Ð»ÑÐµÐ¼ Ð¿Ð°Ñ€Ð°Ð¼ÐµÑ‚Ñ€Ñ‹ Ð°Ð½Ð¸Ð¼Ð°Ñ†Ð¸Ð¸
     UpdateAnimationParameters();
 
-    // Îòëàäî÷íàÿ èíôîðìàöèÿ
-    if (GEngine)
+    // ðŸ”´ Ð”Ð•Ð‘ÐÐ“: ÐŸÐ¾ÐºÐ°Ð·Ñ‹Ð²Ð°ÐµÐ¼ Ð¿Ð¾Ð·Ð¸Ñ†Ð¸ÑŽ Ð¾Ñ€ÑƒÐ¶Ð¸Ñ ÐºÐ°Ð¶Ð´Ñ‹Ðµ 2 ÑÐµÐºÑƒÐ½Ð´Ñ‹
+    static float WeaponDebugTimer = 0.0f;
+    WeaponDebugTimer += DeltaTime;
+    if (WeaponDebugTimer >= 2.0f)
     {
-        FString AmmoInfo = CurrentWeapon ? FString::Printf(TEXT("Ammo: %d"), CurrentWeapon->CurrentAmmo) : TEXT("Ammo: No Weapon");
-        FString HealthInfo = FString::Printf(TEXT("Health: %.0f"), CurrentHealth);
-        FString DebugString = FString::Printf(TEXT("Speed: %.0f | %s | %s"),
-            GetVelocity().Size(),
-            *HealthInfo,
-            *AmmoInfo);
-
-        GEngine->AddOnScreenDebugMessage(1, 0, FColor::Green, DebugString);
+        if (CurrentWeapon)
+        {
+            FVector WeaponPos = CurrentWeapon->GetActorRelativeLocation();
+            FString PosMsg = FString::Printf(
+                TEXT("ðŸ”« Weapon Rel Pos: (%.1f, %.1f, %.1f)"),
+                WeaponPos.X, WeaponPos.Y, WeaponPos.Z
+            );
+            if (GEngine) GEngine->AddOnScreenDebugMessage(10, 2.1f, FColor::Cyan, PosMsg);
+        }
+        WeaponDebugTimer = 0.0f;
     }
+}
     
   
 
+}
+
+void ASystem1ParadoxCharacter::DebugWeaponPosition()
+{
+    if (!CurrentWeapon || !CameraComponent) return;
+
+    FVector WeaponWorldPos = CurrentWeapon->GetActorLocation();
+    FVector CameraWorldPos = CameraComponent->GetComponentLocation();
+    FVector RelativePos = WeaponWorldPos - CameraWorldPos;
+
+    FString DebugInfo = FString::Printf(
+        TEXT("=== ðŸ”« WEAPON DEBUG ===\n") +
+        TEXT("Weapon World: (%.1f, %.1f, %.1f)\n") +
+        TEXT("Camera World: (%.1f, %.1f, %.1f)\n") +
+        TEXT("Relative Offset: (%.1f, %.1f, %.1f)\n") +
+        TEXT("Weapon Scale: (%.2f, %.2f, %.2f)"),
+        WeaponWorldPos.X, WeaponWorldPos.Y, WeaponWorldPos.Z,
+        CameraWorldPos.X, CameraWorldPos.Y, CameraWorldPos.Z,
+        RelativePos.X, RelativePos.Y, RelativePos.Z,
+        CurrentWeapon->GetActorScale3D().X,
+        CurrentWeapon->GetActorScale3D().Y,
+        CurrentWeapon->GetActorScale3D().Z
+    );
+
+    if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Yellow, DebugInfo);
+    UE_LOG(LogTemp, Warning, TEXT("%s"), *DebugInfo);
 }
 
 void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -153,34 +228,34 @@ void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* Player
     PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASystem1ParadoxCharacter::StartSprint);
     PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASystem1ParadoxCharacter::StopSprint);
 
-    // Ïðèñåäàíèå (óäåðæèâàòü Ctrl)
+    // ÐŸÑ€Ð¸ÑÐµÐ´Ð°Ð½Ð¸Ðµ (ÑƒÐ´ÐµÑ€Ð¶Ð¸Ð²Ð°Ñ‚ÑŒ Ctrl)
     PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASystem1ParadoxCharacter::StartCrouch);
     PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ASystem1ParadoxCharacter::StopCrouch);
 }
 
 void ASystem1ParadoxCharacter::UpdateAnimationParameters()
 {
-    // Ïîëó÷àåì AnimInstance èç Mesh
+    // ÐŸÐ¾Ð»ÑƒÑ‡Ð°ÐµÐ¼ AnimInstance Ð¸Ð· Mesh
     UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
     if (!AnimInstance) return;
 
-    // 1. Ïåðåäàåì ñêîðîñòü
+    // 1. ÐŸÐµÑ€ÐµÐ´Ð°ÐµÐ¼ ÑÐºÐ¾Ñ€Ð¾ÑÑ‚ÑŒ
     FProperty* SpeedProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("Speed"));
     if (SpeedProp)
     {
-        // Ïîëó÷àåì óêàçàòåëü íà ïåðåìåííóþ Speed â AnimInstance
+        // ÐŸÐ¾Ð»ÑƒÑ‡Ð°ÐµÐ¼ ÑƒÐºÐ°Ð·Ð°Ñ‚ÐµÐ»ÑŒ Ð½Ð° Ð¿ÐµÑ€ÐµÐ¼ÐµÐ½Ð½ÑƒÑŽ Speed Ð² AnimInstance
         float* SpeedValue = SpeedProp->ContainerPtrToValuePtr<float>(AnimInstance);
         if (SpeedValue)
         {
-            *SpeedValue = GetVelocity().Size(); // Óñòàíàâëèâàåì òåêóùóþ ñêîðîñòü
+            *SpeedValue = GetVelocity().Size(); // Ð£ÑÑ‚Ð°Ð½Ð°Ð²Ð»Ð¸Ð²Ð°ÐµÐ¼ Ñ‚ÐµÐºÑƒÑ‰ÑƒÑŽ ÑÐºÐ¾Ñ€Ð¾ÑÑ‚ÑŒ
         }
     }
 
-    // 2. Ïåðåäàåì ñîñòîÿíèå ïðèñåäàíèÿ
+    // 2. ÐŸÐµÑ€ÐµÐ´Ð°ÐµÐ¼ ÑÐ¾ÑÑ‚Ð¾ÑÐ½Ð¸Ðµ Ð¿Ñ€Ð¸ÑÐµÐ´Ð°Ð½Ð¸Ñ
     FProperty* CrouchProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("bIsCrouching"));
     if (!CrouchProp)
     {
-        // Ïîïðîáóåì äðóãîå èìÿ (èíîãäà èñïîëüçóþò IsCrouching)
+        // ÐŸÐ¾Ð¿Ñ€Ð¾Ð±ÑƒÐµÐ¼ Ð´Ñ€ÑƒÐ³Ð¾Ðµ Ð¸Ð¼Ñ (Ð¸Ð½Ð¾Ð³Ð´Ð° Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·ÑƒÑŽÑ‚ IsCrouching)
         CrouchProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("IsCrouching"));
     }
 
@@ -193,7 +268,7 @@ void ASystem1ParadoxCharacter::UpdateAnimationParameters()
         }
     }
 
-    // 3. Ïåðåäàåì ñîñòîÿíèå ñïðèíòà
+    // 3. ÐŸÐµÑ€ÐµÐ´Ð°ÐµÐ¼ ÑÐ¾ÑÑ‚Ð¾ÑÐ½Ð¸Ðµ ÑÐ¿Ñ€Ð¸Ð½Ñ‚Ð°
     FProperty* SprintProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("bIsSprinting"));
     if (!SprintProp)
     {
@@ -209,7 +284,7 @@ void ASystem1ParadoxCharacter::UpdateAnimationParameters()
         }
     }
 
-    // 4. Ïåðåäàåì ñîñòîÿíèå â âîçäóõå (îïöèîíàëüíî)
+    // 4. ÐŸÐµÑ€ÐµÐ´Ð°ÐµÐ¼ ÑÐ¾ÑÑ‚Ð¾ÑÐ½Ð¸Ðµ Ð² Ð²Ð¾Ð·Ð´ÑƒÑ…Ðµ (Ð¾Ð¿Ñ†Ð¸Ð¾Ð½Ð°Ð»ÑŒÐ½Ð¾)
     FProperty* InAirProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("bIsInAir"));
     if (!InAirProp)
     {
@@ -327,7 +402,7 @@ void ASystem1ParadoxCharacter::StartSprint()
         bIsSprinting = true;
         UpdateMovementSpeed();
 
-        // Îòëàäî÷íîå ñîîáùåíèå (àíãëèéñêèé)
+        // ÐžÑ‚Ð»Ð°Ð´Ð¾Ñ‡Ð½Ð¾Ðµ ÑÐ¾Ð¾Ð±Ñ‰ÐµÐ½Ð¸Ðµ (Ð°Ð½Ð³Ð»Ð¸Ð¹ÑÐºÐ¸Ð¹)
         if (GEngine)
         {
             GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("SPRINT: ON"));
@@ -348,11 +423,11 @@ void ASystem1ParadoxCharacter::StopSprint()
 
 bool ASystem1ParadoxCharacter::CanSprint() const
 {
-    // Ìîæíî ñïðèíòîâàòü òîëüêî êîãäà:
-    // 1. Íå ïðèñåëè
-    // 2. Äâèãàåìñÿ âïåðåä
-    // 3. Íå â âîçäóõå
-    // 4. Íå ïåðåçàðÿæàåìñÿ (åñëè åñòü îðóæèå)
+    // ÐœÐ¾Ð¶Ð½Ð¾ ÑÐ¿Ñ€Ð¸Ð½Ñ‚Ð¾Ð²Ð°Ñ‚ÑŒ Ñ‚Ð¾Ð»ÑŒÐºÐ¾ ÐºÐ¾Ð³Ð´Ð°:
+    // 1. ÐÐµ Ð¿Ñ€Ð¸ÑÐµÐ»Ð¸
+    // 2. Ð”Ð²Ð¸Ð³Ð°ÐµÐ¼ÑÑ Ð²Ð¿ÐµÑ€ÐµÐ´
+    // 3. ÐÐµ Ð² Ð²Ð¾Ð·Ð´ÑƒÑ…Ðµ
+    // 4. ÐÐµ Ð¿ÐµÑ€ÐµÐ·Ð°Ñ€ÑÐ¶Ð°ÐµÐ¼ÑÑ (ÐµÑÐ»Ð¸ ÐµÑÑ‚ÑŒ Ð¾Ñ€ÑƒÐ¶Ð¸Ðµ)
 
     return !bIsCrouching &&
         GetVelocity().Size() > 10.0f &&
@@ -395,27 +470,27 @@ void ASystem1ParadoxCharacter::UpdateMovementSpeed()
 {
     if (bIsCrouching)
     {
-        // Â ïðèñåäå
+        // Ð’ Ð¿Ñ€Ð¸ÑÐµÐ´Ðµ
         GetCharacterMovement()->MaxWalkSpeed = CrouchSpeed;
         GetCharacterMovement()->BrakingDecelerationWalking = CrouchingDeceleration;
     }
     else if (bIsSprinting)
     {
-        // Ñïðèíò
+        // Ð¡Ð¿Ñ€Ð¸Ð½Ñ‚
         GetCharacterMovement()->MaxWalkSpeed = SprintSpeed * SprintMultiplier;
         GetCharacterMovement()->BrakingDecelerationWalking = SprintingDeceleration;
     }
     else
     {
-        // Îáû÷íàÿ õîäüáà/áåã
+        // ÐžÐ±Ñ‹Ñ‡Ð½Ð°Ñ Ñ…Ð¾Ð´ÑŒÐ±Ð°/Ð±ÐµÐ³
         GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
         GetCharacterMovement()->BrakingDecelerationWalking = WalkingDeceleration;
     }
 
-    // Îòëàäêà
+    // ÐžÑ‚Ð»Ð°Ð´ÐºÐ°
     if (GEngine)
     {
-        FString SpeedMsg = FString::Printf(TEXT("ÑÊÎÐÎÑÒÜ: %.0f"), GetCharacterMovement()->MaxWalkSpeed);
+        FString SpeedMsg = FString::Printf(TEXT("Ð¡ÐšÐžÐ ÐžÐ¡Ð¢Ð¬: %.0f"), GetCharacterMovement()->MaxWalkSpeed);
         GEngine->AddOnScreenDebugMessage(3, 2.0f, FColor::Cyan, SpeedMsg);
     }
 }

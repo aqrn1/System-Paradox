@@ -1,4 +1,4 @@
-#pragma once
+п»ї#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
@@ -16,36 +16,39 @@ public:
     virtual void Tick(float DeltaTime) override;
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
     virtual void PostInitializeComponents() override;
-    // В public или protected секции добавь:
+    // РќРђРЎРўР РћР™РљР РџРћР—РР¦РР РћР РЈР–РРЇ - РќРћР’Р«Р• Р—РќРђР§Р•РќРРЇ!
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-    FVector WeaponOffset = FVector(30.0f, 10.0f, -10.0f);
+    FVector WeaponOffset = FVector(100.0f, 40.0f, -30.0f);  // рџџў X=РІРїРµСЂРµРґ, Y=РІРїСЂР°РІРѕ, Z=РІРЅРёР·
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-    FRotator WeaponRotation = FRotator(0.0f, 90.0f, 0.0f);
+    FRotator WeaponRotation = FRotator(0.0f, 0.0f, 0.0f);  // рџџў Р‘РµР· РїРѕРІРѕСЂРѕС‚Р°
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-    FVector WeaponScale = FVector(0.5f);
+    FVector WeaponScale = FVector(1.0f);  // рџџў РќРѕСЂРјР°Р»СЊРЅС‹Р№ СЂР°Р·РјРµСЂ
 
+    // Р¤СѓРЅРєС†РёСЏ РґР»СЏ РґРµР±Р°РіР° РѕСЂСѓР¶РёСЏ (РІС‹Р·РѕРІ РёР· РєРѕРЅСЃРѕР»Рё)
+    UFUNCTION(BlueprintCallable, Category = "Debug")
+    void DebugWeaponPosition();
 
 protected:
     virtual void BeginPlay() override;
     void UpdateAnimationParameters();
 
-    // Компоненты камеры
+    // РљРѕРјРїРѕРЅРµРЅС‚С‹ РєР°РјРµСЂС‹
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
     UCameraComponent* CameraComponent;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
     USpringArmComponent* SpringArmComponent;
 
-    // Оружие
+    // РћСЂСѓР¶РёРµ
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
     class AWeapon* CurrentWeapon;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
     TSubclassOf<class AWeapon> WeaponClass;
 
-    // Функции ввода
+    // Р¤СѓРЅРєС†РёРё РІРІРѕРґР°
     UFUNCTION(BlueprintCallable, Category = "Input")
     void MoveForward(float Value);
 
@@ -76,25 +79,25 @@ protected:
     UFUNCTION(BlueprintCallable, Category = "Input")
     void StartReload();
 
-    // HUD функции
+    // HUD С„СѓРЅРєС†РёРё
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void UpdateHUD();
 
     UFUNCTION(BlueprintCallable, Category = "HUD")
     class ASystem1ParadoxHUD* GetSystemHUD() const;
 
-    // Таймер для автоматической стрельбы
+    // РўР°Р№РјРµСЂ РґР»СЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРѕР№ СЃС‚СЂРµР»СЊР±С‹
     FTimerHandle FireTimerHandle;
     bool bIsFiring = false;
 
-    // Свойства движения
+    // РЎРІРѕР№СЃС‚РІР° РґРІРёР¶РµРЅРёСЏ
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float WalkSpeed = 400.0f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float SprintSpeed = 600.0f;
 
-    // Параметры торможения
+    // РџР°СЂР°РјРµС‚СЂС‹ С‚РѕСЂРјРѕР¶РµРЅРёСЏ
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float WalkingDeceleration = 2048.0f;
 
@@ -104,7 +107,7 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float CrouchingDeceleration = 512.0f;
 
-    // === ВАЖНО: ДОБАВЬ ЭТИ ПЕРЕМЕННЫЕ ===
+    // === Р’РђР–РќРћ: Р”РћР‘РђР’Р¬ Р­РўР РџР•Р Р•РњР•РќРќР«Р• ===
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
     bool bIsSprinting = false;
 
@@ -117,7 +120,7 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float CrouchSpeed = 200.0f;
 
-    // === ВАЖНО: ДОБАВЬ ЭТИ ФУНКЦИИ ===
+    // === Р’РђР–РќРћ: Р”РћР‘РђР’Р¬ Р­РўР Р¤РЈРќРљР¦РР ===
     UFUNCTION(BlueprintCallable, Category = "Movement")
     void StartSprint();
 
@@ -136,7 +139,7 @@ protected:
     UFUNCTION(BlueprintCallable, Category = "Movement")
     bool CanSprint() const;
 
-    // Здоровье
+    // Р—РґРѕСЂРѕРІСЊРµ
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
     float MaxHealth = 100.0f;
 

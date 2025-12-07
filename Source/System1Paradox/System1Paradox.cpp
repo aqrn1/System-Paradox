@@ -52,7 +52,6 @@ static FAutoConsoleCommand TestCmd(TEXT("sys.Test"), TEXT("Тестовая ко
 static FAutoConsoleCommand HealthCmd(TEXT("sys.Health"), TEXT("Проверка системы"), FConsoleCommandWithArgsDelegate::CreateStatic(&HealthCheck));
 static FAutoConsoleCommand CreateBPCmd(TEXT("createbp"), TEXT("Создание Blueprints"), FConsoleCommandWithArgsDelegate::CreateStatic(&CreateBlueprintsCommand));
 static FAutoConsoleCommand AutoBindCmd(TEXT("autobind"), TEXT("Привязка Blueprints"), FConsoleCommandWithArgsDelegate::CreateStatic(&AutoBindBlueprintsCommand));
-static FAutoConsoleCommand AdjustWeaponCmd(TEXT("weapon.pos"), TEXT("Настройка позиции оружия"), FConsoleCommandWithArgsDelegate::CreateStatic(&AdjustWeaponPos));
 
 IMPLEMENT_PRIMARY_GAME_MODULE(FSystem1ParadoxModule, System1Paradox, "System1Paradox");
 
