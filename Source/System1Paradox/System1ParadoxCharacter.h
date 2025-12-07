@@ -6,6 +6,15 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "System1ParadoxCharacter.generated.h"
 
+UENUM(BlueprintType)
+enum class EWeaponType : uint8
+{
+    Unarmed     UMETA(DisplayName = "Unarmed"),
+    Pistol      UMETA(DisplayName = "Pistol"),
+    Rifle       UMETA(DisplayName = "Rifle"),
+    Melee       UMETA(DisplayName = "Melee")
+};
+
 UCLASS()
 class SYSTEM1PARADOX_API ASystem1ParadoxCharacter : public ACharacter
 {
@@ -16,23 +25,9 @@ public:
     virtual void Tick(float DeltaTime) override;
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
     virtual void PostInitializeComponents() override;
-    // НАСТРОЙКИ ПОЗИЦИИ ОРУЖИЯ - НОВЫЕ ЗНАЧЕНИЯ!
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-    FVector WeaponOffset = FVector(100.0f, 40.0f, -30.0f);  // 🟢 X=вперед, Y=вправо, Z=вниз
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-    FRotator WeaponRotation = FRotator(0.0f, 0.0f, 0.0f);  // 🟢 Без поворота
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-    FVector WeaponScale = FVector(1.0f);  // 🟢 Нормальный размер
-
-    // Функция для дебага оружия (вызов из консоли)
-    UFUNCTION(BlueprintCallable, Category = "Debug")
-    void DebugWeaponPosition();
 
 protected:
     virtual void BeginPlay() override;
-    void UpdateAnimationParameters();
 
     // Компоненты камеры
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -45,8 +40,12 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
     class AWeapon* CurrentWeapon;
 
+    // ССЫЛКИ НА КЛАССЫ ОРУЖИЯ
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-    TSubclassOf<class AWeapon> WeaponClass;
+    TSubclassOf<class AWeapon> PistolClass;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+    TSubclassOf<class AWeapon> RifleClass;
 
     // Функции ввода
     UFUNCTION(BlueprintCallable, Category = "Input")
@@ -86,6 +85,51 @@ protected:
     UFUNCTION(BlueprintCallable, Category = "HUD")
     class ASystem1ParadoxHUD* GetSystemHUD() const;
 
+    // Функции спринта
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void StartSprint();
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void StopSprint();
+
+    // Функции приседания
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void StartCrouch();
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void StopCrouch();
+
+    // Вспомогательные функции
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    void UpdateMovementSpeed();
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    bool CanSprint() const;
+
+    // Функция для обновления параметров анимации
+    void UpdateAnimationParameters();
+
+    // Функции смены оружия
+    UFUNCTION(BlueprintCallable, Category = "Weapon")
+    void SwitchToPistol();
+
+    UFUNCTION(BlueprintCallable, Category = "Weapon")
+    void SwitchToRifle();
+
+    UFUNCTION(BlueprintCallable, Category = "Weapon")
+    void SwitchToUnarmed();
+
+    UFUNCTION(BlueprintCallable, Category = "Weapon")
+    void EquipWeapon(EWeaponType NewWeaponType);
+
+    // Функция обновления анимаций
+    UFUNCTION(BlueprintCallable, Category = "Animation")
+    void UpdateWeaponAnimations();
+
+    // Дебаг функции
+    UFUNCTION(BlueprintCallable, Category = "Debug")
+    void DebugWeaponPosition();
+
     // Таймер для автоматической стрельбы
     FTimerHandle FireTimerHandle;
     bool bIsFiring = false;
@@ -107,37 +151,29 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float CrouchingDeceleration = 512.0f;
 
-    // === ВАЖНО: ДОБАВЬ ЭТИ ПЕРЕМЕННЫЕ ===
+    // Состояния персонажа
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
     bool bIsSprinting = false;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
     bool bIsCrouching = false;
 
+    // Свойства спринта и приседания
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float SprintMultiplier = 1.5f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float CrouchSpeed = 200.0f;
 
-    // === ВАЖНО: ДОБАВЬ ЭТИ ФУНКЦИИ ===
-    UFUNCTION(BlueprintCallable, Category = "Movement")
-    void StartSprint();
+    // Настройки позиции оружия
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+    FVector WeaponOffset = FVector(30.0f, 10.0f, -10.0f);
 
-    UFUNCTION(BlueprintCallable, Category = "Movement")
-    void StopSprint();
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+    FRotator WeaponRotation = FRotator(0.0f, 90.0f, 0.0f);
 
-    UFUNCTION(BlueprintCallable, Category = "Movement")
-    void StartCrouch();
-
-    UFUNCTION(BlueprintCallable, Category = "Movement")
-    void StopCrouch();
-
-    UFUNCTION(BlueprintCallable, Category = "Movement")
-    void UpdateMovementSpeed();
-
-    UFUNCTION(BlueprintCallable, Category = "Movement")
-    bool CanSprint() const;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+    FVector WeaponScale = FVector(0.5f);
 
     // Здоровье
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
@@ -146,5 +182,10 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
     float CurrentHealth = 100.0f;
 
+    // 🟢 НОВЫЕ ПЕРЕМЕННЫЕ ДЛЯ СИСТЕМЫ ОРУЖИЯ
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+    EWeaponType CurrentWeaponType = EWeaponType::Unarmed;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+    bool bIsSwitchingWeapon = false;
 };

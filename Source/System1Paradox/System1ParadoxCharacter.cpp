@@ -49,15 +49,12 @@ void ASystem1ParadoxCharacter::BeginPlay()
 {
     Super::BeginPlay();
 
-    // ДЕБАГ: Проверяем компоненты
-    if (!CameraComponent)
-    {
-        UE_LOG(LogTemp, Error, TEXT("CameraComponent is NULL!"));
-        return;
-    }
+    // 🟢 ИНИЦИАЛИЗАЦИЯ ПО УМОЛЧАНИЮ
+    CurrentWeaponType = EWeaponType::Unarmed;
+    UpdateWeaponAnimations();
 
-    // Создаем оружие при старте игры
-    if (WeaponClass)
+    // 🟢 ДЛЯ СОВМЕСТИМОСТИ: Если старый WeaponClass задан, создаем оружие
+    if (WeaponClass && !CurrentWeapon)
     {
         FActorSpawnParameters SpawnParams;
         SpawnParams.Owner = this;
@@ -66,73 +63,83 @@ void ASystem1ParadoxCharacter::BeginPlay()
         CurrentWeapon = GetWorld()->SpawnActor<AWeapon>(WeaponClass, SpawnParams);
         if (CurrentWeapon && CameraComponent)
         {
-            // ВАЖНО: Сначала задаем позицию, потом прикрепляем
-            FVector SpawnLocation = CameraComponent->GetComponentLocation() +
-                CameraComponent->GetForwardVector() * 100.0f;
-            FRotator SpawnRotation = CameraComponent->GetComponentRotation();
-
-            CurrentWeapon->SetActorLocation(SpawnLocation);
-            CurrentWeapon->SetActorRotation(SpawnRotation);
-
-            // 🔴 ПРИКРЕПЛЯЕМ К КАМЕРЕ (FPS стиль)
             CurrentWeapon->AttachToComponent(
                 CameraComponent,
                 FAttachmentTransformRules::SnapToTargetIncludingScale,
                 NAME_None
             );
 
-            // 🟢 НОВЫЕ ЗНАЧЕНИЯ ПОЗИЦИИ ОРУЖИЯ:
-            CurrentWeapon->SetActorRelativeLocation(FVector(50.0f, 20.0f, -20.0f));
-            CurrentWeapon->SetActorRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
-            CurrentWeapon->SetActorScale3D(FVector(1.0f));
+            // Старые настройки позиции
+            CurrentWeapon->SetActorRelativeLocation(WeaponOffset);
+            CurrentWeapon->SetActorRelativeRotation(WeaponRotation);
+            CurrentWeapon->SetActorScale3D(WeaponScale);
 
-            // 🔴 АЛЬТЕРНАТИВА: Прикрепляем к кости скелета (если к камере не работает)
-            // Uncomment если оружие все еще не видно:
-            /*
-            if (GetMesh())
-            {
-                // Попробуем прикрепить к правой руке
-                FName WeaponSocket = TEXT("hand_r");  // Правая рука
-                if (GetMesh()->DoesSocketExist(WeaponSocket))
-                {
-                    CurrentWeapon->AttachToComponent(
-                        GetMesh(),
-                        FAttachmentTransformRules::SnapToTargetIncludingScale,
-                        WeaponSocket
-                    );
-                    CurrentWeapon->SetActorRelativeLocation(FVector(10.0f, 5.0f, -5.0f));
-                    CurrentWeapon->SetActorRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
-                }
-            }
-            */
-
-            // ДЕБАГ: Сообщение для проверки
-            if (GEngine)
-            {
-                FVector WeaponPos = CurrentWeapon->GetActorLocation();
-                FString DebugMsg = FString::Printf(
-                    TEXT("🔫 WEAPON: Attached to Camera\nPosition: X=%.1f, Y=%.1f, Z=%.1f"),
-                    WeaponPos.X, WeaponPos.Y, WeaponPos.Z
-                );
-                GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, DebugMsg);
-            }
-        }
-        else
-        {
-            // Ошибка
-            FString ErrorMsg = TEXT("❌ ERROR: Failed to create weapon!");
-            if (!CameraComponent) ErrorMsg += TEXT(" (Camera is null)");
-            if (!CurrentWeapon) ErrorMsg += TEXT(" (Weapon spawn failed)");
-
-            if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, ErrorMsg);
+            // Автоматически определяем тип оружия
+            CurrentWeaponType = EWeaponType::Pistol;  // По умолчанию пистолет
+            UpdateWeaponAnimations();
         }
     }
-    else
+
+    // ДЕБАГ
+    if (GEngine)
     {
-        if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red,
-            TEXT("❌ WeaponClass not set! Check BP_System1ParadoxCharacter settings"));
+        FString Msg = FString::Printf(
+            TEXT("🎮 Character spawned. Weapon: %s"),
+            CurrentWeaponType == EWeaponType::Unarmed ? TEXT("Unarmed") : TEXT("Armed")
+        );
+        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, Msg);
     }
 }
+
+void ASystem1ParadoxCharacter::UpdateWeaponAnimations()
+{
+    // Получаем AnimInstance из Mesh
+    UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+    if (!AnimInstance) return;
+
+    // 1. Передаем тип оружия
+    FProperty* WeaponTypeProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("CurrentWeaponType"));
+    if (!WeaponTypeProp)
+    {
+        WeaponTypeProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("WeaponType"));
+    }
+
+    if (WeaponTypeProp)
+    {
+        // 🟢 КОНВЕРТИРУЕМ enum в строку
+        FString WeaponTypeString;
+        switch (this->CurrentWeaponType)  // 🟢 ДОБАВЛЯЕМ this->
+        {
+        case EWeaponType::Pistol: WeaponTypeString = TEXT("Pistol"); break;
+        case EWeaponType::Rifle: WeaponTypeString = TEXT("Rifle"); break;
+        case EWeaponType::Melee: WeaponTypeString = TEXT("Melee"); break;
+        default: WeaponTypeString = TEXT("Unarmed"); break;
+        }
+
+        FName* WeaponTypeValue = WeaponTypeProp->ContainerPtrToValuePtr<FName>(AnimInstance);
+        if (WeaponTypeValue)
+        {
+            *WeaponTypeValue = FName(*WeaponTypeString);
+        }
+    }
+
+    // 2. Передаем состояние смены оружия
+    FProperty* SwitchingProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("bIsSwitchingWeapon"));
+    if (!SwitchingProp)
+    {
+        SwitchingProp = AnimInstance->GetClass()->FindPropertyByName(TEXT("IsSwitchingWeapon"));
+    }
+
+    if (SwitchingProp)
+    {
+        bool* SwitchingValue = SwitchingProp->ContainerPtrToValuePtr<bool>(AnimInstance);
+        if (SwitchingValue)
+        {
+            *SwitchingValue = this->bIsSwitchingWeapon;  // 🟢 ДОБАВЛЯЕМ this->
+        }
+    }
+}
+
 
 void ASystem1ParadoxCharacter::PostInitializeComponents()
 {
@@ -155,6 +162,7 @@ void ASystem1ParadoxCharacter::Tick(float DeltaTime)
 
     // Обновляем параметры анимации
     UpdateAnimationParameters();
+    UpdateWeaponAnimations();
 
     // 🔴 ДЕБАГ: Показываем позицию оружия каждые 2 секунды
     static float WeaponDebugTimer = 0.0f;
@@ -308,27 +316,39 @@ void ASystem1ParadoxCharacter::StartSprint()
     }
 }
 
-void ASystem1ParadoxCharacter::StopSprint()
-{
-    bIsSprinting = false;
-    UpdateMovementSpeed();
-
-    if (GEngine)
-    {
-        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("SPRINT: OFF"));
-    }
-}
 
 bool ASystem1ParadoxCharacter::CanSprint() const
 {
-    // Можно спринтовать только когда:
+    // Можно спринтовать когда:
     // 1. Не присели
-    // 2. Двигаемся вперед
-    // 3. Не в воздухе
+    // 2. Двигаемся ВПЕРЕД (или в любом направлении)
+    // 3. На земле ИЛИ недавно был прыжок
+
+    FVector Velocity = GetVelocity();
+    FVector ForwardVector = GetActorForwardVector();
+    float ForwardSpeed = FVector::DotProduct(Velocity.GetSafeNormal(), ForwardVector);
 
     return !bIsCrouching &&
-        GetVelocity().Size() > 10.0f &&
-        !GetCharacterMovement()->IsFalling();
+        Velocity.Size() > 10.0f &&
+        ForwardSpeed > 0.3f &&  // 🟢 Двигаемся преимущественно вперед
+        (GetCharacterMovement()->IsMovingOnGround() ||
+            GetCharacterMovement()->Velocity.Z > -50.0f);  // 🟢 Разрешаем после прыжка
+}
+
+// Также улучшим StopSprint() - чтобы не сбрасывался сразу:
+void ASystem1ParadoxCharacter::StopSprint()
+{
+    // 🟢 Не выключаем сразу, а проверяем условия
+    if (!CanSprint())
+    {
+        bIsSprinting = false;
+        UpdateMovementSpeed();
+
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("SPRINT: OFF (auto)"));
+        }
+    }
 }
 
 void ASystem1ParadoxCharacter::StartCrouch()
