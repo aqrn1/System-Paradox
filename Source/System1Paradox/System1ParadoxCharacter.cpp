@@ -508,3 +508,55 @@ void ASystem1ParadoxCharacter::DebugWeaponPosition()
     }
     UE_LOG(LogTemp, Warning, TEXT("%s"), *DebugInfo);
 }
+
+
+void ASystem1ParadoxCharacter::SwitchToPistol()
+{
+    EquipWeapon(EWeaponType::Pistol);
+}
+
+void ASystem1ParadoxCharacter::SwitchToRifle()
+{
+    EquipWeapon(EWeaponType::Rifle);
+}
+
+void ASystem1ParadoxCharacter::SwitchToUnarmed()
+{
+    EquipWeapon(EWeaponType::Unarmed);
+}
+
+void ASystem1ParadoxCharacter::EquipWeapon(EWeaponType NewWeaponType)
+{
+    // Если уже переключаемся или тип тот же - выходим
+    if (bIsSwitchingWeapon || CurrentWeaponType == NewWeaponType)
+        return;
+
+    bIsSwitchingWeapon = true;
+    CurrentWeaponType = NewWeaponType;
+
+    // Дебаг-сообщение
+    FString WeaponName;
+    switch (NewWeaponType)
+    {
+    case EWeaponType::Pistol: WeaponName = TEXT("Pistol"); break;
+    case EWeaponType::Rifle: WeaponName = TEXT("Rifle"); break;
+    default: WeaponName = TEXT("Unarmed"); break;
+    }
+
+    if (GEngine)
+    {
+        FString Msg = FString::Printf(TEXT("🔫 Switching to: %s"), *WeaponName);
+        GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, Msg);
+    }
+
+    // Обновляем анимации
+    UpdateWeaponAnimations();
+
+    // Сбрасываем флаг переключения через 0.5 секунды
+    FTimerHandle TimerHandle;
+    GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+        {
+            bIsSwitchingWeapon = false;
+            UpdateWeaponAnimations();
+        }, 0.5f, false);
+}
