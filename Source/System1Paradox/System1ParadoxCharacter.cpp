@@ -83,7 +83,7 @@ void ASystem1ParadoxCharacter::BeginPlay()
 
             // 🟢 НОВЫЕ ЗНАЧЕНИЯ ПОЗИЦИИ ОРУЖИЯ:
             CurrentWeapon->SetActorRelativeLocation(FVector(50.0f, 20.0f, -20.0f));
-            CurrentWeapon->SetActorRelativeRotation(FRotator(0.0f, 90.0f, 0.0f));
+            CurrentWeapon->SetActorRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
             CurrentWeapon->SetActorScale3D(FVector(1.0f));
 
             // 🔴 АЛЬТЕРНАТИВА: Прикрепляем к кости скелета (если к камере не работает)
