@@ -13,6 +13,7 @@ public class System1Paradox : ModuleRules
             "InputCore",
             "UMG",           // ДЛЯ UI ВИДЖЕТОВ (GameMode)
             "Slate",
+            "AnimationBudgetAllocator",
             "SlateCore"
         });
 
