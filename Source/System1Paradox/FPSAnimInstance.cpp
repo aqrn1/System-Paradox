@@ -1,44 +1,47 @@
 #include "FPSAnimInstance.h"
-#include "System1ParadoxCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+
+UFPSAnimInstance::UFPSAnimInstance()
+{
+    Speed = 0.0f;
+    bIsCrouching = false;
+    bIsSprinting = false;
+    bIsInAir = false;
+    CurrentWeaponType = EWeaponType::Unarmed;
+    MovementState = TEXT("Idle");
+}
 
 void UFPSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
     Super::NativeUpdateAnimation(DeltaSeconds);
 
     // Получаем персонажа
-    PlayerCharacter = Cast<ASystem1ParadoxCharacter>(TryGetPawnOwner());
+    CharacterPtr = Cast<ASystem1ParadoxCharacter>(TryGetPawnOwner());
 
-    // Если персонажа нет - выходим
-    if (!PlayerCharacter) return;
-
-    // Получаем скорость
-    Speed = PlayerCharacter->GetVelocity().Size();
-
-    // Получаем состояние приседания
-    bIsCrouching = PlayerCharacter->GetIsCrouching();  // Стало
-    bIsSprinting = PlayerCharacter->GetIsSprinting();  // Стало
-    CurrentWeaponType = PlayerCharacter->GetCurrentWeaponType();  // Стало
-    bIsSwitchingWeapon = PlayerCharacter->GetIsSwitchingWeapon();  // Стало
-
-    // Конвертируем тип оружия в строку для Blueprint
-    switch (CurrentWeaponType)
+    if (!CharacterPtr.IsValid())
     {
-    case EWeaponType::Pistol:
-        WeaponState = TEXT("Pistol");
-        break;
-    case EWeaponType::Rifle:
-        WeaponState = TEXT("Rifle");
-        break;
-    case EWeaponType::Melee:
-        WeaponState = TEXT("Melee");
-        break;
-    default:
-        WeaponState = TEXT("Unarmed");
-        break;
+        Speed = 0.0f;
+        bIsCrouching = false;
+        bIsSprinting = false;
+        bIsInAir = false;
+        CurrentWeaponType = EWeaponType::Unarmed;
+        MovementState = TEXT("Idle");
+        return;
     }
 
+    // Обновляем параметры через публичные геттеры
+    Speed = CharacterPtr->GetCurrentSpeed();
+    bIsCrouching = CharacterPtr->GetIsCrouching();
+    bIsSprinting = CharacterPtr->GetIsSprinting();
+    bIsInAir = CharacterPtr->GetIsInAir();
+    CurrentWeaponType = CharacterPtr->GetCurrentWeaponType();
+
     // Определяем состояние движения
+    UpdateMovementState();
+}
+
+void UFPSAnimInstance::UpdateMovementState()
+{
     if (bIsInAir)
     {
         MovementState = TEXT("Jumping");

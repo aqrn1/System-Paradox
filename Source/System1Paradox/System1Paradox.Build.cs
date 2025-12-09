@@ -11,11 +11,6 @@ public class System1Paradox : ModuleRules
             "CoreUObject",
             "Engine",
             "InputCore"
-            // НИЧЕГО БОЛЬШЕ НЕ ДОБАВЛЯЙ!
-        });
-
-        PrivateDependencyModuleNames.AddRange(new string[] {
-            // ПУСТО! НИЧЕГО НЕ НУЖНО!
         });
     }
 }

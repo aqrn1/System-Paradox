@@ -4,6 +4,7 @@
 #include "GameFramework/Character.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "System1Paradox/Character/FPSAnimInstance.h"
 #include "System1ParadoxCharacter.generated.h"
 
 UENUM(BlueprintType)
@@ -24,11 +25,54 @@ public:
     ASystem1ParadoxCharacter();
     virtual void Tick(float DeltaTime) override;
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-    virtual void PostInitializeComponents() override;
 
-    // ==================== ПУБЛИЧНЫЕ ГЕТТЕРЫ ДЛЯ АНИМАЦИЙ ====================
+protected:
+    virtual void BeginPlay() override;
+
+    // Компоненты
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+    UCameraComponent* CameraComponent;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+    USpringArmComponent* SpringArmComponent;
+
+    // Состояния персонажа
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+    bool bIsSprinting;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+    bool bIsCrouching;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+    EWeaponType CurrentWeaponType;
+
+    // Настройки движения
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    float WalkSpeed;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    float SprintSpeed;
+
+    // Ввод
+    void MoveForward(float Value);
+    void MoveRight(float Value);
+    void LookUp(float Value);
+    void Turn(float Value);
+    void StartJump();
+    void StopJump();
+    void StartSprint();
+    void StopSprint();
+    void StartCrouch();
+    void StopCrouch();
+
+    // Вспомогательные функции
+    void UpdateMovementSpeed();
+    bool CanSprint() const;
+
+public:
+    // Геттеры для анимаций
     UFUNCTION(BlueprintCallable, Category = "Animation")
-    FORCEINLINE float GetCurrentSpeed() const { return GetVelocity().Size(); }
+    FORCEINLINE float GetCurrentSpeed() const { return GetVelocity().Size2D(); }
 
     UFUNCTION(BlueprintCallable, Category = "Animation")
     FORCEINLINE bool GetIsCrouching() const { return bIsCrouching; }
@@ -37,57 +81,12 @@ public:
     FORCEINLINE bool GetIsSprinting() const { return bIsSprinting; }
 
     UFUNCTION(BlueprintCallable, Category = "Animation")
-    FORCEINLINE bool GetIsInAir() const { return GetCharacterMovement()->IsFalling(); }
+    bool GetIsInAir() const;
 
     UFUNCTION(BlueprintCallable, Category = "Animation")
     FORCEINLINE EWeaponType GetCurrentWeaponType() const { return CurrentWeaponType; }
 
-    UFUNCTION(BlueprintCallable, Category = "Animation")
-    FORCEINLINE bool GetIsSwitchingWeapon() const { return bIsSwitchingWeapon; }
-
-    // ==================== ОСНОВНЫЕ ФУНКЦИИ ====================
-    UFUNCTION(BlueprintCallable, Category = "Input")
-    void MoveForward(float Value);
-
-    UFUNCTION(BlueprintCallable, Category = "Input")
-    void MoveRight(float Value);
-
-    UFUNCTION(BlueprintCallable, Category = "Input")
-    void LookUp(float Value);
-
-    UFUNCTION(BlueprintCallable, Category = "Input")
-    void Turn(float Value);
-
-    UFUNCTION(BlueprintCallable, Category = "Input")
-    void StartJump();
-
-    UFUNCTION(BlueprintCallable, Category = "Input")
-    void StopJump();
-
-    UFUNCTION(BlueprintCallable, Category = "Weapon")
-    void StartFire();
-
-    UFUNCTION(BlueprintCallable, Category = "Weapon")
-    void StopFire();
-
-    UFUNCTION(BlueprintCallable, Category = "Weapon")
-    void ReloadWeapon();
-
-    UFUNCTION(BlueprintCallable, Category = "Input")
-    void StartReload();
-
-    UFUNCTION(BlueprintCallable, Category = "Movement")
-    void StartSprint();
-
-    UFUNCTION(BlueprintCallable, Category = "Movement")
-    void StopSprint();
-
-    UFUNCTION(BlueprintCallable, Category = "Movement")
-    void StartCrouch();
-
-    UFUNCTION(BlueprintCallable, Category = "Movement")
-    void StopCrouch();
-
+    // Смена оружия
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     void SwitchToPistol();
 
@@ -96,48 +95,4 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     void SwitchToUnarmed();
-
-    UFUNCTION(BlueprintCallable, Category = "Weapon")
-    void EquipWeapon(EWeaponType NewWeaponType);
-
-protected:
-    virtual void BeginPlay() override;
-
-    // ==================== КОМПОНЕНТЫ ====================
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
-    UCameraComponent* CameraComponent;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
-    USpringArmComponent* SpringArmComponent;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
-    class AWeapon* CurrentWeapon;
-
-    // ==================== НАСТРОЙКИ ====================
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
-    TSubclassOf<class AWeapon> WeaponClass;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-    float WalkSpeed = 400.0f;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-    float SprintSpeed = 600.0f;
-
-    // ==================== СОСТОЯНИЯ (PROTECTED) ====================
-protected:
-    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-    bool bIsSprinting = false;
-
-    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-    bool bIsCrouching = false;
-
-    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
-    EWeaponType CurrentWeaponType = EWeaponType::Unarmed;
-
-    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
-    bool bIsSwitchingWeapon = false;
-
-private:
-    FTimerHandle FireTimerHandle;
-    bool bIsFiring = false;
 };
