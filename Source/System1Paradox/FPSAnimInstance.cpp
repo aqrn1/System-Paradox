@@ -3,63 +3,67 @@
 
 UFPSAnimInstance::UFPSAnimInstance()
 {
+    // Инициализация значений по умолчанию
     Speed = 0.0f;
     bIsCrouching = false;
     bIsSprinting = false;
     bIsInAir = false;
-    CurrentWeaponType = EWeaponType::Unarmed;
-    MovementState = TEXT("Idle");
+    CurrentWeaponType = ASystem1ParadoxCharacter::EWeaponType::Unarmed; // Исправлено
+    WeaponName = TEXT("Unarmed");
+    MovementState = ASystem1ParadoxCharacter::EMovementState::Idle; // Исправлено
+    CharacterPtr = nullptr;
 }
 
 void UFPSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
     Super::NativeUpdateAnimation(DeltaSeconds);
 
-    // Получаем персонажа
+    // Получаем ссылку на персонажа
     CharacterPtr = Cast<ASystem1ParadoxCharacter>(TryGetPawnOwner());
 
-    if (!CharacterPtr.IsValid())
+    // Если персонаж не найден, сбрасываем значения
+    if (!CharacterPtr)
     {
         Speed = 0.0f;
         bIsCrouching = false;
         bIsSprinting = false;
         bIsInAir = false;
-        CurrentWeaponType = EWeaponType::Unarmed;
-        MovementState = TEXT("Idle");
+        CurrentWeaponType = ASystem1ParadoxCharacter::EWeaponType::Unarmed; // Исправлено
+        WeaponName = TEXT("Unarmed");
+        MovementState = ASystem1ParadoxCharacter::EMovementState::Idle; // Исправлено
         return;
     }
 
-    // Обновляем параметры через публичные геттеры
+    // Обновляем все параметры через публичные геттеры
+    UpdateAnimationParameters();
+}
+
+void UFPSAnimInstance::UpdateAnimationParameters()
+{
+    // Безопасное получение значений
     Speed = CharacterPtr->GetCurrentSpeed();
     bIsCrouching = CharacterPtr->GetIsCrouching();
     bIsSprinting = CharacterPtr->GetIsSprinting();
     bIsInAir = CharacterPtr->GetIsInAir();
     CurrentWeaponType = CharacterPtr->GetCurrentWeaponType();
+    MovementState = CharacterPtr->GetMovementState();
 
-    // Определяем состояние движения
-    UpdateMovementState();
+    // Конвертируем тип оружия в строку
+    WeaponName = GetWeaponNameFromType(CurrentWeaponType);
 }
 
-void UFPSAnimInstance::UpdateMovementState()
+FString UFPSAnimInstance::GetWeaponNameFromType(ASystem1ParadoxCharacter::EWeaponType WeaponType) const // Исправлено
 {
-    if (bIsInAir)
+    switch (WeaponType)
     {
-        MovementState = TEXT("Jumping");
-    }
-    else if (bIsCrouching)
-    {
-        MovementState = TEXT("Crouching");
-    }
-    else if (bIsSprinting && Speed > 100.0f)
-    {
-        MovementState = TEXT("Sprinting");
-    }
-    else if (Speed > 10.0f)
-    {
-        MovementState = TEXT("Walking");
-    }
-    else
-    {
-        MovementState = TEXT("Idle");
+    case ASystem1ParadoxCharacter::EWeaponType::Pistol: // Исправлено
+        return TEXT("Pistol");
+    case ASystem1ParadoxCharacter::EWeaponType::Rifle: // Исправлено
+        return TEXT("Rifle");
+    case ASystem1ParadoxCharacter::EWeaponType::Melee: // Исправлено
+        return TEXT("Melee");
+    case ASystem1ParadoxCharacter::EWeaponType::Unarmed: // Исправлено
+    default:
+        return TEXT("Unarmed");
     }
 }

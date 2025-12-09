@@ -27,7 +27,7 @@ ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
     SprintSpeed = 900.0f;
     bIsSprinting = false;
     bIsCrouching = false;
-    CurrentWeaponType = EWeaponType::Unarmed;
+    CurrentWeaponType = ES1P_WeaponType::Unarmed;
 }
 
 void ASystem1ParadoxCharacter::BeginPlay()

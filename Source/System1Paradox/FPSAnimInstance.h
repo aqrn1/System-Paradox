@@ -2,11 +2,9 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+// ВАЖНО: Подключаем заголовок, где объявлены нужные классы
+#include "System1ParadoxCharacter.h"
 #include "FPSAnimInstance.generated.h"
-
-// Forward declaration вместо полного include
-class ASystem1ParadoxCharacter;
-enum class EWeaponType : uint8;
 
 UCLASS()
 class SYSTEM1PARADOX_API UFPSAnimInstance : public UAnimInstance
@@ -18,7 +16,7 @@ public:
 
     virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
-    // Переменные для Blueprint
+    // ==================== PUBLIC VARIABLES FOR BLUEPRINT ====================
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
     float Speed;
 
@@ -32,14 +30,18 @@ public:
     bool bIsInAir;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-    EWeaponType CurrentWeaponType;
+    ASystem1ParadoxCharacter::EWeaponType CurrentWeaponType;  // Исправлено: добавлен префикс класса
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
-    FString MovementState;
+    ASystem1ParadoxCharacter::EMovementState MovementState;   // Исправлено: добавлен префикс класса
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+    FString WeaponName;
 
 private:
     UPROPERTY()
-    TWeakObjectPtr<ASystem1ParadoxCharacter> CharacterPtr;
+    ASystem1ParadoxCharacter* CharacterPtr;
 
-    void UpdateMovementState();
+    void UpdateAnimationParameters();
+    FString GetWeaponNameFromType(ASystem1ParadoxCharacter::EWeaponType WeaponType) const; // Исправлено
 };

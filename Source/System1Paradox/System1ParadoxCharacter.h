@@ -4,17 +4,9 @@
 #include "GameFramework/Character.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-// УБРАТЬ: #include "FPSAnimInstance.h" ← НЕ НУЖНО!
+#include "S1P_Types.h" 
 #include "System1ParadoxCharacter.generated.h"
 
-UENUM(BlueprintType)
-enum class EWeaponType : uint8
-{
-    Unarmed     UMETA(DisplayName = "Unarmed"),
-    Pistol      UMETA(DisplayName = "Pistol"),
-    Rifle       UMETA(DisplayName = "Rifle"),
-    Melee       UMETA(DisplayName = "Melee")
-};
 
 UCLASS()
 class SYSTEM1PARADOX_API ASystem1ParadoxCharacter : public ACharacter
@@ -23,12 +15,20 @@ class SYSTEM1PARADOX_API ASystem1ParadoxCharacter : public ACharacter
 
 public:
     ASystem1ParadoxCharacter();
-    virtual void Tick(float DeltaTime) override;
-    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+    // ВСЕ ГЕТТЕРЫ И ФУНКЦИИ МЕНЯЮТ ТИПЫ НА ГЛОБАЛЬНЫЕ:
+    UFUNCTION(BlueprintCallable, Category = "Animation")
+    FORCEINLINE ES1P_WeaponType GetCurrentWeaponType() const { return CurrentWeaponType; } // Исправлено
+
+    UFUNCTION(BlueprintCallable, Category = "Animation")
+    ES1P_MovementState GetMovementState() const; // Исправлено
+
+    void EquipWeapon(ES1P_WeaponType NewWeaponType); // Исправлено
 
 protected:
     virtual void BeginPlay() override;
 
+    ES1P_WeaponType CurrentWeaponType;
     // Компоненты
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
     UCameraComponent* CameraComponent;
