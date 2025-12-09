@@ -2,8 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
-#include "System1ParadoxCharacter.h"
 #include "FPSAnimInstance.generated.h"
+
+// Forward declaration вместо полного include
+class ASystem1ParadoxCharacter;
+enum class EWeaponType : uint8;
 
 UCLASS()
 class SYSTEM1PARADOX_API UFPSAnimInstance : public UAnimInstance

@@ -4,7 +4,7 @@
 #include "GameFramework/Character.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "System1Paradox/Character/FPSAnimInstance.h"
+// УБРАТЬ: #include "FPSAnimInstance.h" ← НЕ НУЖНО!
 #include "System1ParadoxCharacter.generated.h"
 
 UENUM(BlueprintType)
