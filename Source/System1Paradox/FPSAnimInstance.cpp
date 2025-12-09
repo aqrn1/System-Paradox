@@ -1,7 +1,3 @@
-#include "FPSAnimInstance.h"
-#include "System1ParadoxCharacter.h"
-#include "GameFramework/CharacterMovementComponent.h"
-
 void UFPSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
     Super::NativeUpdateAnimation(DeltaSeconds);
@@ -15,20 +11,20 @@ void UFPSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     // Получаем скорость
     Speed = PlayerCharacter->GetVelocity().Size();
 
-    // Получаем состояние приседания
-    bIsCrouching = PlayerCharacter->bIsCrouching;
+    // Получаем состояние приседания (через публичную функцию)
+    bIsCrouching = PlayerCharacter->GetIsCrouching();
 
-    // Получаем состояние спринта
-    bIsSprinting = PlayerCharacter->bIsSprinting;
+    // Получаем состояние спринта (через публичную функцию)
+    bIsSprinting = PlayerCharacter->GetIsSprinting();
 
     // Проверяем в воздухе ли персонаж
     bIsInAir = PlayerCharacter->GetCharacterMovement()->IsFalling();
 
-    // Получаем тип оружия
-    CurrentWeaponType = PlayerCharacter->CurrentWeaponType;
+    // Получаем тип оружия (через публичную функцию)
+    CurrentWeaponType = PlayerCharacter->GetCurrentWeaponType();
 
-    // Получаем состояние смены оружия
-    bIsSwitchingWeapon = PlayerCharacter->bIsSwitchingWeapon;
+    // Получаем состояние смены оружия (через публичную функцию)
+    bIsSwitchingWeapon = PlayerCharacter->GetIsSwitchingWeapon();
 
     // Конвертируем тип оружия в строку для Blueprint
     switch (CurrentWeaponType)
@@ -65,9 +61,4 @@ void UFPSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     {
         MovementState = "Idle";
     }
-
-    // Дебаг в консоль
-    // GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Cyan, 
-    //     FString::Printf(TEXT("Weapon: %s | State: %s | Speed: %.1f"), 
-    //     *WeaponState, *MovementState, Speed));
 }

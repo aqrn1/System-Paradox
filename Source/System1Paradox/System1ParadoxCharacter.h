@@ -26,6 +26,32 @@ public:
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
     virtual void PostInitializeComponents() override;
 
+    UFUNCTION(BlueprintCallable, Category = "Animation")
+    EWeaponType GetCurrentWeaponType() const { return CurrentWeaponType; }
+
+    UFUNCTION(BlueprintCallable, Category = "Animation")
+    bool GetIsCrouching() const { return bIsCrouching; }
+
+    UFUNCTION(BlueprintCallable, Category = "Animation")
+    bool GetIsSprinting() const { return bIsSprinting; }
+
+    UFUNCTION(BlueprintCallable, Category = "Animation")
+    bool GetIsSwitchingWeapon() const { return bIsSwitchingWeapon; }
+
+    // Состояния персонажа
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+    bool bIsSprinting = false;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+    bool bIsCrouching = false;
+
+    // Система оружия
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+    EWeaponType CurrentWeaponType = EWeaponType::Unarmed;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+    bool bIsSwitchingWeapon = false;
+
 protected:
     virtual void BeginPlay() override;
 
