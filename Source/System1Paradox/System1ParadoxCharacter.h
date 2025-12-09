@@ -26,8 +26,9 @@ public:
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
     virtual void PostInitializeComponents() override;
 
+    // ==================== ПУБЛИЧНЫЕ ГЕТТЕРЫ ДЛЯ АНИМАЦИЙ ====================
     UFUNCTION(BlueprintCallable, Category = "Animation")
-    FORCEINLINE EWeaponType GetCurrentWeaponType() const { return CurrentWeaponType; }
+    FORCEINLINE float GetCurrentSpeed() const { return GetVelocity().Size(); }
 
     UFUNCTION(BlueprintCallable, Category = "Animation")
     FORCEINLINE bool GetIsCrouching() const { return bIsCrouching; }
@@ -36,33 +37,15 @@ public:
     FORCEINLINE bool GetIsSprinting() const { return bIsSprinting; }
 
     UFUNCTION(BlueprintCallable, Category = "Animation")
+    FORCEINLINE bool GetIsInAir() const { return GetCharacterMovement()->IsFalling(); }
+
+    UFUNCTION(BlueprintCallable, Category = "Animation")
+    FORCEINLINE EWeaponType GetCurrentWeaponType() const { return CurrentWeaponType; }
+
+    UFUNCTION(BlueprintCallable, Category = "Animation")
     FORCEINLINE bool GetIsSwitchingWeapon() const { return bIsSwitchingWeapon; }
 
-protected:
-    virtual void BeginPlay() override;
-
-    // Компоненты камеры
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
-    UCameraComponent* CameraComponent;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
-    USpringArmComponent* SpringArmComponent;
-
-    // Оружие
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-    class AWeapon* CurrentWeapon;
-
-    // Классы оружия
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-    TSubclassOf<class AWeapon> WeaponClass;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-    TSubclassOf<class AWeapon> PistolClass;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-    TSubclassOf<class AWeapon> RifleClass;
-
-    // Функции ввода
+    // ==================== ОСНОВНЫЕ ФУНКЦИИ ====================
     UFUNCTION(BlueprintCallable, Category = "Input")
     void MoveForward(float Value);
 
@@ -93,39 +76,18 @@ protected:
     UFUNCTION(BlueprintCallable, Category = "Input")
     void StartReload();
 
-    // HUD функции
-    UFUNCTION(BlueprintCallable, Category = "HUD")
-    void UpdateHUD();
-
-    UFUNCTION(BlueprintCallable, Category = "HUD")
-    class ASystem1ParadoxHUD* GetSystemHUD() const;
-
-    // Функции спринта
     UFUNCTION(BlueprintCallable, Category = "Movement")
     void StartSprint();
 
     UFUNCTION(BlueprintCallable, Category = "Movement")
     void StopSprint();
 
-    // Функции приседания
     UFUNCTION(BlueprintCallable, Category = "Movement")
     void StartCrouch();
 
     UFUNCTION(BlueprintCallable, Category = "Movement")
     void StopCrouch();
 
-    // Вспомогательные функции
-    UFUNCTION(BlueprintCallable, Category = "Movement")
-    void UpdateMovementSpeed();
-
-    UFUNCTION(BlueprintCallable, Category = "Movement")
-    bool CanSprint() const;
-
-    // Функция для обновления параметров анимации
-    UFUNCTION(BlueprintCallable, Category = "Animation")
-    void UpdateAnimationParameters();
-
-    // Функции смены оружия
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     void SwitchToPistol();
 
@@ -138,70 +100,44 @@ protected:
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     void EquipWeapon(EWeaponType NewWeaponType);
 
-    // Функция обновления анимаций
-    UFUNCTION(BlueprintCallable, Category = "Animation")
-    void UpdateWeaponAnimations();
+protected:
+    virtual void BeginPlay() override;
 
-    // Дебаг функции
-    UFUNCTION(BlueprintCallable, Category = "Debug")
-    void DebugWeaponPosition();
+    // ==================== КОМПОНЕНТЫ ====================
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+    UCameraComponent* CameraComponent;
 
-    // Таймер для автоматической стрельбы
-    FTimerHandle FireTimerHandle;
-    bool bIsFiring = false;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+    USpringArmComponent* SpringArmComponent;
 
-    // Свойства движения
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+    class AWeapon* CurrentWeapon;
+
+    // ==================== НАСТРОЙКИ ====================
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+    TSubclassOf<class AWeapon> WeaponClass;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
     float WalkSpeed = 400.0f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
     float SprintSpeed = 600.0f;
 
-    // Параметры торможения
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-    float WalkingDeceleration = 2048.0f;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-    float SprintingDeceleration = 1024.0f;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-    float CrouchingDeceleration = 512.0f;
-
-    // Состояния персонажа
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+    // ==================== СОСТОЯНИЯ (PROTECTED) ====================
+protected:
+    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
     bool bIsSprinting = false;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
     bool bIsCrouching = false;
 
-    // Свойства спринта и приседания
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-    float SprintMultiplier = 1.5f;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-    float CrouchSpeed = 200.0f;
-
-    // Настройки позиции оружия
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-    FVector WeaponOffset = FVector(30.0f, 10.0f, -10.0f);
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-    FRotator WeaponRotation = FRotator(0.0f, 90.0f, 0.0f);
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-    FVector WeaponScale = FVector(0.5f);
-
-    // Здоровье
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
-    float MaxHealth = 100.0f;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
-    float CurrentHealth = 100.0f;
-
-    // Система оружия
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
     EWeaponType CurrentWeaponType = EWeaponType::Unarmed;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
     bool bIsSwitchingWeapon = false;
+
+private:
+    FTimerHandle FireTimerHandle;
+    bool bIsFiring = false;
 };

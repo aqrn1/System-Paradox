@@ -2,8 +2,29 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
-#include "System1ParadoxCharacter.h"  // Включаем класс персонажа
+#include "System1ParadoxCharacter.h"
 #include "FPSAnimInstance.generated.h"
+
+// Состояния оружия для Blueprint
+UENUM(BlueprintType)
+enum class EFPSWeaponState : uint8
+{
+    Unarmed     UMETA(DisplayName = "Unarmed"),
+    Pistol      UMETA(DisplayName = "Pistol"),
+    Rifle       UMETA(DisplayName = "Rifle"),
+    Melee       UMETA(DisplayName = "Melee")
+};
+
+// Состояния движения для Blueprint
+UENUM(BlueprintType)
+enum class EFPSMovementState : uint8
+{
+    Idle        UMETA(DisplayName = "Idle"),
+    Walking     UMETA(DisplayName = "Walking"),
+    Sprinting   UMETA(DisplayName = "Sprinting"),
+    Crouching   UMETA(DisplayName = "Crouching"),
+    Jumping     UMETA(DisplayName = "Jumping")
+};
 
 UCLASS()
 class SYSTEM1PARADOX_API UFPSAnimInstance : public UAnimInstance
@@ -11,38 +32,41 @@ class SYSTEM1PARADOX_API UFPSAnimInstance : public UAnimInstance
     GENERATED_BODY()
 
 public:
-    // Обязательная функция
+    UFPSAnimInstance();
+
+    // Основная функция обновления анимаций
     virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
-public:
-    // Все переменные которые нужны для анимаций
-    UPROPERTY(BlueprintReadOnly, Category = "Movement")
+    // ==================== ПУБЛИЧНЫЕ ПЕРЕМЕННЫЕ ДЛЯ BLUEPRINT ====================
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
     float Speed;
 
-    UPROPERTY(BlueprintReadOnly, Category = "Movement")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
     bool bIsCrouching;
 
-    UPROPERTY(BlueprintReadOnly, Category = "Movement")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
     bool bIsSprinting;
 
-    UPROPERTY(BlueprintReadOnly, Category = "Movement")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
     bool bIsInAir;
 
-    UPROPERTY(BlueprintReadOnly, Category = "Weapon")
-    EWeaponType CurrentWeaponType;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+    EFPSWeaponState WeaponState;
 
-    UPROPERTY(BlueprintReadOnly, Category = "Weapon")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
     bool bIsSwitchingWeapon;
 
-    // Состояния для Blueprint
-    UPROPERTY(BlueprintReadOnly, Category = "States")
-    FString WeaponState; // "Unarmed", "Pistol", "Rifle"
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+    EFPSMovementState MovementState;
 
-    UPROPERTY(BlueprintReadOnly, Category = "States")
-    FString MovementState; // "Idle", "Walking", "Sprinting", "Crouching"
+protected:
+    // Ссылка на персонажа
+    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
+    TWeakObjectPtr<class ASystem1ParadoxCharacter> CharacterPtr;
 
 private:
-    // Ссылка на персонажа
-    UPROPERTY()
-    class ASystem1ParadoxCharacter* PlayerCharacter;
+    // Вспомогательные функции
+    void UpdateMovementState();
+    void UpdateWeaponState();
+    EFPSWeaponType ConvertWeaponType(EWeaponType WeaponType) const;
 };
