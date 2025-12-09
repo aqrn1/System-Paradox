@@ -4,9 +4,8 @@
 #include "GameFramework/Character.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "S1P_Types.h" 
+#include "S1P_Types.h"
 #include "System1ParadoxCharacter.generated.h"
-
 
 UCLASS()
 class SYSTEM1PARADOX_API ASystem1ParadoxCharacter : public ACharacter
@@ -15,28 +14,21 @@ class SYSTEM1PARADOX_API ASystem1ParadoxCharacter : public ACharacter
 
 public:
     ASystem1ParadoxCharacter();
-
-    // ВСЕ ГЕТТЕРЫ И ФУНКЦИИ МЕНЯЮТ ТИПЫ НА ГЛОБАЛЬНЫЕ:
-    UFUNCTION(BlueprintCallable, Category = "Animation")
-    FORCEINLINE ES1P_WeaponType GetCurrentWeaponType() const { return CurrentWeaponType; } // Исправлено
-
-    UFUNCTION(BlueprintCallable, Category = "Animation")
-    ES1P_MovementState GetMovementState() const; // Исправлено
-
-    void EquipWeapon(ES1P_WeaponType NewWeaponType); // Исправлено
+    virtual void Tick(float DeltaTime) override;
+    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
     virtual void BeginPlay() override;
 
-    ES1P_WeaponType CurrentWeaponType;
-    // Компоненты
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
     UCameraComponent* CameraComponent;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
     USpringArmComponent* SpringArmComponent;
 
-    // Состояния персонажа
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+    class AWeapon* CurrentWeapon;
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
     bool bIsSprinting;
 
@@ -44,16 +36,17 @@ protected:
     bool bIsCrouching;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-    EWeaponType CurrentWeaponType;
+    ES1P_WeaponType CurrentWeaponType;
 
-    // Настройки движения
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float WalkSpeed;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float SprintSpeed;
 
-    // Ввод
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+    TSubclassOf<class AWeapon> DefaultWeaponClass;
+
     void MoveForward(float Value);
     void MoveRight(float Value);
     void LookUp(float Value);
@@ -64,29 +57,34 @@ protected:
     void StopSprint();
     void StartCrouch();
     void StopCrouch();
-
-    // Вспомогательные функции
+    void StartFire();
+    void StopFire();
+    void ReloadWeapon();
+    void StartAim();
+    void StopAim();
     void UpdateMovementSpeed();
     bool CanSprint() const;
+    void SpawnDefaultWeapon();
 
 public:
-    // Геттеры для анимаций
     UFUNCTION(BlueprintCallable, Category = "Animation")
-    FORCEINLINE float GetCurrentSpeed() const { return GetVelocity().Size2D(); }
+    float GetCurrentSpeed() const;
 
     UFUNCTION(BlueprintCallable, Category = "Animation")
-    FORCEINLINE bool GetIsCrouching() const { return bIsCrouching; }
+    bool GetIsCrouching() const;
 
     UFUNCTION(BlueprintCallable, Category = "Animation")
-    FORCEINLINE bool GetIsSprinting() const { return bIsSprinting; }
+    bool GetIsSprinting() const;
 
     UFUNCTION(BlueprintCallable, Category = "Animation")
     bool GetIsInAir() const;
 
     UFUNCTION(BlueprintCallable, Category = "Animation")
-    FORCEINLINE EWeaponType GetCurrentWeaponType() const { return CurrentWeaponType; }
+    ES1P_WeaponType GetCurrentWeaponType() const;
 
-    // Смена оружия
+    UFUNCTION(BlueprintCallable, Category = "Animation")
+    ES1P_MovementState GetMovementState() const;
+
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     void SwitchToPistol();
 
@@ -94,5 +92,13 @@ public:
     void SwitchToRifle();
 
     UFUNCTION(BlueprintCallable, Category = "Weapon")
+    void SwitchToMelee();
+
+    UFUNCTION(BlueprintCallable, Category = "Weapon")
     void SwitchToUnarmed();
+
+    UFUNCTION(BlueprintCallable, Category = "Weapon")
+    void EquipWeapon(ES1P_WeaponType NewWeaponType);
+
+    void PrintDebugInfo() const;
 };

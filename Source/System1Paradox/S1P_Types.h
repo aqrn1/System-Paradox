@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "S1P_Types.generated.h"
 
-// ==================== цкнаюкэмше ENUM дкъ бяецн опнейрю ====================
+// ==================== цкнаюкэмше ENUM ====================
 UENUM(BlueprintType)
 enum class ES1P_WeaponType : uint8
 {
