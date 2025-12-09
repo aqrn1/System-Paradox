@@ -27,30 +27,16 @@ public:
     virtual void PostInitializeComponents() override;
 
     UFUNCTION(BlueprintCallable, Category = "Animation")
-    EWeaponType GetCurrentWeaponType() const { return CurrentWeaponType; }
+    FORCEINLINE EWeaponType GetCurrentWeaponType() const { return CurrentWeaponType; }
 
     UFUNCTION(BlueprintCallable, Category = "Animation")
-    bool GetIsCrouching() const { return bIsCrouching; }
+    FORCEINLINE bool GetIsCrouching() const { return bIsCrouching; }
 
     UFUNCTION(BlueprintCallable, Category = "Animation")
-    bool GetIsSprinting() const { return bIsSprinting; }
+    FORCEINLINE bool GetIsSprinting() const { return bIsSprinting; }
 
     UFUNCTION(BlueprintCallable, Category = "Animation")
-    bool GetIsSwitchingWeapon() const { return bIsSwitchingWeapon; }
-
-    // Состояния персонажа
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
-    bool bIsSprinting = false;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
-    bool bIsCrouching = false;
-
-    // Система оружия
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-    EWeaponType CurrentWeaponType = EWeaponType::Unarmed;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-    bool bIsSwitchingWeapon = false;
+    FORCEINLINE bool GetIsSwitchingWeapon() const { return bIsSwitchingWeapon; }
 
 protected:
     virtual void BeginPlay() override;
@@ -66,11 +52,10 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
     class AWeapon* CurrentWeapon;
 
-    // 🟢 СТАРАЯ ПЕРЕМЕННАЯ (для совместимости)
+    // Классы оружия
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
     TSubclassOf<class AWeapon> WeaponClass;
 
-    // 🟢 НОВЫЕ ПЕРЕМЕННЫЕ ДЛЯ СИСТЕМЫ СМЕНЫ ОРУЖИЯ
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
     TSubclassOf<class AWeapon> PistolClass;
 
@@ -137,9 +122,10 @@ protected:
     bool CanSprint() const;
 
     // Функция для обновления параметров анимации
+    UFUNCTION(BlueprintCallable, Category = "Animation")
     void UpdateAnimationParameters();
 
-    // 🟢 ФУНКЦИИ СМЕНЫ ОРУЖИЯ
+    // Функции смены оружия
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     void SwitchToPistol();
 
@@ -152,11 +138,11 @@ protected:
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     void EquipWeapon(EWeaponType NewWeaponType);
 
-    // 🟢 ФУНКЦИЯ ОБНОВЛЕНИЯ АНИМАЦИЙ
+    // Функция обновления анимаций
     UFUNCTION(BlueprintCallable, Category = "Animation")
     void UpdateWeaponAnimations();
 
-    // 🟢 ДЕБАГ ФУНКЦИЯ
+    // Дебаг функции
     UFUNCTION(BlueprintCallable, Category = "Debug")
     void DebugWeaponPosition();
 
@@ -212,7 +198,7 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
     float CurrentHealth = 100.0f;
 
-    // 🟢 ПЕРЕМЕННЫЕ ДЛЯ СИСТЕМЫ ОРУЖИЯ
+    // Система оружия
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
     EWeaponType CurrentWeaponType = EWeaponType::Unarmed;
 

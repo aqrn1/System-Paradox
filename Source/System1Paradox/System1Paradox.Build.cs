@@ -10,18 +10,12 @@ public class System1Paradox : ModuleRules
             "Core",
             "CoreUObject",
             "Engine",
-            "InputCore",
-            "UMG",           // ДЛЯ UI ВИДЖЕТОВ (GameMode)
-            "Slate",
-            "AnimationBudgetAllocator",
-            "SlateCore"
+            "InputCore"
+            // НИЧЕГО БОЛЬШЕ НЕ ДОБАВЛЯЙ!
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] {
-            "UnrealEd",      // ДЛЯ BlueprintManager
-            "AssetRegistry",
-            "Kismet",
-            "BlueprintGraph"
+            // ПУСТО! НИЧЕГО НЕ НУЖНО!
         });
     }
 }

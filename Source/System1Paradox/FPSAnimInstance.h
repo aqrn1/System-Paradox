@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
-#include "System1ParadoxCharacter.h" // Включаем наш класс персонажа
+#include "System1ParadoxCharacter.h"  // Включаем класс персонажа
 #include "FPSAnimInstance.generated.h"
 
 UCLASS()
@@ -15,10 +15,6 @@ public:
     virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 public:
-    // Связываемся с персонажем
-    UPROPERTY(BlueprintReadOnly, Category = "Animation")
-    class ASystem1ParadoxCharacter* PlayerCharacter;
-
     // Все переменные которые нужны для анимаций
     UPROPERTY(BlueprintReadOnly, Category = "Movement")
     float Speed;
@@ -44,4 +40,9 @@ public:
 
     UPROPERTY(BlueprintReadOnly, Category = "States")
     FString MovementState; // "Idle", "Walking", "Sprinting", "Crouching"
+
+private:
+    // Ссылка на персонажа
+    UPROPERTY()
+    class ASystem1ParadoxCharacter* PlayerCharacter;
 };
