@@ -350,7 +350,16 @@ void ASystem1ParadoxCharacter::EquipWeapon(ES1P_WeaponType NewWeaponType) // И�
 // ==================== ГЕТТЕРЫ ДЛЯ АНИМАЦИЙ ====================
 float ASystem1ParadoxCharacter::GetCurrentSpeed() const
 {
-    return GetVelocity().Size2D();
+    float Speed = GetVelocity().Size2D();
+
+    // ВРЕМЕННАЯ ОТЛАДКА
+    if (GEngine && Speed > 10.0f)
+    {
+        FString Msg = FString::Printf(TEXT("C++ Speed: %.0f"), Speed);
+        GEngine->AddOnScreenDebugMessage(1, 0.1f, FColor::Green, Msg);
+    }
+
+    return Speed;
 }
 
 bool ASystem1ParadoxCharacter::GetIsCrouching() const
