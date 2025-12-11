@@ -11,7 +11,8 @@ public class System1Paradox : ModuleRules
             "CoreUObject",
             "Engine",
             "InputCore",
-            "AnimGraphRuntime"  // ДОБАВИТЬ для работы с анимациями
+            "AnimGraphRuntime",
+            "BlueprintGraph"  // Добавьте это!
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });
@@ -20,8 +21,8 @@ public class System1Paradox : ModuleRules
         {
             PrivateDependencyModuleNames.AddRange(new string[] {
                 "UnrealEd",
-                "BlueprintGraph",
-                "AnimGraph"  // ДОБАВИТЬ для редактора анимаций
+                "AnimGraph",
+                "KismetCompiler"  // Добавьте это!
             });
         }
     }

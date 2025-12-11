@@ -1,9 +1,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Modules/ModuleManager.h"
-#include "S1P_Types.h"
-#include "S1P_AnimTypes.h" 
+
+// Включаем ТОЛЬКО основные заголовки
+#include "Engine/Engine.h"
+#include "UObject/ObjectMacros.h"
+#include "UObject/Class.h"
 
 class FSystem1ParadoxModule : public IModuleInterface
 {
