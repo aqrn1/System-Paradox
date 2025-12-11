@@ -1,9 +1,9 @@
-#pragma once
+п»ї#pragma once
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
 #include "S1P_AnimTypes.h"
-#include "System1ParadoxCharacter.h"
+#include "System1ParadoxCharacter.h"  // в†ђ РћРЎРўРђР’Р›РЇР•Рњ Р’РљР›Р®Р§Р•РќРР•!
 #include "FPSAnimInstance.generated.h"
 
 UCLASS()
@@ -47,5 +47,5 @@ private:
     void ApplySmoothing(float DeltaSeconds);
 
     float SmoothInterpSpeed = 8.0f;
-    bool bForceAnimStateUpdate = false; // Новый флаг для принудительного обновления
+    bool bForceAnimStateUpdate = true;
 };
