@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
 #include "S1P_AnimTypes.h"
-#include "System1ParadoxCharacter.h"  // ← ОСТАВЛЯЕМ ВКЛЮЧЕНИЕ!
+#include "System1ParadoxCharacter.h"
 #include "FPSAnimInstance.generated.h"
 
 UCLASS()
@@ -16,6 +16,7 @@ public:
 
     virtual void NativeInitializeAnimation() override;
     virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+    virtual void NativeUninitializeAnimation() override; // ← ДОБАВЬТЕ ЭТУ СТРОКУ!
 
     UFUNCTION(Exec, Category = "Animation Debug")
     void AnimDebug(int32 Enable);

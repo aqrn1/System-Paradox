@@ -22,36 +22,49 @@ void UFPSAnimInstance::NativeInitializeAnimation()
     {
         if (OwningCharacter)
         {
-            FString DebugMsg = FString::Printf(TEXT("ANIM INIT: Character %s"),
-                *OwningCharacter->GetName());
-            GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, DebugMsg);
+            GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green,
+                TEXT("✅ ANIM INIT: Character found"));
         }
         else
         {
             GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red,
-                TEXT("ANIM INIT: No Character Found"));
+                TEXT("❌ ANIM INIT: No Character Found"));
         }
     }
+}
+
+void UFPSAnimInstance::NativeUninitializeAnimation()
+{
+    Super::NativeUninitializeAnimation();
 }
 
 void UFPSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
     Super::NativeUpdateAnimation(DeltaSeconds);
 
+    // ТЕСТ: Всегда показываем, что функция вызывается
+    static int32 FrameCounter = 0;
+    FrameCounter++;
+
+    if (GEngine && (FrameCounter % 60 == 0))
+    {
+        FString TestMessage = FString::Printf(TEXT("ANIM UPDATE #%d"), FrameCounter);
+        GEngine->AddOnScreenDebugMessage(100, 1.0f, FColor::Cyan, TestMessage);
+    }
+
     // ВСЕГДА обновляем ссылку на персонажа
     if (!OwningCharacter)
     {
         OwningCharacter = Cast<ASystem1ParadoxCharacter>(TryGetPawnOwner());
-        if (!OwningCharacter)
-        {
-            // Если персонажа нет, сбрасываем данные
-            AnimState.Speed = 0.0f;
-            AnimState.SmoothSpeed = 0.0f;
-            return;
-        }
     }
 
-    // ВАЖНО: ВСЕГДА обновляем состояние!
+    // Если персонажа нет, выходим
+    if (!OwningCharacter)
+    {
+        return;
+    }
+
+    // ОБНОВЛЯЕМ ВСЕ ДАННЫЕ
     UpdateAnimationState(DeltaSeconds);
 
     // Режим отладки (перезаписывает значения)
@@ -69,12 +82,13 @@ void UFPSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
         if (GEngine)
         {
             FString DebugMsg = FString::Printf(TEXT("DEBUG SPEED: %.0f"), DebugSpeed);
-            GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Cyan, DebugMsg);
+            GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Cyan, DebugMsg);
         }
     }
 
     UpdateWeaponBlendAlphas();
 
+    // Отладка
     if (bDebugMode && GEngine)
     {
         FString StateStr;
@@ -106,7 +120,7 @@ void UFPSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
         if (GEngine)
         {
             GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green,
-                TEXT("AnimState активно обновляется"));
+                TEXT("✅ AnimState активно обновляется"));
         }
     }
 }
@@ -115,12 +129,6 @@ void UFPSAnimInstance::UpdateAnimationState(float DeltaSeconds)
 {
     if (!OwningCharacter)
     {
-        AnimState.Speed = 0.0f;
-        AnimState.bIsCrouching = false;
-        AnimState.bIsSprinting = false;
-        AnimState.bIsInAir = false;
-        AnimState.CurrentWeaponType = ES1P_WeaponType::Unarmed;
-        AnimState.MovementState = ES1P_MovementState::Idle;
         return;
     }
 
@@ -151,11 +159,13 @@ void UFPSAnimInstance::ApplySmoothing(float DeltaSeconds)
 
 void UFPSAnimInstance::UpdateWeaponBlendAlphas()
 {
+    // Сбрасываем все значения
     AnimState.UnarmedAlpha = 0.0f;
     AnimState.PistolAlpha = 0.0f;
     AnimState.RifleAlpha = 0.0f;
     AnimState.MeleeAlpha = 0.0f;
 
+    // Устанавливаем нужное значение в зависимости от оружия
     switch (AnimState.CurrentWeaponType)
     {
     case ES1P_WeaponType::Unarmed:
@@ -170,9 +180,6 @@ void UFPSAnimInstance::UpdateWeaponBlendAlphas()
     case ES1P_WeaponType::Melee:
         AnimState.MeleeAlpha = 1.0f;
         break;
-    default:
-        AnimState.UnarmedAlpha = 1.0f;
-        break;
     }
 }
 
@@ -180,22 +187,13 @@ void UFPSAnimInstance::AnimDebug(int32 Enable)
 {
     bDebugMode = (Enable != 0);
 
-    // ПРИНУДИТЕЛЬНЫЙ ВЫВОД - всегда работает
     if (GEngine)
     {
         FString Message = bDebugMode ?
             TEXT("✅ ANIM DEBUG: ON (SetTestSpeed <value>)") :
             TEXT("✅ ANIM DEBUG: OFF");
 
-        GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, Message);
-
-        // Дублируем в лог
-        UE_LOG(LogTemp, Warning, TEXT("%s"), *Message);
-    }
-    else
-    {
-        // Если GEngine недоступен
-        UE_LOG(LogTemp, Error, TEXT("GEngine is NULL!"));
+        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, Message);
     }
 }
 
@@ -206,7 +204,7 @@ void UFPSAnimInstance::SetTestSpeed(float NewSpeed)
 
     if (GEngine)
     {
-        FString DebugMsg = FString::Printf(TEXT("TEST SPEED: %.0f"), DebugSpeed);
+        FString DebugMsg = FString::Printf(TEXT("🚀 TEST SPEED: %.0f"), DebugSpeed);
         GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, DebugMsg);
     }
 }
@@ -218,8 +216,7 @@ void UFPSAnimInstance::TestAnimation(FName AnimationName)
 
     if (GEngine)
     {
-        FString DebugMsg = FString::Printf(TEXT("FORCED ANIM: %s"), *ForcedAnimation);
+        FString DebugMsg = FString::Printf(TEXT("🎬 FORCED ANIM: %s"), *ForcedAnimation);
         GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Magenta, DebugMsg);
     }
 }
-
