@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
-#include "S1P_AnimTypes.h"
+#include "S1P_AnimTypes.h"           // Структура FAnimStateData
 #include "System1ParadoxCharacter.h"
 #include "FPSAnimInstance.generated.h"
 
@@ -14,10 +14,12 @@ class SYSTEM1PARADOX_API UFPSAnimInstance : public UAnimInstance
 public:
     UFPSAnimInstance();
 
+    // ========== ОБЯЗАТЕЛЬНЫЕ ПЕРЕОПРЕДЕЛЕНИЯ ==========
     virtual void NativeInitializeAnimation() override;
     virtual void NativeUpdateAnimation(float DeltaSeconds) override;
-    virtual void NativeUninitializeAnimation() override; // ← ДОБАВЬТЕ ЭТУ СТРОКУ!
+    virtual void NativeUninitializeAnimation() override;
 
+    // ========== EXEC КОМАНДЫ ДЛЯ ОТЛАДКИ ==========
     UFUNCTION(Exec, Category = "Animation Debug")
     void AnimDebug(int32 Enable);
 
@@ -25,28 +27,33 @@ public:
     void SetTestSpeed(float NewSpeed);
 
     UFUNCTION(Exec, Category = "Animation Debug")
-    void TestAnimation(FName AnimationName);
+    void TestAnimation(const FString& AnimationName);
 
+    // ========== ПУБЛИЧНЫЕ ДАННЫЕ ДЛЯ АНИМАЦИЙ ==========
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Animation State")
     FAnimStateData AnimState;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "References")
     ASystem1ParadoxCharacter* OwningCharacter;
 
+    // ========== НАСТРОЙКИ ОТЛАДКИ ==========
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
-    bool bDebugMode = false;
+    bool bDebugMode;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
-    float DebugSpeed = 0.0f;
+    float DebugSpeed;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
     FString ForcedAnimation;
 
 private:
-    void UpdateAnimationState(float DeltaSeconds);
+    // ========== ПРИВАТНЫЕ ФУНКЦИИ ==========
     void UpdateWeaponBlendAlphas();
+    void UpdateAnimationState(float DeltaSeconds);
     void ApplySmoothing(float DeltaSeconds);
+    void ApplyDebugValues();  // ← ДОБАВЬТЕ ЭТУ СТРОКУ!
 
-    float SmoothInterpSpeed = 8.0f;
-    bool bForceAnimStateUpdate = true;
+    // ========== ПРИВАТНЫЕ ПЕРЕМЕННЫЕ ==========
+    float SmoothInterpSpeed;
+    bool bForceAnimStateUpdate;
 };
