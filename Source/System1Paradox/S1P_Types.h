@@ -21,3 +21,6 @@ enum class ES1P_MovementState : uint8
     Crouching   UMETA(DisplayName = "Crouching"),
     Jumping     UMETA(DisplayName = "Jumping")
 };
+
+// НИКАКОЙ структуры FAnimStateData здесь быть не должно!
+// НИКАКОГО #include "S1P_AnimTypes.h" здесь быть не должно!

@@ -1,9 +1,9 @@
-#pragma once
+п»ї#pragma once
 
-#include "S1P_AnimTypes.h" // Подключаем структуру FAnimStateData
-#include "S1P_Types.h" // Подключаем перечисления ES1P_WeaponType и ES1P_MovementState
+#include "CoreMinimal.h"
+#include "S1P_Types.h"  // в†ђ РўРћР›Р¬РљРћ Р­РўРћРў include!
+#include "S1P_AnimTypes.generated.h"
 
-// ВАЖНОЕ ИЗМЕНЕНИЕ: Уберите BlueprintInternalUseOnly и добавьте правильные метаданные
 USTRUCT(BlueprintType, meta = (DisplayName = "Anim State Data"))
 struct SYSTEM1PARADOX_API FAnimStateData
 {
