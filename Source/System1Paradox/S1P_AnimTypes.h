@@ -1,8 +1,7 @@
 #pragma once
 
-#include "CoreMinimal.h"
-#include "S1P_Types.h"
-#include "S1P_AnimTypes.generated.h"
+#include "S1P_AnimTypes.h" // Подключаем структуру FAnimStateData
+#include "S1P_Types.h" // Подключаем перечисления ES1P_WeaponType и ES1P_MovementState
 
 // ВАЖНОЕ ИЗМЕНЕНИЕ: Уберите BlueprintInternalUseOnly и добавьте правильные метаданные
 USTRUCT(BlueprintType, meta = (DisplayName = "Anim State Data"))
@@ -26,7 +25,6 @@ public:
         MeleeAlpha = 0.0f;
     }
 
-    // ВАЖНО: Используйте Category для группировки полей
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float Speed;
 

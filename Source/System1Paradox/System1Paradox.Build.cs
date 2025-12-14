@@ -6,6 +6,10 @@ public class System1Paradox : ModuleRules
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
+        // ВАЖНО: Раскомментируйте эти строки если они закомментированы
+        PublicIncludePaths.AddRange(new string[] { "System1Paradox/Public" });
+        PrivateIncludePaths.AddRange(new string[] { "System1Paradox/Private" });
+
         PublicDependencyModuleNames.AddRange(new string[] {
             "Core",
             "CoreUObject",
@@ -13,19 +17,26 @@ public class System1Paradox : ModuleRules
             "InputCore",
             "AnimGraphRuntime",
             "BlueprintGraph",
-            "UMG",           // ← ДОБАВЬТЕ ЭТО! (для UUserWidget)
-            "Slate",        // ← ДОБАВЬТЕ ЭТО!
-            "SlateCore"     // ← ДОБАВЬТЕ ЭТО!
+            "UMG",           // Для виджетов
+            "Slate",         // Для UI
+            "SlateCore",     // Для UI
+            "GameplayTasks", // Для задач
+            "AIModule",      // Для AI
+            "NavigationSystem" // Для навигации
         });
 
-        PrivateDependencyModuleNames.AddRange(new string[] { });
+        PrivateDependencyModuleNames.AddRange(new string[] { 
+            // Добавьте сюда модули только для вашего кода
+        });
 
         if (Target.bBuildEditor)
         {
             PrivateDependencyModuleNames.AddRange(new string[] {
                 "UnrealEd",
                 "AnimGraph",
-                "KismetCompiler"
+                "KismetCompiler",
+                "Kismet",
+                "KismetWidgets"
             });
         }
     }

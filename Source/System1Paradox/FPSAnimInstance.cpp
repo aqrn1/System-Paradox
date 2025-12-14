@@ -164,45 +164,6 @@ void UFPSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
         GEngine->AddOnScreenDebugMessage(1, 0.0f, FColor::White, DebugText);
     }
 }
-void UFPSAnimInstance::UpdateWeaponBlendAlphas()
-{
-    // Сбрасываем все значения
-    AnimState.UnarmedAlpha = 0.0f;
-    AnimState.PistolAlpha = 0.0f;
-    AnimState.RifleAlpha = 0.0f;
-    AnimState.MeleeAlpha = 0.0f;
-
-    // Устанавливаем нужное значение в зависимости от оружия
-    switch (AnimState.CurrentWeaponType)
-    {
-    case ES1P_WeaponType::Unarmed:
-        AnimState.UnarmedAlpha = 1.0f;
-        break;
-    case ES1P_WeaponType::Pistol:
-        AnimState.PistolAlpha = 1.0f;
-        break;
-    case ES1P_WeaponType::Rifle:
-        AnimState.RifleAlpha = 1.0f;
-        break;
-    case ES1P_WeaponType::Melee:
-        AnimState.MeleeAlpha = 1.0f;
-        break;
-    }
-}
-
-void UFPSAnimInstance::AnimDebug(int32 Enable)
-{
-    bDebugMode = (Enable != 0);
-
-    if (GEngine)
-    {
-        FString Message = bDebugMode ?
-            TEXT("✅ ANIM DEBUG: ON (SetTestSpeed <value>)") :
-            TEXT("✅ ANIM DEBUG: OFF");
-
-        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, Message);
-    }
-}
 
 void UFPSAnimInstance::SetTestSpeed(float NewSpeed)
 {
@@ -226,4 +187,9 @@ void UFPSAnimInstance::TestAnimation(FName AnimationName)
         FString DebugMsg = FString::Printf(TEXT("🎬 FORCED ANIM: %s"), *ForcedAnimation);
         GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Magenta, DebugMsg);
     }
+}
+
+void UFPSAnimInstance::ApplySmoothing(float DeltaSeconds)
+{
+    // УДАЛИТЕ ЭТУ ФУНКЦИЮ - мы теперь делаем интерполяцию прямо в NativeUpdateAnimation
 }
