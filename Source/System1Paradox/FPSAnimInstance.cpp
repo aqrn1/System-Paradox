@@ -12,60 +12,114 @@ UFPSAnimInstance::UFPSAnimInstance()
     bForceAnimStateUpdate = true;
 }
 
-void UFPSAnimInstance::NativeInitializeAnimation()
-{
-    Super::NativeInitializeAnimation();
-
-    OwningCharacter = Cast<ASystem1ParadoxCharacter>(TryGetPawnOwner());
-
-    if (GEngine)
-    {
-        if (OwningCharacter)
-        {
-            GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green,
-                TEXT("✅ ANIM INIT: Character found"));
-        }
-        else
-        {
-            GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red,
-                TEXT("❌ ANIM INIT: No Character Found"));
-        }
-    }
-}
-
-void UFPSAnimInstance::NativeUninitializeAnimation()
-{
-    Super::NativeUninitializeAnimation();
-}
-
 void UFPSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
     Super::NativeUpdateAnimation(DeltaSeconds);
 
-    // ТЕСТ: Всегда показываем, что функция вызывается
+    // ОТЛАДКА: Всегда показываем состояние
     static int32 FrameCounter = 0;
     FrameCounter++;
 
-    if (GEngine && (FrameCounter % 60 == 0))
+    if (GEngine && (FrameCounter % 30 == 0)) // Каждые 0.5 секунды
     {
-        FString TestMessage = FString::Printf(TEXT("ANIM UPDATE #%d"), FrameCounter);
-        GEngine->AddOnScreenDebugMessage(100, 1.0f, FColor::Cyan, TestMessage);
+        APawn* Pawn = TryGetPawnOwner();
+        FString PawnName = Pawn ? *Pawn->GetName() : TEXT("NULL");
+
+        FString DebugMsg = FString::Printf(
+            TEXT("🔍 ANIM DEBUG | Pawn: %s | Char: %s | Frame: %d"),
+            *PawnName,
+            OwningCharacter ? TEXT("VALID") : TEXT("NULL"),
+            FrameCounter
+        );
+        GEngine->AddOnScreenDebugMessage(200, 1.0f, FColor::Orange, DebugMsg);
     }
 
-    // ВСЕГДА обновляем ссылку на персонажа
+    // 1. ПОЛУЧАЕМ ССЫЛКУ НА ПЕРСОНАЖА
     if (!OwningCharacter)
     {
         OwningCharacter = Cast<ASystem1ParadoxCharacter>(TryGetPawnOwner());
+
+        if (OwningCharacter && GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green,
+                FString::Printf(TEXT("✅ CHARACTER FOUND: %s"), *OwningCharacter->GetName()));
+        }
+        else if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red,
+                TEXT("❌ NO CHARACTER"));
+        }
     }
 
-    // Если персонажа нет, выходим
-    if (!OwningCharacter)
+    // 2. ЕСЛИ ПЕРСОНАЖ ЕСТЬ - ОБНОВЛЯЕМ ДАННЫЕ
+    if (OwningCharacter)
     {
-        return;
-    }
+        // ПРИНУДИТЕЛЬНАЯ ПРОВЕРКА ЗНАЧЕНИЙ
+        float Speed = OwningCharacter->GetVelocity().Size2D(); // Прямой доступ
+        ES1P_WeaponType WeaponType = OwningCharacter->GetCurrentWeaponType();
+        bool bIsCrouching = OwningCharacter->bIsCrouched; // Прямой доступ к переменной ACharacter
 
-    // ОБНОВЛЯЕМ ВСЕ ДАННЫЕ
-    UpdateAnimationState(DeltaSeconds);
+        if (GEngine && (FrameCounter % 60 == 0))
+        {
+            FString ValueMsg = FString::Printf(
+                TEXT("📊 VALUES | Speed: %.0f | Weapon: %d | Crouch: %s"),
+                Speed,
+                (int32)WeaponType,
+                bIsCrouching ? TEXT("Yes") : TEXT("No")
+            );
+            GEngine->AddOnScreenDebugMessage(201, 1.0f, FColor::Yellow, ValueMsg);
+        }
+
+        // ВАЖНО: ЗАПОЛНЯЕМ СТРУКТУРУ ПРЯМО ЗДЕСЬ
+        AnimState.Speed = Speed;
+        AnimState.SmoothSpeed = FMath::FInterpTo(AnimState.SmoothSpeed, Speed, DeltaSeconds, SmoothInterpSpeed);
+        AnimState.bIsCrouching = bIsCrouching;
+        AnimState.bIsSprinting = OwningCharacter->GetIsSprinting();
+        AnimState.bIsInAir = OwningCharacter->GetCharacterMovement()->IsFalling();
+        AnimState.CurrentWeaponType = WeaponType;
+
+        // Определяем состояние движения
+        if (AnimState.bIsInAir) {
+            AnimState.MovementState = ES1P_MovementState::Jumping;
+        }
+        else if (AnimState.bIsCrouching) {
+            AnimState.MovementState = ES1P_MovementState::Crouching;
+        }
+        else if (AnimState.bIsSprinting && Speed > 100.0f) {
+            AnimState.MovementState = ES1P_MovementState::Sprinting;
+        }
+        else if (Speed > 10.0f) {
+            AnimState.MovementState = ES1P_MovementState::Walking;
+        }
+        else {
+            AnimState.MovementState = ES1P_MovementState::Idle;
+        }
+
+        UpdateWeaponBlendAlphas();
+
+        // ОТЛАДКА: Показываем финальные значения
+        if (GEngine && (FrameCounter % 90 == 0))
+        {
+            FString FinalMsg = FString::Printf(
+                TEXT("🎯 FINAL | Speed: %.0f | State: %d | Crouch: %s"),
+                AnimState.Speed,
+                (int32)AnimState.MovementState,
+                AnimState.bIsCrouching ? TEXT("Yes") : TEXT("No")
+            );
+            GEngine->AddOnScreenDebugMessage(202, 1.0f, FColor::Green, FinalMsg);
+        }
+    }
+    else
+    {
+        // Сбрасываем значения если персонажа нет
+        AnimState.Speed = 0.0f;
+        AnimState.SmoothSpeed = 0.0f;
+        AnimState.bIsCrouching = false;
+        AnimState.bIsSprinting = false;
+        AnimState.bIsInAir = false;
+        AnimState.CurrentWeaponType = ES1P_WeaponType::Unarmed;
+        AnimState.MovementState = ES1P_MovementState::Idle;
+    }
 
     // Режим отладки (перезаписывает значения)
     if (bDebugMode && DebugSpeed >= 0.0f)
@@ -81,14 +135,12 @@ void UFPSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
         if (GEngine)
         {
-            FString DebugMsg = FString::Printf(TEXT("DEBUG SPEED: %.0f"), DebugSpeed);
+            FString DebugMsg = FString::Printf(TEXT("🔧 DEBUG SPEED: %.0f"), DebugSpeed);
             GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Cyan, DebugMsg);
         }
     }
 
-    UpdateWeaponBlendAlphas();
-
-    // Отладка
+    // Финальная отладка
     if (bDebugMode && GEngine)
     {
         FString StateStr;
@@ -103,60 +155,15 @@ void UFPSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
         }
 
         FString DebugText = FString::Printf(
-            TEXT("ANIM: Speed=%.0f | State=%s | Crouch=%s | Sprint=%s | Air=%s"),
+            TEXT("🎮 ANIM: Speed=%.0f | State=%s | Crouch=%s"),
             AnimState.Speed,
             *StateStr,
-            AnimState.bIsCrouching ? TEXT("Yes") : TEXT("No"),
-            AnimState.bIsSprinting ? TEXT("Yes") : TEXT("No"),
-            AnimState.bIsInAir ? TEXT("Yes") : TEXT("No")
+            AnimState.bIsCrouching ? TEXT("Yes") : TEXT("No")
         );
 
-        GEngine->AddOnScreenDebugMessage(1, 0.0f, FColor::Yellow, DebugText);
-    }
-
-    if (bForceAnimStateUpdate)
-    {
-        bForceAnimStateUpdate = false;
-        if (GEngine)
-        {
-            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green,
-                TEXT("✅ AnimState активно обновляется"));
-        }
+        GEngine->AddOnScreenDebugMessage(1, 0.0f, FColor::White, DebugText);
     }
 }
-
-void UFPSAnimInstance::UpdateAnimationState(float DeltaSeconds)
-{
-    if (!OwningCharacter)
-    {
-        return;
-    }
-
-    AnimState.Speed = OwningCharacter->GetCurrentSpeed();
-    AnimState.bIsCrouching = OwningCharacter->GetIsCrouching();
-    AnimState.bIsSprinting = OwningCharacter->GetIsSprinting();
-    AnimState.bIsInAir = OwningCharacter->GetIsInAir();
-    AnimState.CurrentWeaponType = OwningCharacter->GetCurrentWeaponType();
-    AnimState.MovementState = OwningCharacter->GetMovementState();
-
-    ApplySmoothing(DeltaSeconds);
-}
-
-void UFPSAnimInstance::ApplySmoothing(float DeltaSeconds)
-{
-    if (DeltaSeconds > 0.0f)
-    {
-        AnimState.SmoothSpeed = FMath::FInterpTo(
-            AnimState.SmoothSpeed,
-            AnimState.Speed,
-            DeltaSeconds,
-            SmoothInterpSpeed
-        );
-
-        AnimState.SmoothSpeed = FMath::Clamp(AnimState.SmoothSpeed, 0.0f, 600.0f);
-    }
-}
-
 void UFPSAnimInstance::UpdateWeaponBlendAlphas()
 {
     // Сбрасываем все значения
