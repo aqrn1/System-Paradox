@@ -12,3 +12,8 @@ class SYSTEM1PARADOX_API ASystem1ParadoxPlayerController : public APlayerControl
 public:
     ASystem1ParadoxPlayerController();
 };
+UFUNCTION(Exec, Category = "Animation Debug")
+void AnimDebug(int32 Enable);
+
+UFUNCTION(Exec, Category = "Animation Debug")
+void SetTestSpeed(float NewSpeed);

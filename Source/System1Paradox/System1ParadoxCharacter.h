@@ -85,6 +85,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Animation")
     ES1P_MovementState GetMovementState() const;
 
+    UFUNCTION(BlueprintCallable, Category = "Animation")
+    UFPSAnimInstance* GetFPSAnimInstance() const;
+
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     void SwitchToPistol();
 

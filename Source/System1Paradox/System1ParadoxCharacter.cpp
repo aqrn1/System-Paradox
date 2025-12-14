@@ -430,3 +430,10 @@ void ASystem1ParadoxCharacter::PrintDebugInfo() const
         GEngine->AddOnScreenDebugMessage(1, 0.1f, FColor::Cyan, DebugMsg);
     }
 }
+
+UFPSAnimInstance* ASystem1ParadoxCharacter::GetFPSAnimInstance() const
+{
+    if (!GetMesh()) return nullptr;
+
+    return Cast<UFPSAnimInstance>(GetMesh()->GetAnimInstance());
+}
