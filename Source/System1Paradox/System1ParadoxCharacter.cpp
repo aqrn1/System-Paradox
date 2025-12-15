@@ -49,6 +49,71 @@ void ASystem1ParadoxPlayerController::SetTestSpeed(float NewSpeed)
     }
 }
 
+void ASystem1ParadoxCharacter::SpawnDefaultWeapon()
+{
+    if (!DefaultWeaponClass)
+    {
+        UE_LOG(LogTemp, Error, TEXT("System1ParadoxCharacter: DefaultWeaponClass is not set!"));
+        return;
+    }
+
+    // Используем отложенное создание через таймер
+    FTimerHandle TimerHandle;
+    GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+        {
+            // Проверяем компоненты
+            if (!IsValid(this) || !GetWorld() || !CameraComponent)
+            {
+                UE_LOG(LogTemp, Error, TEXT("System1ParadoxCharacter: Cannot spawn weapon - invalid state"));
+                return;
+            }
+
+            FActorSpawnParameters SpawnParams;
+            SpawnParams.Owner = this;
+            SpawnParams.Instigator = GetInstigator();
+            SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+            // Спавним оружие
+            FVector SpawnLocation = GetActorLocation();
+            FRotator SpawnRotation = GetActorRotation();
+
+            CurrentWeapon = GetWorld()->SpawnActor<AWeapon>(DefaultWeaponClass, SpawnLocation, SpawnRotation, SpawnParams);
+
+            if (CurrentWeapon)
+            {
+                // Прикрепляем оружие к камере
+                FAttachmentTransformRules AttachmentRules(
+                    EAttachmentRule::SnapToTarget,
+                    EAttachmentRule::SnapToTarget,
+                    EAttachmentRule::KeepWorld,
+                    true
+                );
+
+                CurrentWeapon->AttachToComponent(CameraComponent, AttachmentRules);
+
+                // Настройка позиции оружия от первого лица
+                CurrentWeapon->SetActorRelativeLocation(FVector(35.0f, 8.0f, -30.0f));
+                CurrentWeapon->SetActorRelativeRotation(FRotator(2.0f, -95.0f, -5.0f));
+                CurrentWeapon->SetActorScale3D(FVector(0.8f));
+
+                CurrentWeaponType = ES1P_WeaponType::Pistol;
+
+                UE_LOG(LogTemp, Log, TEXT("✅ System1ParadoxCharacter: Weapon spawned and attached successfully"));
+
+                if (GEngine)
+                {
+                    GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green,
+                        TEXT("✅ WEAPON EQUIPPED AND ATTACHED TO CAMERA"));
+                }
+            }
+            else
+            {
+                UE_LOG(LogTemp, Error, TEXT("System1ParadoxCharacter: Failed to spawn weapon!"));
+            }
+
+        }, 0.2f, false); // Задержка 200ms для гарантированной инициализации
+}
+
 // ПРОСТАЯ ВЕРСИЯ DebugWeaponPos (без доступа к protected)
 void ASystem1ParadoxPlayerController::DebugWeaponPos()
 {

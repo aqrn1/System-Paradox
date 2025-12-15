@@ -1,14 +1,14 @@
-﻿#pragma once
+﻿// FPSAnimInstance.h - ИСПРАВЛЕННАЯ ВЕРСИЯ
+#pragma once
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
-#include "S1P_AnimTypes.h"
-#include "System1ParadoxCharacter.h"  // ← ДОБАВЬТЕ ЭТОТ INCLUDE!
+#include "S1P_AnimTypes.h"  // Структура данных для анимаций
+#include "S1P_Types.h"      // Перечисления WeaponType и MovementState
 
-#include "FPSAnimInstance.generated.h"
-
-// УДАЛИТЕ: class ASystem1ParadoxCharacter; // Forward declaration
-// ДОБАВЬТЕ INCLUDE выше!
+// ВАЖНО: Используем предварительное объявление вместо #include
+// Это предотвращает циклическую зависимость
+class ASystem1ParadoxCharacter;
 
 UCLASS()
 class SYSTEM1PARADOX_API UFPSAnimInstance : public UAnimInstance
@@ -18,44 +18,38 @@ class SYSTEM1PARADOX_API UFPSAnimInstance : public UAnimInstance
 public:
     UFPSAnimInstance();
 
-    // ОСНОВНЫЕ ФУНКЦИИ
     virtual void NativeInitializeAnimation() override;
     virtual void NativeUpdateAnimation(float DeltaSeconds) override;
     virtual void NativeUninitializeAnimation() override;
 
-    // EXEC КОМАНДЫ
+    // Консольные команды
     UFUNCTION(Exec, Category = "Animation Debug")
     void AnimDebug(int32 Enable);
 
     UFUNCTION(Exec, Category = "Animation Debug")
     void SetTestSpeed(float NewSpeed);
 
-    UFUNCTION(Exec, Category = "Animation Debug")
-    void TestAnimation(const FString& AnimationName);
+    // Геттер для получения данных от персонажа
+    UFUNCTION(BlueprintCallable, Category = "Animation")
+    FAnimStateData GetAnimStateData() const { return AnimState; }
 
-    // ПЕРЕМЕННЫЕ
+    // Основная структура данных для Blueprint
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Animation State")
     FAnimStateData AnimState;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "References")
+private:
+    // Указатель на персонажа - только предварительное объявление
     ASystem1ParadoxCharacter* OwningCharacter;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug", meta = (AllowPrivateAccess = "true"))
     bool bDebugMode;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug", meta = (AllowPrivateAccess = "true"))
     float DebugSpeed;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
-    FString ForcedAnimation;
+    float SmoothInterpSpeed;
 
-private:
-    // ПРИВАТНЫЕ ФУНКЦИИ
     void UpdateWeaponBlendAlphas();
     void UpdateAnimationState(float DeltaSeconds);
-    void ApplySmoothing(float DeltaSeconds);
     void ApplyDebugValues();
-
-    float SmoothInterpSpeed;
-    bool bForceAnimStateUpdate;
 };
