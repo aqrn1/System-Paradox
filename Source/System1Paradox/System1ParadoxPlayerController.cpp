@@ -4,9 +4,16 @@
 #include "FPSAnimInstance.h"
 #include "Engine/Engine.h"
 
+ASystem1ParadoxPlayerController::ASystem1ParadoxPlayerController()
+{
+    PrimaryActorTick.bCanEverTick = true;
+    bShowMouseCursor = false;
+    bEnableClickEvents = false;
+    bEnableMouseOverEvents = false;
+}
+
 void ASystem1ParadoxPlayerController::AnimDebug(int32 Enable)
 {
-    // Измените имя переменной (не Character!)
     ASystem1ParadoxCharacter* MyCharacter = Cast<ASystem1ParadoxCharacter>(GetPawn());
     if (!MyCharacter)
     {

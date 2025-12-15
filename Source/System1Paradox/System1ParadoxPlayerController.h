@@ -1,8 +1,8 @@
+// System1ParadoxPlayerController.h
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-
 #include "System1ParadoxPlayerController.generated.h"
 
 UCLASS()
@@ -13,7 +13,6 @@ class SYSTEM1PARADOX_API ASystem1ParadoxPlayerController : public APlayerControl
 public:
     ASystem1ParadoxPlayerController();
 
-    // Exec ЙНЛЮМДШ - саедхреяэ врн рнкэйн ндхм пюг!
     UFUNCTION(Exec, Category = "Animation Debug")
     void AnimDebug(int32 Enable);
 

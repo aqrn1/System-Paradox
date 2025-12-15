@@ -4,16 +4,12 @@
 #include "GameFramework/Character.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "S1P_Types.h"  // ✅ Правильно: до .generated.h
+#include "S1P_Types.h"
 
-// 4. Forward declarations (если нужны)
+#include "System1ParadoxCharacter.generated.h"
+
 class UFPSAnimInstance;
 class AWeapon;
-
-#include "System1ParadoxCharacter.generated.h"  // ✅ .generated.h ВСЕГДА ПОСЛЕДНИЙ!
-
-class UFPSAnimInstance;  // Forward declaration
-class AWeapon;  // Forward declaration для оружия
 
 UCLASS()
 class SYSTEM1PARADOX_API ASystem1ParadoxCharacter : public ACharacter
@@ -28,6 +24,7 @@ public:
 protected:
     virtual void BeginPlay() override;
 
+    // КОМПОНЕНТЫ (protected - доступны в классе и наследниках)
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
     UCameraComponent* CameraComponent;
 
@@ -35,7 +32,7 @@ protected:
     USpringArmComponent* SpringArmComponent;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-    AWeapon* CurrentWeapon;  // Используем forward declaration
+    AWeapon* CurrentWeapon;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
     bool bIsSprinting;
@@ -53,7 +50,7 @@ protected:
     float SprintSpeed;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-    TSubclassOf<class AWeapon> DefaultWeaponClass;
+    TSubclassOf<AWeapon> DefaultWeaponClass;
 
     void MoveForward(float Value);
     void MoveRight(float Value);
@@ -75,6 +72,7 @@ protected:
     void SpawnDefaultWeapon();
 
 public:
+    // ГЕТТЕРЫ (public - доступны извне)
     UFUNCTION(BlueprintCallable, Category = "Animation")
     float GetCurrentSpeed() const;
 
@@ -110,6 +108,13 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Animation")
     UFPSAnimInstance* GetFPSAnimInstance() const;
+
+    // ГЕТТЕРЫ ДЛЯ КОМПОНЕНТОВ
+    UFUNCTION(BlueprintCallable, Category = "Weapon")
+    AWeapon* GetCurrentWeapon() const { return CurrentWeapon; }
+
+    UFUNCTION(BlueprintCallable, Category = "Camera")
+    UCameraComponent* GetCameraComponent() const { return CameraComponent; }
 
     void PrintDebugInfo() const;
 };
