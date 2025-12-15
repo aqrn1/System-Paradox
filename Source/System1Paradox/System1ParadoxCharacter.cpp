@@ -446,3 +446,45 @@ void ASystem1ParadoxCharacter::StopAim()
         UE_LOG(LogTemp, Warning, TEXT("🎯 AIM: OFF (FOV: %.1f)"), CameraComponent->FieldOfView);
     }
 }
+
+void ASystem1ParadoxCharacter::StartFire()
+{
+    UE_LOG(LogTemp, Warning, TEXT("=== START FIRE CALLED ==="));
+
+    // Debug: Проверка всех условий
+    if (!Controller)
+    {
+        UE_LOG(LogTemp, Error, TEXT("❌ No Controller!"));
+        return;
+    }
+
+    if (!CurrentWeapon)
+    {
+        UE_LOG(LogTemp, Error, TEXT("❌ No CurrentWeapon!"));
+
+        // Попробуем найти оружие в дочерних акторах
+        TArray<AActor*> Children;
+        GetAttachedActors(Children);
+        UE_LOG(LogTemp, Warning, TEXT("Attached actors: %d"), Children.Num());
+        for (AActor* Child : Children)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("  - %s"), *Child->GetName());
+        }
+        return;
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("✅ Weapon found: %s"), *CurrentWeapon->GetName());
+    UE_LOG(LogTemp, Warning, TEXT("✅ Weapon Owner: %s"), *GetName());
+
+    // Проверка типа оружия
+    UE_LOG(LogTemp, Warning, TEXT("✅ Weapon Type: %d"), (int32)CurrentWeapon->GetWeaponType());
+
+    CurrentWeapon->StartFire();
+
+    // Debug сообщение на экран
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red,
+            FString::Printf(TEXT("🔥 FIRE! Weapon: %s"), *CurrentWeapon->GetName()));
+    }
+}
