@@ -1,54 +1,217 @@
-﻿// System1ParadoxPlayerController.cpp
+﻿// System1ParadoxCharacter.cpp - ПОЛНЫЙ И ИСПРАВЛЕННЫЙ ФАЙЛ
 #include "System1ParadoxCharacter.h"
-#include "System1ParadoxPlayerController.h"
-#include "System1ParadoxHUD.h"
-#include "FPSAnimInstance.h"
 #include "Weapon.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/InputComponent.h"
 #include "Engine/Engine.h"
-#include "DrawDebugHelpers.h"
+#include "S1P_Types.h"
+#include "FPSAnimInstance.h"
 
-ASystem1ParadoxPlayerController::ASystem1ParadoxPlayerController()
+ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
-    bShowMouseCursor = false;
-    UE_LOG(LogTemp, Warning, TEXT("🎮 PlayerController Created"));
+
+    SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+    SpringArmComponent->SetupAttachment(RootComponent);
+    SpringArmComponent->TargetArmLength = 0.0f;
+    SpringArmComponent->bUsePawnControlRotation = true;
+    SpringArmComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 70.0f));
+
+    CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+    CameraComponent->SetupAttachment(SpringArmComponent, USpringArmComponent::SocketName);
+    CameraComponent->bUsePawnControlRotation = false;
+    CameraComponent->SetFieldOfView(90.0f);
+
+    bUseControllerRotationYaw = true;
+    bUseControllerRotationPitch = true;
+    bUseControllerRotationRoll = false;
+
+    GetCharacterMovement()->bOrientRotationToMovement = false;
+    GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f);
+    GetCharacterMovement()->JumpZVelocity = 600.0f;
+    GetCharacterMovement()->AirControl = 0.2f;
+    GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+
+    WalkSpeed = 600.0f;
+    SprintSpeed = 900.0f;
+    bIsSprinting = false;
+    bIsCrouching = false;
+    CurrentWeaponType = ES1P_WeaponType::Unarmed;
+    CurrentWeapon = nullptr;
 }
 
-void ASystem1ParadoxPlayerController::AnimDebug(int32 Enable)
+void ASystem1ParadoxCharacter::BeginPlay()
 {
-    ASystem1ParadoxCharacter* MyCharacter = Cast<ASystem1ParadoxCharacter>(GetPawn());
-    if (!MyCharacter)
-    {
-        if (GEngine)
-            GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("❌ ANIM DEBUG: Нет персонажа"));
-        return;
-    }
+    Super::BeginPlay();
+    GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+    SpawnDefaultWeapon();
 
-    UFPSAnimInstance* AnimInst = MyCharacter->GetFPSAnimInstance();
-    if (AnimInst)
+    if (GEngine)
     {
-        AnimInst->AnimDebug(Enable);
-        if (GEngine)
-            GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green,
-                FString::Printf(TEXT("✅ PC: AnimDebug %d"), Enable));
+        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green,
+            TEXT("🎮 SYSTEM1PARADOX: AAA Character Initialized"));
     }
 }
 
-void ASystem1ParadoxPlayerController::SetTestSpeed(float NewSpeed)
+void ASystem1ParadoxCharacter::Tick(float DeltaTime)
 {
-    ASystem1ParadoxCharacter* MyCharacter = Cast<ASystem1ParadoxCharacter>(GetPawn());
-    if (!MyCharacter) return;
+    Super::Tick(DeltaTime);
 
-    UFPSAnimInstance* AnimInst = MyCharacter->GetFPSAnimInstance();
-    if (AnimInst)
+    if (bIsSprinting && !CanSprint()) StopSprint();
+
+    static float DebugTimer = 0.0f;
+    DebugTimer += DeltaTime;
+    if (DebugTimer >= 2.0f)
     {
-        AnimInst->SetTestSpeed(NewSpeed);
-        if (GEngine)
-            GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green,
-                FString::Printf(TEXT("✅ PC: SetTestSpeed %.0f"), NewSpeed));
+        PrintDebugInfo();
+        DebugTimer = 0.0f;
     }
 }
 
+void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+    Super::SetupPlayerInputComponent(PlayerInputComponent);
+    check(PlayerInputComponent);
+
+    PlayerInputComponent->BindAxis("MoveForward", this, &ASystem1ParadoxCharacter::MoveForward);
+    PlayerInputComponent->BindAxis("MoveRight", this, &ASystem1ParadoxCharacter::MoveRight);
+    PlayerInputComponent->BindAxis("Turn", this, &ASystem1ParadoxCharacter::Turn);
+    PlayerInputComponent->BindAxis("LookUp", this, &ASystem1ParadoxCharacter::LookUp);
+
+    PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASystem1ParadoxCharacter::StartJump);
+    PlayerInputComponent->BindAction("Jump", IE_Released, this, &ASystem1ParadoxCharacter::StopJump);
+    PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASystem1ParadoxCharacter::StartSprint);
+    PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASystem1ParadoxCharacter::StopSprint);
+    PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASystem1ParadoxCharacter::StartCrouch);
+    PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ASystem1ParadoxCharacter::StopCrouch);
+    PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASystem1ParadoxCharacter::StartFire);
+    PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASystem1ParadoxCharacter::StopFire);
+    PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ASystem1ParadoxCharacter::ReloadWeapon);
+    PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ASystem1ParadoxCharacter::StartAim);
+    PlayerInputComponent->BindAction("Aim", IE_Released, this, &ASystem1ParadoxCharacter::StopAim);
+    PlayerInputComponent->BindKey(EKeys::One, IE_Pressed, this, &ASystem1ParadoxCharacter::SwitchToUnarmed);
+    PlayerInputComponent->BindKey(EKeys::Two, IE_Pressed, this, &ASystem1ParadoxCharacter::SwitchToPistol);
+    PlayerInputComponent->BindKey(EKeys::Three, IE_Pressed, this, &ASystem1ParadoxCharacter::SwitchToRifle);
+    PlayerInputComponent->BindKey(EKeys::Four, IE_Pressed, this, &ASystem1ParadoxCharacter::SwitchToMelee);
+}
+
+// ==================== ФУНКЦИИ ДВИЖЕНИЯ ====================
+void ASystem1ParadoxCharacter::MoveForward(float Value)
+{
+    if (Value != 0.0f && Controller)
+    {
+        const FRotator Rotation = Controller->GetControlRotation();
+        const FRotator YawRotation(0, Rotation.Yaw, 0);
+        const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+        AddMovementInput(Direction, Value);
+    }
+}
+
+void ASystem1ParadoxCharacter::MoveRight(float Value)
+{
+    if (Value != 0.0f && Controller)
+    {
+        const FRotator Rotation = Controller->GetControlRotation();
+        const FRotator YawRotation(0, Rotation.Yaw, 0);
+        const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+        AddMovementInput(Direction, Value);
+    }
+}
+
+void ASystem1ParadoxCharacter::LookUp(float Value) { AddControllerPitchInput(Value); }
+void ASystem1ParadoxCharacter::Turn(float Value) { AddControllerYawInput(Value); }
+void ASystem1ParadoxCharacter::StartJump() { Jump(); }
+void ASystem1ParadoxCharacter::StopJump() { StopJumping(); }
+
+// ==================== СПРИНТ ====================
+void ASystem1ParadoxCharacter::StartSprint()
+{
+    if (CanSprint())
+    {
+        bIsSprinting = true;
+        UpdateMovementSpeed();
+        if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("⚡ SPRINTING"));
+    }
+}
+
+void ASystem1ParadoxCharacter::StopSprint()
+{
+    bIsSprinting = false;
+    UpdateMovementSpeed();
+}
+
+bool ASystem1ParadoxCharacter::CanSprint() const
+{
+    return !bIsCrouching && GetCharacterMovement()->IsMovingOnGround();
+}
+
+// ==================== ПРИСЕДАНИЕ ====================
+void ASystem1ParadoxCharacter::StartCrouch()
+{
+    if (!bIsCrouching)
+    {
+        bIsCrouching = true;
+        Crouch();
+        UpdateMovementSpeed();
+        if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Cyan, TEXT("⬇ CROUCHING"));
+    }
+}
+
+void ASystem1ParadoxCharacter::StopCrouch()
+{
+    if (bIsCrouching)
+    {
+        bIsCrouching = false;
+        UnCrouch();
+        UpdateMovementSpeed();
+    }
+}
+
+void ASystem1ParadoxCharacter::UpdateMovementSpeed()
+{
+    if (bIsCrouching)
+        GetCharacterMovement()->MaxWalkSpeed = WalkSpeed * 0.5f;
+    else if (bIsSprinting)
+        GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+    else
+        GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+}
+
+// ==================== ОРУЖИЕ ====================
+void ASystem1ParadoxCharacter::StartFire()
+{
+    if (CurrentWeapon) CurrentWeapon->StartFire();
+}
+
+void ASystem1ParadoxCharacter::StopFire()
+{
+    if (CurrentWeapon) CurrentWeapon->StopFire();
+}
+
+void ASystem1ParadoxCharacter::ReloadWeapon()
+{
+    if (CurrentWeapon) CurrentWeapon->Reload();
+}
+
+void ASystem1ParadoxCharacter::StartAim()
+{
+    if (CameraComponent)
+    {
+        CameraComponent->SetFieldOfView(75.0f);
+        if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("🎯 AIM: ON"));
+    }
+}
+
+void ASystem1ParadoxCharacter::StopAim()
+{
+    if (CameraComponent)
+    {
+        CameraComponent->SetFieldOfView(90.0f);
+        if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("🎯 AIM: OFF"));
+    }
+}
+
+// ВАША ФУНКЦИЯ SpawnDefaultWeapon (ОСТАВЛЯЕМ ЕЕ КАК ЕСТЬ)
 void ASystem1ParadoxCharacter::SpawnDefaultWeapon()
 {
     if (!DefaultWeaponClass)
@@ -114,58 +277,84 @@ void ASystem1ParadoxCharacter::SpawnDefaultWeapon()
         }, 0.2f, false); // Задержка 200ms для гарантированной инициализации
 }
 
-// ПРОСТАЯ ВЕРСИЯ DebugWeaponPos (без доступа к protected)
-void ASystem1ParadoxPlayerController::DebugWeaponPos()
+// ==================== ПЕРЕКЛЮЧЕНИЕ ОРУЖИЯ ====================
+void ASystem1ParadoxCharacter::SwitchToPistol() { EquipWeapon(ES1P_WeaponType::Pistol); }
+void ASystem1ParadoxCharacter::SwitchToRifle() { EquipWeapon(ES1P_WeaponType::Rifle); }
+void ASystem1ParadoxCharacter::SwitchToMelee() { EquipWeapon(ES1P_WeaponType::Melee); }
+void ASystem1ParadoxCharacter::SwitchToUnarmed() { EquipWeapon(ES1P_WeaponType::Unarmed); }
+
+void ASystem1ParadoxCharacter::EquipWeapon(ES1P_WeaponType NewWeaponType)
 {
-    APlayerController::DebugWeaponPos(); // Вызов родительской если есть
+    if (CurrentWeaponType == NewWeaponType) return;
+    CurrentWeaponType = NewWeaponType;
+
+    if (CurrentWeapon)
+    {
+        CurrentWeapon->SetActorHiddenInGame(NewWeaponType == ES1P_WeaponType::Unarmed);
+    }
+
+    FString WeaponName;
+    switch (NewWeaponType)
+    {
+    case ES1P_WeaponType::Pistol: WeaponName = TEXT("Pistol"); break;
+    case ES1P_WeaponType::Rifle: WeaponName = TEXT("Rifle"); break;
+    case ES1P_WeaponType::Melee: WeaponName = TEXT("Melee"); break;
+    default: WeaponName = TEXT("Unarmed"); break;
+    }
 
     if (GEngine)
     {
-        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan,
-            TEXT("🎯 Debug Weapon Positions - Check character position"));
+        FString Msg = FString::Printf(TEXT("🔫 Weapon: %s"), *WeaponName);
+        GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, Msg);
     }
 }
 
-// ПРОСТАЯ ВЕРСИЯ DebugReload
-void ASystem1ParadoxPlayerController::DebugReload()
+// ==================== ГЕТТЕРЫ ====================
+float ASystem1ParadoxCharacter::GetCurrentSpeed() const
 {
-    ASystem1ParadoxCharacter* MyCharacter = Cast<ASystem1ParadoxCharacter>(GetPawn());
-    if (MyCharacter)
+    return GetVelocity().Size2D();
+}
+
+bool ASystem1ParadoxCharacter::GetIsCrouching() const { return bIsCrouching; }
+bool ASystem1ParadoxCharacter::GetIsSprinting() const { return bIsSprinting; }
+bool ASystem1ParadoxCharacter::GetIsInAir() const { return GetCharacterMovement()->IsFalling(); }
+ES1P_WeaponType ASystem1ParadoxCharacter::GetCurrentWeaponType() const { return CurrentWeaponType; }
+
+ES1P_MovementState ASystem1ParadoxCharacter::GetMovementState() const
+{
+    if (GetIsInAir()) return ES1P_MovementState::Jumping;
+    else if (bIsCrouching) return ES1P_MovementState::Crouching;
+    else if (bIsSprinting && GetCurrentSpeed() > 100.0f) return ES1P_MovementState::Sprinting;
+    else if (GetCurrentSpeed() > 10.0f) return ES1P_MovementState::Walking;
+    return ES1P_MovementState::Idle;
+}
+
+UFPSAnimInstance* ASystem1ParadoxCharacter::GetFPSAnimInstance() const
+{
+    if (!GetMesh()) return nullptr;
+    return Cast<UFPSAnimInstance>(GetMesh()->GetAnimInstance());
+}
+
+void ASystem1ParadoxCharacter::PrintDebugInfo() const
+{
+    if (GEngine)
     {
-        // Вызываем публичный метод персонажа
-        MyCharacter->ReloadWeapon();
-
-        UE_LOG(LogTemp, Warning, TEXT("🛠️ DEBUG: Reload command sent"));
-
-        if (GEngine)
+        FString WeaponStr;
+        switch (CurrentWeaponType)
         {
-            GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Magenta,
-                TEXT("🛠️ DEBUG: Reload command sent to character"));
+        case ES1P_WeaponType::Pistol: WeaponStr = "Pistol"; break;
+        case ES1P_WeaponType::Rifle: WeaponStr = "Rifle"; break;
+        case ES1P_WeaponType::Melee: WeaponStr = "Melee"; break;
+        default: WeaponStr = "Unarmed"; break;
         }
+
+        FString DebugMsg = FString::Printf(
+            TEXT("AAA DEBUG | Speed: %.0f | Weapon: %s | Sprint: %s | Crouch: %s | State: %d"),
+            GetCurrentSpeed(), *WeaponStr,
+            bIsSprinting ? TEXT("Yes") : TEXT("No"),
+            bIsCrouching ? TEXT("Yes") : TEXT("No"),
+            (int32)GetMovementState()
+        );
+        GEngine->AddOnScreenDebugMessage(1, 0.1f, FColor::Cyan, DebugMsg);
     }
-}
-
-// ПРОСТАЯ ВЕРСИЯ DebugAmmo
-void ASystem1ParadoxPlayerController::DebugAmmo(int32 NewAmmo)
-{
-    UE_LOG(LogTemp, Warning, TEXT("🛠️ DEBUG: Ammo command received: %d"), NewAmmo);
-
-    if (GEngine)
-    {
-        GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Cyan,
-            FString::Printf(TEXT("🛠️ DEBUG: Ammo set to %d (command received)"), NewAmmo));
-    }
-}
-
-// ПРОСТАЯ ВЕРСИЯ ShowMessage
-void ASystem1ParadoxPlayerController::ShowMessage(const FString& Message)
-{
-    // Просто показываем сообщение на экране
-    if (GEngine)
-    {
-        GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Cyan,
-            FString::Printf(TEXT("📢 Message: %s"), *Message));
-    }
-
-    UE_LOG(LogTemp, Warning, TEXT("📢 Console Message: %s"), *Message);
 }

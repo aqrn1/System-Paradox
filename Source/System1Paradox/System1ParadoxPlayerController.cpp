@@ -1,12 +1,10 @@
-﻿// System1ParadoxPlayerController.cpp
-#include "System1ParadoxPlayerController.h"
+﻿#include "System1ParadoxPlayerController.h"
 #include "System1ParadoxCharacter.h"
 #include "FPSAnimInstance.h"
 #include "Engine/Engine.h"
 
 ASystem1ParadoxPlayerController::ASystem1ParadoxPlayerController()
 {
-    PrimaryActorTick.bCanEverTick = true;
     bShowMouseCursor = false;
     bEnableClickEvents = false;
     bEnableMouseOverEvents = false;

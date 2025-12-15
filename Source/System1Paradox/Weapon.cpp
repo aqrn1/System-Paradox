@@ -1,5 +1,6 @@
-﻿#include "Weapon.h"
-#include "System1ParadoxCharacter.h"  // Теперь подключаем!
+﻿// Weapon.cpp - ИСПРАВЛЕННАЯ ВЕРСИЯ
+#include "Weapon.h"
+#include "System1ParadoxCharacter.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
@@ -11,18 +12,23 @@ AWeapon::AWeapon()
 {
     PrimaryActorTick.bCanEverTick = true;
 
+    // 1. Создаем корневой компонент ПЕРВЫМ
     Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
     RootComponent = Root;
 
+    // 2. Создаем меш оружия
     WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
     WeaponMesh->SetupAttachment(Root);
     WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+    // 3. Создаем ТОЛЬКО ОДИН РАЗ компонент MuzzleLocation (строка 40 была дублирована!)
     MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
     MuzzleLocation->SetupAttachment(WeaponMesh);
     MuzzleLocation->SetRelativeLocation(FVector(50.0f, 0.0f, 0.0f));
+    MuzzleLocation->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
+    MuzzleLocation->bVisualizeComponent = true; // Для отладки в редакторе
 
-    // AAA настройки по умолчанию
+    // 4. AAA настройки по умолчанию
     WeaponType = ES1P_WeaponType::Pistol;
     MaxAmmo = 30;
     CurrentAmmo = MaxAmmo;
@@ -31,26 +37,28 @@ AWeapon::AWeapon()
     RecoilVertical = 0.1f;
     RecoilHorizontal = 0.05f;
 
-    // Настройки урона
+    // 5. Настройки урона
     HitData.Damage = 25.0f;
     HitData.HeadshotMultiplier = 2.0f;
     HitData.TorsoMultiplier = 1.0f;
     HitData.LimbMultiplier = 0.7f;
 
-    MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
-    MuzzleLocation->SetupAttachment(WeaponMesh);
-
-    // ПРАВИЛЬНАЯ ПОЗИЦИЯ ДЛЯ FPS (впереди оружия)
-    MuzzleLocation->SetRelativeLocation(FVector(50.0f, 0.0f, 0.0f)); // X - вперед, Y - вправо, Z - вверх
-    MuzzleLocation->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f)); // Прямо вперед
-
-    // DEBUG: Отобразите MuzzleLocation в редакторе
-    MuzzleLocation->bVisualizeComponent = true;
+    // ВАЖНО: УДАЛЕНО ВТОРОЕ СОЗДАНИЕ MuzzleLocation!
+    // Раньше здесь было: MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
+    // Это вызывало ошибку "already exists"
 }
 
 void AWeapon::BeginPlay()
 {
     Super::BeginPlay();
+
+    // Проверка правильности позиции дула
+    if (MuzzleLocation)
+    {
+        UE_LOG(LogTemp, Log, TEXT("🔫 Weapon: MuzzleLocation позиция: %s"),
+            *MuzzleLocation->GetRelativeLocation().ToString());
+    }
+
     CurrentAmmo = MaxAmmo;
 }
 
@@ -95,7 +103,7 @@ void AWeapon::StartFire()
             true
         );
 
-        UE_LOG(LogTemp, Warning, TEXT("Weapon: Started firing"));
+        UE_LOG(LogTemp, Log, TEXT("Weapon: Started firing"));
     }
 }
 
@@ -105,7 +113,7 @@ void AWeapon::StopFire()
     {
         bIsFiring = false;
         GetWorldTimerManager().ClearTimer(FireTimerHandle);
-        UE_LOG(LogTemp, Warning, TEXT("Weapon: Stopped firing"));
+        UE_LOG(LogTemp, Log, TEXT("Weapon: Stopped firing"));
     }
 }
 
@@ -120,25 +128,16 @@ void AWeapon::FireShot()
     // Уменьшаем патроны
     CurrentAmmo--;
 
-    // ВАЖНО: Проверьте откуда стреляет оружие
+    // Получаем позицию и вращение дула
     FVector StartLocation = MuzzleLocation->GetComponentLocation();
     FRotator StartRotation = MuzzleLocation->GetComponentRotation();
 
-    // DEBUG: Покажите откуда стреляем
-    UE_LOG(LogTemp, Warning, TEXT("🎯 Firing from: %s, Rotation: %s"),
+    // DEBUG информация
+    UE_LOG(LogTemp, Verbose, TEXT("🎯 Firing from: %s, Rotation: %s"),
         *StartLocation.ToString(), *StartRotation.ToString());
 
-    // DEBUG: Покажите направление на экране
-    if (GEngine)
-    {
-        FString DebugMsg = FString::Printf(TEXT("🔫 FIRE! Pos: %s"), *StartLocation.ToString());
-        GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, DebugMsg);
-    }
-
-   
-
     // AAA: добавляем случайное отклонение для реализма
-    float Spread = 0.5f; // В градусах
+    float Spread = 0.5f;
     FRotator SpreadRotation = StartRotation;
     SpreadRotation.Yaw += FMath::RandRange(-Spread, Spread);
     SpreadRotation.Pitch += FMath::RandRange(-Spread, Spread);
@@ -164,8 +163,6 @@ void AWeapon::FireShot()
     if (bHit)
     {
         EndLocation = HitResult.ImpactPoint;
-
-        // Вычисляем урон в зависимости от части тела
         float FinalDamage = CalculateDamage(HitResult);
 
         // Наносим урон
@@ -183,7 +180,7 @@ void AWeapon::FireShot()
             );
 
             FString BodyPart = GetBodyPartName(HitResult);
-            UE_LOG(LogTemp, Warning, TEXT("Weapon: Hit %s in %s with damage: %.1f"),
+            UE_LOG(LogTemp, Log, TEXT("Weapon: Hit %s in %s with damage: %.1f"),
                 *HitActor->GetName(), *BodyPart, FinalDamage);
         }
 
@@ -228,7 +225,7 @@ void AWeapon::FireShot()
     // AAA: Отдача
     ApplyRecoil();
 
-    UE_LOG(LogTemp, Warning, TEXT("Weapon: Fired! Ammo: %d/%d"), CurrentAmmo, MaxAmmo);
+    UE_LOG(LogTemp, Verbose, TEXT("Weapon: Fired! Ammo: %d/%d"), CurrentAmmo, MaxAmmo);
 }
 
 void AWeapon::Reload()
@@ -248,38 +245,32 @@ void AWeapon::Reload()
     bIsReloading = true;
     StopFire(); // AAA: Прерываем стрельбу при перезарядке
 
-    UE_LOG(LogTemp, Warning, TEXT("Weapon: Started reloading..."));
+    UE_LOG(LogTemp, Log, TEXT("Weapon: Started reloading..."));
 
     // Симулируем время перезарядки
     GetWorldTimerManager().SetTimer(ReloadTimerHandle, [this]()
         {
             CurrentAmmo = MaxAmmo;
             bIsReloading = false;
-            UE_LOG(LogTemp, Warning, TEXT("Weapon: Reloaded! Ammo: %d"), CurrentAmmo);
-
-            // AAA: Можно добавить звук завершения перезарядки здесь
+            UE_LOG(LogTemp, Log, TEXT("Weapon: Reloaded! Ammo: %d"), CurrentAmmo);
         }, ReloadTime, false);
 }
 
 bool AWeapon::CanFire() const
 {
-    // AAA: Можем стрелять только если есть патроны, не перезаряжаемся и не на кд
     return CurrentAmmo > 0 && !bIsReloading;
 }
 
 bool AWeapon::CanReload() const
 {
-    // AAA: Можем перезаряжать только если не полный магазин и не в процессе перезарядки
     return CurrentAmmo < MaxAmmo && !bIsReloading;
 }
 
-// AAA: Применение отдачи
 void AWeapon::ApplyRecoil()
 {
     ASystem1ParadoxCharacter* OwnerCharacter = Cast<ASystem1ParadoxCharacter>(GetOwner());
     if (OwnerCharacter)
     {
-        // Легкая вертикальная отдача
         float VerticalRecoil = FMath::RandRange(RecoilVertical * 0.8f, RecoilVertical * 1.2f);
         float HorizontalRecoil = FMath::RandRange(-RecoilHorizontal, RecoilHorizontal);
 
@@ -288,7 +279,6 @@ void AWeapon::ApplyRecoil()
     }
 }
 
-// AAA: Эффекты при попадании
 void AWeapon::ApplyHitEffect(const FHitResult& HitResult)
 {
     if (HitEffect)
@@ -302,13 +292,11 @@ void AWeapon::ApplyHitEffect(const FHitResult& HitResult)
     }
 }
 
-// AAA: Расчет урона в зависимости от части тела
 float AWeapon::CalculateDamage(const FHitResult& HitResult) const
 {
     float BaseDamage = HitData.Damage;
     float Multiplier = 1.0f;
 
-    // Простой способ определения части тела (в реальной AAA игре нужно проверять bone name)
     FString HitBoneName = HitResult.BoneName.ToString();
 
     if (HitBoneName.Contains("head", ESearchCase::IgnoreCase) ||
@@ -333,7 +321,6 @@ float AWeapon::CalculateDamage(const FHitResult& HitResult) const
     return BaseDamage * Multiplier;
 }
 
-// AAA: Получение имени части тела для отладки
 FString AWeapon::GetBodyPartName(const FHitResult& HitResult) const
 {
     FString BoneName = HitResult.BoneName.ToString();

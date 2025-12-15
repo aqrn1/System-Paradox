@@ -1,13 +1,18 @@
-﻿// FPSAnimInstance.h - ИСПРАВЛЕННАЯ ВЕРСИЯ
+﻿// FPSAnimInstance.h - ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ ФАЙЛ
 #pragma once
 
+// 1. Сначала стандартные includes Unreal Engine
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+
+// 2. Затем ВСЕ наши пользовательские includes
 #include "S1P_AnimTypes.h"  // Структура данных для анимаций
 #include "S1P_Types.h"      // Перечисления WeaponType и MovementState
 
-// ВАЖНО: Используем предварительное объявление вместо #include
-// Это предотвращает циклическую зависимость
+// 3. В САМОМ КОНЦЕ - generated.h (ЭТО ОБЯЗАТЕЛЬНО!)
+#include "FPSAnimInstance.generated.h"
+
+// 4. Предварительное объявление (после всех includes)
 class ASystem1ParadoxCharacter;
 
 UCLASS()
@@ -39,7 +44,7 @@ public:
 
 private:
     // Указатель на персонажа - только предварительное объявление
-    ASystem1ParadoxCharacter* OwningCharacter;
+    TWeakObjectPtr<ASystem1ParadoxCharacter> OwningCharacter;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug", meta = (AllowPrivateAccess = "true"))
     bool bDebugMode;
