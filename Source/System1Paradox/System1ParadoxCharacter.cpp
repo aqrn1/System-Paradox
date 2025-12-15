@@ -1,9 +1,11 @@
-﻿#include "System1ParadoxCharacter.h"
+﻿// System1ParadoxCharacter.cpp
+#include "System1ParadoxCharacter.h"
 #include "Weapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/InputComponent.h"
 #include "Engine/Engine.h"
-#include "S1P_Types.h" // Подключаем наши типы
+#include "S1P_Types.h"
+#include "FPSAnimInstance.h"  // ← ДОБАВЬТЕ ЭТО ЗДЕСЬ!
 
 // ==================== КОНСТРУКТОР ====================
 ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
@@ -257,22 +259,6 @@ void ASystem1ParadoxCharacter::ReloadWeapon()
     }
 }
 
-void ASystem1ParadoxCharacter::StartAim()
-{
-    // Временная реализация - уменьшаем FOV для эффекта прицеливания
-    if (CameraComponent)
-    {
-        CameraComponent->SetFieldOfView(75.0f);
-    }
-}
-
-void ASystem1ParadoxCharacter::StopAim()
-{
-    if (CameraComponent)
-    {
-        CameraComponent->SetFieldOfView(90.0f);
-    }
-}
 
 void ASystem1ParadoxCharacter::SpawnDefaultWeapon()
 {
@@ -435,5 +421,28 @@ UFPSAnimInstance* ASystem1ParadoxCharacter::GetFPSAnimInstance() const
 {
     if (!GetMesh()) return nullptr;
 
-    return Cast<UFPSAnimInstance>(GetMesh()->GetAnimInstance());
+    UAnimInstance* BaseAnim = GetMesh()->GetAnimInstance();
+    if (!BaseAnim) return nullptr;
+
+    // Безопасный каст
+    return Cast<UFPSAnimInstance>(BaseAnim);
+}
+
+void ASystem1ParadoxCharacter::StartAim()
+{
+    // Временная реализация - уменьшаем FOV для эффекта прицеливания
+    if (CameraComponent)
+    {
+        CameraComponent->SetFieldOfView(FMath::Lerp(90.0f, 75.0f, 0.3f)); // Плавное изменение
+        UE_LOG(LogTemp, Warning, TEXT("🎯 AIM: ON (FOV: %.1f)"), CameraComponent->FieldOfView);
+    }
+}
+
+void ASystem1ParadoxCharacter::StopAim()
+{
+    if (CameraComponent)
+    {
+        CameraComponent->SetFieldOfView(FMath::Lerp(75.0f, 90.0f, 0.3f)); // Плавное изменение
+        UE_LOG(LogTemp, Warning, TEXT("🎯 AIM: OFF (FOV: %.1f)"), CameraComponent->FieldOfView);
+    }
 }

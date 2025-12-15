@@ -1,8 +1,9 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "S1P_Types.h"  // ← ТОЛЬКО ЭТОТ include!
-#include "S1P_AnimTypes.generated.h"
+#include "S1P_Types.h"  // Перечисления ES1P_WeaponType и ES1P_MovementState
+
+#include "S1P_AnimTypes.generated.h"  // ← ДОЛЖЕН БЫТЬ ПОСЛЕДНИМ!
 
 USTRUCT(BlueprintType, meta = (DisplayName = "Anim State Data"))
 struct SYSTEM1PARADOX_API FAnimStateData

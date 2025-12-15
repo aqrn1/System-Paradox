@@ -2,9 +2,13 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
-#include "S1P_AnimTypes.h"           // Структура FAnimStateData
-#include "System1ParadoxCharacter.h"
+#include "S1P_AnimTypes.h"
+#include "System1ParadoxCharacter.h"  // ← ДОБАВЬТЕ ЭТОТ INCLUDE!
+
 #include "FPSAnimInstance.generated.h"
+
+// УДАЛИТЕ: class ASystem1ParadoxCharacter; // Forward declaration
+// ДОБАВЬТЕ INCLUDE выше!
 
 UCLASS()
 class SYSTEM1PARADOX_API UFPSAnimInstance : public UAnimInstance
@@ -14,12 +18,12 @@ class SYSTEM1PARADOX_API UFPSAnimInstance : public UAnimInstance
 public:
     UFPSAnimInstance();
 
-    // ========== ОБЯЗАТЕЛЬНЫЕ ПЕРЕОПРЕДЕЛЕНИЯ ==========
+    // ОСНОВНЫЕ ФУНКЦИИ
     virtual void NativeInitializeAnimation() override;
     virtual void NativeUpdateAnimation(float DeltaSeconds) override;
     virtual void NativeUninitializeAnimation() override;
 
-    // ========== EXEC КОМАНДЫ ДЛЯ ОТЛАДКИ ==========
+    // EXEC КОМАНДЫ
     UFUNCTION(Exec, Category = "Animation Debug")
     void AnimDebug(int32 Enable);
 
@@ -29,14 +33,13 @@ public:
     UFUNCTION(Exec, Category = "Animation Debug")
     void TestAnimation(const FString& AnimationName);
 
-    // ========== ПУБЛИЧНЫЕ ДАННЫЕ ДЛЯ АНИМАЦИЙ ==========
+    // ПЕРЕМЕННЫЕ
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Animation State")
     FAnimStateData AnimState;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "References")
     ASystem1ParadoxCharacter* OwningCharacter;
 
-    // ========== НАСТРОЙКИ ОТЛАДКИ ==========
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
     bool bDebugMode;
 
@@ -47,13 +50,12 @@ public:
     FString ForcedAnimation;
 
 private:
-    // ========== ПРИВАТНЫЕ ФУНКЦИИ ==========
+    // ПРИВАТНЫЕ ФУНКЦИИ
     void UpdateWeaponBlendAlphas();
     void UpdateAnimationState(float DeltaSeconds);
     void ApplySmoothing(float DeltaSeconds);
-    void ApplyDebugValues();  // ← ДОБАВЬТЕ ЭТУ СТРОКУ!
+    void ApplyDebugValues();
 
-    // ========== ПРИВАТНЫЕ ПЕРЕМЕННЫЕ ==========
     float SmoothInterpSpeed;
     bool bForceAnimStateUpdate;
 };

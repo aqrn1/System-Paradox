@@ -4,8 +4,16 @@
 #include "GameFramework/Character.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "S1P_Types.h"
-#include "System1ParadoxCharacter.generated.h"
+#include "S1P_Types.h"  // ✅ Правильно: до .generated.h
+
+// 4. Forward declarations (если нужны)
+class UFPSAnimInstance;
+class AWeapon;
+
+#include "System1ParadoxCharacter.generated.h"  // ✅ .generated.h ВСЕГДА ПОСЛЕДНИЙ!
+
+class UFPSAnimInstance;  // Forward declaration
+class AWeapon;  // Forward declaration для оружия
 
 UCLASS()
 class SYSTEM1PARADOX_API ASystem1ParadoxCharacter : public ACharacter
@@ -27,7 +35,7 @@ protected:
     USpringArmComponent* SpringArmComponent;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-    class AWeapon* CurrentWeapon;
+    AWeapon* CurrentWeapon;  // Используем forward declaration
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
     bool bIsSprinting;
@@ -85,9 +93,6 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Animation")
     ES1P_MovementState GetMovementState() const;
 
-    UFUNCTION(BlueprintCallable, Category = "Animation")
-    UFPSAnimInstance* GetFPSAnimInstance() const;
-
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     void SwitchToPistol();
 
@@ -102,6 +107,9 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     void EquipWeapon(ES1P_WeaponType NewWeaponType);
+
+    UFUNCTION(BlueprintCallable, Category = "Animation")
+    UFPSAnimInstance* GetFPSAnimInstance() const;
 
     void PrintDebugInfo() const;
 };

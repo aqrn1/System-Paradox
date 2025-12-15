@@ -6,17 +6,16 @@
 
 void ASystem1ParadoxPlayerController::AnimDebug(int32 Enable)
 {
-    // Получаем текущего персонажа
-    ASystem1ParadoxCharacter* Character = Cast<ASystem1ParadoxCharacter>(GetPawn());
-    if (!Character)
+    // Измените имя переменной (не Character!)
+    ASystem1ParadoxCharacter* MyCharacter = Cast<ASystem1ParadoxCharacter>(GetPawn());
+    if (!MyCharacter)
     {
         if (GEngine)
             GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("❌ ANIM DEBUG: Нет персонажа"));
         return;
     }
 
-    // Получаем AnimInstance
-    UFPSAnimInstance* AnimInst = Character->GetFPSAnimInstance();
+    UFPSAnimInstance* AnimInst = MyCharacter->GetFPSAnimInstance();
     if (AnimInst)
     {
         AnimInst->AnimDebug(Enable);
@@ -28,10 +27,10 @@ void ASystem1ParadoxPlayerController::AnimDebug(int32 Enable)
 
 void ASystem1ParadoxPlayerController::SetTestSpeed(float NewSpeed)
 {
-    ASystem1ParadoxCharacter* Character = Cast<ASystem1ParadoxCharacter>(GetPawn());
-    if (!Character) return;
+    ASystem1ParadoxCharacter* MyCharacter = Cast<ASystem1ParadoxCharacter>(GetPawn());
+    if (!MyCharacter) return;
 
-    UFPSAnimInstance* AnimInst = Character->GetFPSAnimInstance();
+    UFPSAnimInstance* AnimInst = MyCharacter->GetFPSAnimInstance();
     if (AnimInst)
     {
         AnimInst->SetTestSpeed(NewSpeed);
