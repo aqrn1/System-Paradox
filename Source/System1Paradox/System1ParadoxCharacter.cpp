@@ -235,13 +235,7 @@ void ASystem1ParadoxCharacter::UpdateMovementSpeed()
 }
 
 // ==================== СИСТЕМА ОРУЖИЯ AAA ====================
-void ASystem1ParadoxCharacter::StartFire()
-{
-    if (CurrentWeapon)
-    {
-        CurrentWeapon->StartFire();
-    }
-}
+
 
 void ASystem1ParadoxCharacter::StopFire()
 {
@@ -271,15 +265,35 @@ void ASystem1ParadoxCharacter::SpawnDefaultWeapon()
         CurrentWeapon = GetWorld()->SpawnActor<AWeapon>(DefaultWeaponClass, SpawnParams);
         if (CurrentWeapon && CameraComponent)
         {
-            // AAA позиционирование оружия (как в CS:GO)
+            // КРИТИЧЕСКАЯ ПРОБЛЕМА: Возможно оружие прикрепляется к корню, а не к камере
             FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+
+            // УБЕДИТЕСЬ что прикрепляем к CameraComponent, а не к RootComponent!
             CurrentWeapon->AttachToComponent(CameraComponent, AttachmentRules);
 
+            // AAA позиционирование оружия (как в CS:GO)
             CurrentWeapon->SetActorRelativeLocation(FVector(35.0f, 8.0f, -30.0f));
             CurrentWeapon->SetActorRelativeRotation(FRotator(2.0f, -95.0f, -5.0f));
             CurrentWeapon->SetActorScale3D(FVector(0.8f));
 
-            CurrentWeaponType = ES1P_WeaponType::Pistol; // Исправлено
+            CurrentWeaponType = ES1P_WeaponType::Pistol;
+
+            // DEBUG: Проверка прикрепления
+            UE_LOG(LogTemp, Warning, TEXT("🔫 Weapon attached to: %s"),
+                *CurrentWeapon->GetAttachParentActor()->GetName());
+
+            // Проверка позиции
+            FVector WeaponWorldPos = CurrentWeapon->GetActorLocation();
+            FVector CameraWorldPos = CameraComponent->GetComponentLocation();
+            UE_LOG(LogTemp, Warning, TEXT("📏 Weapon Pos: %s, Camera Pos: %s"),
+                *WeaponWorldPos.ToString(), *CameraWorldPos.ToString());
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("❌ Cannot attach weapon!"));
+            UE_LOG(LogTemp, Error, TEXT("CurrentWeapon: %s, CameraComponent: %s"),
+                CurrentWeapon ? TEXT("Valid") : TEXT("NULL"),
+                CameraComponent ? TEXT("Valid") : TEXT("NULL"));
         }
     }
 }
@@ -463,10 +477,10 @@ void ASystem1ParadoxCharacter::StartFire()
         UE_LOG(LogTemp, Error, TEXT("❌ No CurrentWeapon!"));
 
         // Попробуем найти оружие в дочерних акторах
-        TArray<AActor*> Children;
-        GetAttachedActors(Children);
-        UE_LOG(LogTemp, Warning, TEXT("Attached actors: %d"), Children.Num());
-        for (AActor* Child : Children)
+        TArray<AActor*> AttachedActors;  // <-- ВМЕСТО Children
+        GetAttachedActors(AttachedActors);
+        UE_LOG(LogTemp, Warning, TEXT("Attached actors: %d"), AttachedActors.Num());
+        for (AActor* Child : AttachedActors)
         {
             UE_LOG(LogTemp, Warning, TEXT("  - %s"), *Child->GetName());
         }

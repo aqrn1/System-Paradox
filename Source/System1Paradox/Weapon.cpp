@@ -1,5 +1,5 @@
-#include "Weapon.h"
-#include "System1ParadoxCharacter.h"  // Теперь подключаем!
+п»ї#include "Weapon.h"
+#include "System1ParadoxCharacter.h"  // РўРµРїРµСЂСЊ РїРѕРґРєР»СЋС‡Р°РµРј!
 #include "Components/StaticMeshComponent.h"
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
@@ -22,7 +22,7 @@ AWeapon::AWeapon()
     MuzzleLocation->SetupAttachment(WeaponMesh);
     MuzzleLocation->SetRelativeLocation(FVector(50.0f, 0.0f, 0.0f));
 
-    // AAA настройки по умолчанию
+    // AAA РЅР°СЃС‚СЂРѕР№РєРё РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
     WeaponType = ES1P_WeaponType::Pistol;
     MaxAmmo = 30;
     CurrentAmmo = MaxAmmo;
@@ -31,11 +31,21 @@ AWeapon::AWeapon()
     RecoilVertical = 0.1f;
     RecoilHorizontal = 0.05f;
 
-    // Настройки урона
+    // РќР°СЃС‚СЂРѕР№РєРё СѓСЂРѕРЅР°
     HitData.Damage = 25.0f;
     HitData.HeadshotMultiplier = 2.0f;
     HitData.TorsoMultiplier = 1.0f;
     HitData.LimbMultiplier = 0.7f;
+
+    MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
+    MuzzleLocation->SetupAttachment(WeaponMesh);
+
+    // РџР РђР’РР›Р¬РќРђРЇ РџРћР—РР¦РРЇ Р”Р›РЇ FPS (РІРїРµСЂРµРґРё РѕСЂСѓР¶РёСЏ)
+    MuzzleLocation->SetRelativeLocation(FVector(50.0f, 0.0f, 0.0f)); // X - РІРїРµСЂРµРґ, Y - РІРїСЂР°РІРѕ, Z - РІРІРµСЂС…
+    MuzzleLocation->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f)); // РџСЂСЏРјРѕ РІРїРµСЂРµРґ
+
+    // DEBUG: РћС‚РѕР±СЂР°Р·РёС‚Рµ MuzzleLocation РІ СЂРµРґР°РєС‚РѕСЂРµ
+    MuzzleLocation->bVisualizeComponent = true;
 }
 
 void AWeapon::BeginPlay()
@@ -48,7 +58,7 @@ void AWeapon::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     Super::EndPlay(EndPlayReason);
 
-    // Очищаем таймеры при уничтожении
+    // РћС‡РёС‰Р°РµРј С‚Р°Р№РјРµСЂС‹ РїСЂРё СѓРЅРёС‡С‚РѕР¶РµРЅРёРё
     GetWorldTimerManager().ClearTimer(FireTimerHandle);
     GetWorldTimerManager().ClearTimer(ReloadTimerHandle);
 }
@@ -73,10 +83,10 @@ void AWeapon::StartFire()
     {
         bIsFiring = true;
 
-        // Немедленный первый выстрел (AAA - мгновенная обратная связь)
+        // РќРµРјРµРґР»РµРЅРЅС‹Р№ РїРµСЂРІС‹Р№ РІС‹СЃС‚СЂРµР» (AAA - РјРіРЅРѕРІРµРЅРЅР°СЏ РѕР±СЂР°С‚РЅР°СЏ СЃРІСЏР·СЊ)
         FireShot();
 
-        // Устанавливаем таймер для автоматической стрельбы
+        // РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј С‚Р°Р№РјРµСЂ РґР»СЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРѕР№ СЃС‚СЂРµР»СЊР±С‹
         GetWorldTimerManager().SetTimer(
             FireTimerHandle,
             this,
@@ -107,28 +117,41 @@ void AWeapon::FireShot()
         return;
     }
 
-    // Уменьшаем патроны
+    // РЈРјРµРЅСЊС€Р°РµРј РїР°С‚СЂРѕРЅС‹
     CurrentAmmo--;
 
-    // Получаем направление выстрела
+    // Р’РђР–РќРћ: РџСЂРѕРІРµСЂСЊС‚Рµ РѕС‚РєСѓРґР° СЃС‚СЂРµР»СЏРµС‚ РѕСЂСѓР¶РёРµ
     FVector StartLocation = MuzzleLocation->GetComponentLocation();
     FRotator StartRotation = MuzzleLocation->GetComponentRotation();
 
-    // AAA: добавляем случайное отклонение для реализма
-    float Spread = 0.5f; // В градусах
+    // DEBUG: РџРѕРєР°Р¶РёС‚Рµ РѕС‚РєСѓРґР° СЃС‚СЂРµР»СЏРµРј
+    UE_LOG(LogTemp, Warning, TEXT("рџЋЇ Firing from: %s, Rotation: %s"),
+        *StartLocation.ToString(), *StartRotation.ToString());
+
+    // DEBUG: РџРѕРєР°Р¶РёС‚Рµ РЅР°РїСЂР°РІР»РµРЅРёРµ РЅР° СЌРєСЂР°РЅРµ
+    if (GEngine)
+    {
+        FString DebugMsg = FString::Printf(TEXT("рџ”« FIRE! Pos: %s"), *StartLocation.ToString());
+        GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, DebugMsg);
+    }
+
+   
+
+    // AAA: РґРѕР±Р°РІР»СЏРµРј СЃР»СѓС‡Р°Р№РЅРѕРµ РѕС‚РєР»РѕРЅРµРЅРёРµ РґР»СЏ СЂРµР°Р»РёР·РјР°
+    float Spread = 0.5f; // Р’ РіСЂР°РґСѓСЃР°С…
     FRotator SpreadRotation = StartRotation;
     SpreadRotation.Yaw += FMath::RandRange(-Spread, Spread);
     SpreadRotation.Pitch += FMath::RandRange(-Spread, Spread);
 
     FVector EndLocation = StartLocation + SpreadRotation.Vector() * 10000.0f;
 
-    // Параметры трассировки
+    // РџР°СЂР°РјРµС‚СЂС‹ С‚СЂР°СЃСЃРёСЂРѕРІРєРё
     FHitResult HitResult;
     FCollisionQueryParams CollisionParams;
     CollisionParams.AddIgnoredActor(this);
     CollisionParams.AddIgnoredActor(GetOwner());
 
-    // Выполняем трассировку луча
+    // Р’С‹РїРѕР»РЅСЏРµРј С‚СЂР°СЃСЃРёСЂРѕРІРєСѓ Р»СѓС‡Р°
     bool bHit = GetWorld()->LineTraceSingleByChannel(
         HitResult,
         StartLocation,
@@ -137,15 +160,15 @@ void AWeapon::FireShot()
         CollisionParams
     );
 
-    // Обрабатываем попадание
+    // РћР±СЂР°Р±Р°С‚С‹РІР°РµРј РїРѕРїР°РґР°РЅРёРµ
     if (bHit)
     {
         EndLocation = HitResult.ImpactPoint;
 
-        // Вычисляем урон в зависимости от части тела
+        // Р’С‹С‡РёСЃР»СЏРµРј СѓСЂРѕРЅ РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ С‡Р°СЃС‚Рё С‚РµР»Р°
         float FinalDamage = CalculateDamage(HitResult);
 
-        // Наносим урон
+        // РќР°РЅРѕСЃРёРј СѓСЂРѕРЅ
         AActor* HitActor = HitResult.GetActor();
         if (HitActor)
         {
@@ -164,11 +187,11 @@ void AWeapon::FireShot()
                 *HitActor->GetName(), *BodyPart, FinalDamage);
         }
 
-        // AAA: Эффекты попадания
+        // AAA: Р­С„С„РµРєС‚С‹ РїРѕРїР°РґР°РЅРёСЏ
         ApplyHitEffect(HitResult);
     }
 
-    // AAA: Визуальные эффекты выстрела (только в режиме разработки)
+    // AAA: Р’РёР·СѓР°Р»СЊРЅС‹Рµ СЌС„С„РµРєС‚С‹ РІС‹СЃС‚СЂРµР»Р° (С‚РѕР»СЊРєРѕ РІ СЂРµР¶РёРјРµ СЂР°Р·СЂР°Р±РѕС‚РєРё)
 #if WITH_EDITOR
     if (GEngine)
     {
@@ -182,13 +205,13 @@ void AWeapon::FireShot()
     }
 #endif
 
-    // AAA: Звук выстрела
+    // AAA: Р—РІСѓРє РІС‹СЃС‚СЂРµР»Р°
     if (FireSound)
     {
         UGameplayStatics::PlaySoundAtLocation(this, FireSound, StartLocation);
     }
 
-    // AAA: Мuzzle flash
+    // AAA: Рњuzzle flash
     if (MuzzleFlash)
     {
         UGameplayStatics::SpawnEmitterAttached(
@@ -202,7 +225,7 @@ void AWeapon::FireShot()
         );
     }
 
-    // AAA: Отдача
+    // AAA: РћС‚РґР°С‡Р°
     ApplyRecoil();
 
     UE_LOG(LogTemp, Warning, TEXT("Weapon: Fired! Ammo: %d/%d"), CurrentAmmo, MaxAmmo);
@@ -223,40 +246,40 @@ void AWeapon::Reload()
     }
 
     bIsReloading = true;
-    StopFire(); // AAA: Прерываем стрельбу при перезарядке
+    StopFire(); // AAA: РџСЂРµСЂС‹РІР°РµРј СЃС‚СЂРµР»СЊР±Сѓ РїСЂРё РїРµСЂРµР·Р°СЂСЏРґРєРµ
 
     UE_LOG(LogTemp, Warning, TEXT("Weapon: Started reloading..."));
 
-    // Симулируем время перезарядки
+    // РЎРёРјСѓР»РёСЂСѓРµРј РІСЂРµРјСЏ РїРµСЂРµР·Р°СЂСЏРґРєРё
     GetWorldTimerManager().SetTimer(ReloadTimerHandle, [this]()
         {
             CurrentAmmo = MaxAmmo;
             bIsReloading = false;
             UE_LOG(LogTemp, Warning, TEXT("Weapon: Reloaded! Ammo: %d"), CurrentAmmo);
 
-            // AAA: Можно добавить звук завершения перезарядки здесь
+            // AAA: РњРѕР¶РЅРѕ РґРѕР±Р°РІРёС‚СЊ Р·РІСѓРє Р·Р°РІРµСЂС€РµРЅРёСЏ РїРµСЂРµР·Р°СЂСЏРґРєРё Р·РґРµСЃСЊ
         }, ReloadTime, false);
 }
 
 bool AWeapon::CanFire() const
 {
-    // AAA: Можем стрелять только если есть патроны, не перезаряжаемся и не на кд
+    // AAA: РњРѕР¶РµРј СЃС‚СЂРµР»СЏС‚СЊ С‚РѕР»СЊРєРѕ РµСЃР»Рё РµСЃС‚СЊ РїР°С‚СЂРѕРЅС‹, РЅРµ РїРµСЂРµР·Р°СЂСЏР¶Р°РµРјСЃСЏ Рё РЅРµ РЅР° РєРґ
     return CurrentAmmo > 0 && !bIsReloading;
 }
 
 bool AWeapon::CanReload() const
 {
-    // AAA: Можем перезаряжать только если не полный магазин и не в процессе перезарядки
+    // AAA: РњРѕР¶РµРј РїРµСЂРµР·Р°СЂСЏР¶Р°С‚СЊ С‚РѕР»СЊРєРѕ РµСЃР»Рё РЅРµ РїРѕР»РЅС‹Р№ РјР°РіР°Р·РёРЅ Рё РЅРµ РІ РїСЂРѕС†РµСЃСЃРµ РїРµСЂРµР·Р°СЂСЏРґРєРё
     return CurrentAmmo < MaxAmmo && !bIsReloading;
 }
 
-// AAA: Применение отдачи
+// AAA: РџСЂРёРјРµРЅРµРЅРёРµ РѕС‚РґР°С‡Рё
 void AWeapon::ApplyRecoil()
 {
     ASystem1ParadoxCharacter* OwnerCharacter = Cast<ASystem1ParadoxCharacter>(GetOwner());
     if (OwnerCharacter)
     {
-        // Легкая вертикальная отдача
+        // Р›РµРіРєР°СЏ РІРµСЂС‚РёРєР°Р»СЊРЅР°СЏ РѕС‚РґР°С‡Р°
         float VerticalRecoil = FMath::RandRange(RecoilVertical * 0.8f, RecoilVertical * 1.2f);
         float HorizontalRecoil = FMath::RandRange(-RecoilHorizontal, RecoilHorizontal);
 
@@ -265,7 +288,7 @@ void AWeapon::ApplyRecoil()
     }
 }
 
-// AAA: Эффекты при попадании
+// AAA: Р­С„С„РµРєС‚С‹ РїСЂРё РїРѕРїР°РґР°РЅРёРё
 void AWeapon::ApplyHitEffect(const FHitResult& HitResult)
 {
     if (HitEffect)
@@ -279,13 +302,13 @@ void AWeapon::ApplyHitEffect(const FHitResult& HitResult)
     }
 }
 
-// AAA: Расчет урона в зависимости от части тела
+// AAA: Р Р°СЃС‡РµС‚ СѓСЂРѕРЅР° РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ С‡Р°СЃС‚Рё С‚РµР»Р°
 float AWeapon::CalculateDamage(const FHitResult& HitResult) const
 {
     float BaseDamage = HitData.Damage;
     float Multiplier = 1.0f;
 
-    // Простой способ определения части тела (в реальной AAA игре нужно проверять bone name)
+    // РџСЂРѕСЃС‚РѕР№ СЃРїРѕСЃРѕР± РѕРїСЂРµРґРµР»РµРЅРёСЏ С‡Р°СЃС‚Рё С‚РµР»Р° (РІ СЂРµР°Р»СЊРЅРѕР№ AAA РёРіСЂРµ РЅСѓР¶РЅРѕ РїСЂРѕРІРµСЂСЏС‚СЊ bone name)
     FString HitBoneName = HitResult.BoneName.ToString();
 
     if (HitBoneName.Contains("head", ESearchCase::IgnoreCase) ||
@@ -310,7 +333,7 @@ float AWeapon::CalculateDamage(const FHitResult& HitResult) const
     return BaseDamage * Multiplier;
 }
 
-// AAA: Получение имени части тела для отладки
+// AAA: РџРѕР»СѓС‡РµРЅРёРµ РёРјРµРЅРё С‡Р°СЃС‚Рё С‚РµР»Р° РґР»СЏ РѕС‚Р»Р°РґРєРё
 FString AWeapon::GetBodyPartName(const FHitResult& HitResult) const
 {
     FString BoneName = HitResult.BoneName.ToString();
