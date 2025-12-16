@@ -12,38 +12,24 @@ AWeapon::AWeapon()
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    // 1. Создаем корневой компонент ПЕРВЫМ
+    // Компоненты
     Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
     RootComponent = Root;
 
-    // 2. Создаем меш оружия
     WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
     WeaponMesh->SetupAttachment(Root);
     WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-    // 3. Компонент MuzzleLocation
     MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
     MuzzleLocation->SetupAttachment(WeaponMesh);
     MuzzleLocation->SetRelativeLocation(FVector(50.0f, 0.0f, 0.0f));
-    MuzzleLocation->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
-    MuzzleLocation->bVisualizeComponent = true; // Для отладки в редакторе
 
-    // 4. Компонент для выброса гильз (новая фича из Weapon.h)
     ShellEjectLocation = CreateDefaultSubobject<USceneComponent>(TEXT("ShellEjectLocation"));
     ShellEjectLocation->SetupAttachment(WeaponMesh);
     ShellEjectLocation->SetRelativeLocation(FVector(0.0f, 10.0f, 0.0f));
 
-    // 5. Инициализация структуры Stats (ВМЕСТО старых отдельных переменных!)
-    Stats.MaxAmmo = 30;
-    Stats.FireRate = 0.1f;
-    Stats.ReloadTime = 2.0f;
-    Stats.RecoilVertical = 0.1f;
-    Stats.RecoilHorizontal = 0.05f;
-    Stats.EffectiveRange = 5000.0f;
-    Stats.Spread = 0.5f;
-
-    // 6. Инициализация состояния оружия
-    CurrentAmmo = Stats.MaxAmmo; // Используем Stats.MaxAmmo вместо старой переменной
+    // Инициализация состояния
+    CurrentAmmo = Stats.MaxAmmo;
     bIsFiring = false;
     bIsReloading = false;
     bIsAiming = false;
@@ -51,12 +37,6 @@ AWeapon::AWeapon()
     bDebugMode = false;
     TimeSinceLastShot = 0.0f;
     ReloadStartTime = 0.0f;
-
-    // 7. Настройки урона
-    HitData.Damage = 25.0f;
-    HitData.HeadshotMultiplier = 2.0f;
-    HitData.TorsoMultiplier = 1.0f;
-    HitData.LimbMultiplier = 0.7f;
 }
 
 void AWeapon::BeginPlay()
@@ -314,9 +294,9 @@ bool AWeapon::CanReload() const
 float AWeapon::GetReloadProgress() const
 {
     if (!bIsReloading) return 0.0f;
-
+    
     float Elapsed = GetWorld()->GetTimeSeconds() - ReloadStartTime;
-    return FMath::Clamp(Elapsed / Stats.ReloadTime, 0.0f, 1.0f); // Используем Stats.ReloadTime
+    return FMath::Clamp(Elapsed / Stats.ReloadTime, 0.0f, 1.0f);
 }
 
 void AWeapon::ApplyRecoil()

@@ -24,7 +24,7 @@ public:
 protected:
     virtual void BeginPlay() override;
 
-    // КОМПОНЕНТЫ (protected - доступны в классе и наследниках)
+    // КОМПОНЕНТЫ
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
     UCameraComponent* CameraComponent;
 
@@ -72,12 +72,9 @@ protected:
     void SpawnDefaultWeapon();
 
 public:
-    // ГЕТТЕРЫ (public - доступны извне)
+    // ==================== АНИМАЦИЯ ====================
     UFUNCTION(BlueprintCallable, Category = "Animation")
     float GetCurrentSpeed() const;
-
-    UFUNCTION(BlueprintCallable, Category = "Weapon")
-    FORCEINLINE AWeapon* GetCurrentWeapon() const { return CurrentWeapon; }
 
     UFUNCTION(BlueprintCallable, Category = "Animation")
     bool GetIsCrouching() const;
@@ -94,6 +91,13 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Animation")
     ES1P_MovementState GetMovementState() const;
 
+    UFUNCTION(BlueprintCallable, Category = "Animation")
+    UFPSAnimInstance* GetFPSAnimInstance() const;
+
+    // ==================== ОРУЖИЕ ====================
+    UFUNCTION(BlueprintCallable, Category = "Weapon")
+    AWeapon* GetCurrentWeapon() const { return CurrentWeapon; }  // ТОЛЬКО ОДНА ЭТА СТРОКА!
+
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     void SwitchToPistol();
 
@@ -109,15 +113,10 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     void EquipWeapon(ES1P_WeaponType NewWeaponType);
 
-    UFUNCTION(BlueprintCallable, Category = "Animation")
-    UFPSAnimInstance* GetFPSAnimInstance() const;
-
-    // ГЕТТЕРЫ ДЛЯ КОМПОНЕНТОВ
-    UFUNCTION(BlueprintCallable, Category = "Weapon")
-    AWeapon* GetCurrentWeapon() const { return CurrentWeapon; }
-
+    // ==================== КОМПОНЕНТЫ ====================
     UFUNCTION(BlueprintCallable, Category = "Camera")
     UCameraComponent* GetCameraComponent() const { return CameraComponent; }
 
+    // ==================== ОТЛАДКА ====================
     void PrintDebugInfo() const;
 };
