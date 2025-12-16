@@ -1,19 +1,15 @@
-﻿// FPSAnimInstance.h - ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ ФАЙЛ
-#pragma once
+﻿#pragma once
 
-// 1. Сначала стандартные includes Unreal Engine
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "S1P_AnimTypes.h"
+#include "S1P_Types.h"
 
-// 2. Затем ВСЕ наши пользовательские includes
-#include "S1P_AnimTypes.h"  // Структура данных для анимаций
-#include "S1P_Types.h"      // Перечисления WeaponType и MovementState
-
-// 3. В САМОМ КОНЦЕ - generated.h (ЭТО ОБЯЗАТЕЛЬНО!)
-#include "FPSAnimInstance.generated.h"
-
-// 4. Предварительное объявление (после всех includes)
+// Предварительные объявления
 class ASystem1ParadoxCharacter;
+class AWeapon;  // ★★★ ДОБАВЬТЕ ЭТУ СТРОКУ ★★★
+
+#include "FPSAnimInstance.generated.h"
 
 UCLASS()
 class SYSTEM1PARADOX_API UFPSAnimInstance : public UAnimInstance
@@ -34,16 +30,15 @@ public:
     UFUNCTION(Exec, Category = "Animation Debug")
     void SetTestSpeed(float NewSpeed);
 
-    // Геттер для получения данных от персонажа
+    // Геттер для Blueprint
     UFUNCTION(BlueprintCallable, Category = "Animation")
     FAnimStateData GetAnimStateData() const { return AnimState; }
 
-    // Основная структура данных для Blueprint
+    // Основная структура данных
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Animation State")
     FAnimStateData AnimState;
 
 private:
-    // Указатель на персонажа - только предварительное объявление
     TWeakObjectPtr<ASystem1ParadoxCharacter> OwningCharacter;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug", meta = (AllowPrivateAccess = "true"))
