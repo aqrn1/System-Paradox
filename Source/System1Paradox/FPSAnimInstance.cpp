@@ -49,16 +49,12 @@ void UFPSAnimInstance::UpdateAnimationState(float DeltaSeconds)
 {
     if (!OwningCharacter.IsValid())
     {
-        AnimState.Speed = 0.0f;
-        AnimState.SmoothSpeed = 0.0f;
-        AnimState.bIsCrouching = false;
-        AnimState.bIsSprinting = false;
-        AnimState.bIsInAir = false;
-        AnimState.CurrentWeaponType = ES1P_WeaponType::Unarmed;
-        AnimState.MovementState = ES1P_MovementState::Idle;
+        // Сброс всех значений если нет персонажа
+        AnimState = FAnimStateData(); // Использует конструктор по умолчанию
         return;
     }
 
+    // 1. Базовые данные движения (уже есть)
     float Speed = OwningCharacter->GetVelocity().Size2D();
     ES1P_WeaponType WeaponType = OwningCharacter->GetCurrentWeaponType();
     bool bIsCrouching = OwningCharacter->GetIsCrouching();
@@ -72,6 +68,7 @@ void UFPSAnimInstance::UpdateAnimationState(float DeltaSeconds)
     AnimState.bIsInAir = bIsInAir;
     AnimState.CurrentWeaponType = WeaponType;
 
+    // 2. Состояние движения
     if (AnimState.bIsInAir)
         AnimState.MovementState = ES1P_MovementState::Jumping;
     else if (AnimState.bIsCrouching)
@@ -82,6 +79,77 @@ void UFPSAnimInstance::UpdateAnimationState(float DeltaSeconds)
         AnimState.MovementState = ES1P_MovementState::Walking;
     else
         AnimState.MovementState = ES1P_MovementState::Idle;
+
+    // 3. ★★★ ДАННЫЕ ОРУЖИЯ ИЗ КЛАССА WEAPON ★★★
+    AWeapon* CurrentWeapon = OwningCharacter->GetCurrentWeapon();
+    if (CurrentWeapon)
+    {
+        AnimState.bIsFiring = CurrentWeapon->IsFiring();
+        AnimState.bIsReloading = CurrentWeapon->IsReloading();
+        AnimState.ReloadProgress = CurrentWeapon->GetReloadProgress();
+
+        // Время анимации выстрела (для blend)
+        if (AnimState.bIsFiring)
+        {
+            AnimState.FireAnimationTime += DeltaSeconds;
+            if (AnimState.FireAnimationTime > 0.3f) // 300ms анимация выстрела
+                AnimState.FireAnimationTime = 0.0f;
+        }
+        else
+        {
+            AnimState.FireAnimationTime = FMath::FInterpTo(AnimState.FireAnimationTime, 0.0f, DeltaSeconds, 10.0f);
+        }
+    }
+    else
+    {
+        AnimState.bIsFiring = false;
+        AnimState.bIsReloading = false;
+        AnimState.FireAnimationTime = 0.0f;
+        AnimState.ReloadProgress = 0.0f;
+    }
+
+    // 4. Blend веса оружия (автоматически рассчитываются)
+    UpdateWeaponBlendAlphas();
+
+    // 5. ★★★ ДОПОЛНИТЕЛЬНЫЕ AAA РАСЧЕТЫ ★★★
+
+    // Наклон прицеливания (плавный)
+    FRotator AimRotation = OwningCharacter->GetControlRotation();
+    FRotator ActorRotation = OwningCharacter->GetActorRotation();
+    float DeltaYaw = AimRotation.Yaw - ActorRotation.Yaw;
+
+    // Нормализуем угол
+    while (DeltaYaw > 180.0f) DeltaYaw -= 360.0f;
+    while (DeltaYaw < -180.0f) DeltaYaw += 360.0f;
+
+    AnimState.AimPitch = AimRotation.Pitch;
+    AnimState.YawOffset = FMath::FInterpTo(AnimState.YawOffset, DeltaYaw, DeltaSeconds, 8.0f);
+
+    // Направление страфа (для анимаций бокового движения)
+    FVector Velocity = OwningCharacter->GetVelocity();
+    if (!Velocity.IsNearlyZero())
+    {
+        FVector Forward = OwningCharacter->GetActorForwardVector();
+        FVector Right = OwningCharacter->GetActorRightVector();
+
+        float ForwardSpeed = FVector::DotProduct(Velocity.GetSafeNormal(), Forward);
+        float RightSpeed = FVector::DotProduct(Velocity.GetSafeNormal(), Right);
+
+        AnimState.StrafeDirection = FMath::Atan2(RightSpeed, ForwardSpeed) * (180.0f / PI);
+    }
+
+    // DEBUG информация
+    if (bDebugMode && GEngine)
+    {
+        FString DebugMsg = FString::Printf(
+            TEXT("AnimState: Wpn=%d | Fire=%s | Reload=%.1f | AimPitch=%.0f"),
+            (int32)AnimState.CurrentWeaponType,
+            AnimState.bIsFiring ? TEXT("YES") : TEXT("NO"),
+            AnimState.ReloadProgress,
+            AnimState.AimPitch
+        );
+        GEngine->AddOnScreenDebugMessage(2, 0.1f, FColor::Cyan, DebugMsg);
+    }
 }
 
 void UFPSAnimInstance::UpdateWeaponBlendAlphas()

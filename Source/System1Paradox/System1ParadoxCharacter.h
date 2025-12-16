@@ -76,6 +76,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Animation")
     float GetCurrentSpeed() const;
 
+    UFUNCTION(BlueprintCallable, Category = "Weapon")
+    FORCEINLINE AWeapon* GetCurrentWeapon() const { return CurrentWeapon; }
+
     UFUNCTION(BlueprintCallable, Category = "Animation")
     bool GetIsCrouching() const;
 
