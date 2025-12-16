@@ -78,6 +78,9 @@ void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* Player
     PlayerInputComponent->BindAxis("Turn", this, &ASystem1ParadoxCharacter::Turn);
     PlayerInputComponent->BindAxis("LookUp", this, &ASystem1ParadoxCharacter::LookUp);
 
+    PlayerInputComponent->BindAction("Weapon1", IE_Pressed, this, &ASystem1ParadoxCharacter::SwitchToUnarmed);
+    PlayerInputComponent->BindAction("Weapon2", IE_Pressed, this, &ASystem1ParadoxCharacter::SwitchToPistol);
+    PlayerInputComponent->BindAction("Weapon3", IE_Pressed, this, &ASystem1ParadoxCharacter::SwitchToRifle);
     PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASystem1ParadoxCharacter::StartJump);
     PlayerInputComponent->BindAction("Jump", IE_Released, this, &ASystem1ParadoxCharacter::StopJump);
     PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASystem1ParadoxCharacter::StartSprint);
@@ -93,6 +96,8 @@ void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* Player
     PlayerInputComponent->BindKey(EKeys::Two, IE_Pressed, this, &ASystem1ParadoxCharacter::SwitchToPistol);
     PlayerInputComponent->BindKey(EKeys::Three, IE_Pressed, this, &ASystem1ParadoxCharacter::SwitchToRifle);
     PlayerInputComponent->BindKey(EKeys::Four, IE_Pressed, this, &ASystem1ParadoxCharacter::SwitchToMelee);
+
+    UE_LOG(LogTemp, Warning, TEXT("[DEBUG] Input bindings setup complete"));
 }
 
 // ==================== ФУНКЦИИ ДВИЖЕНИЯ ====================
@@ -212,69 +217,40 @@ void ASystem1ParadoxCharacter::StopAim()
 }
 
 // ВАША ФУНКЦИЯ SpawnDefaultWeapon (ОСТАВЛЯЕМ ЕЕ КАК ЕСТЬ)
-void ASystem1ParadoxCharacter::SpawnDefaultWeapon()
-{
-    if (!DefaultWeaponClass)
-    {
-        UE_LOG(LogTemp, Error, TEXT("System1ParadoxCharacter: DefaultWeaponClass is not set!"));
+void ASystem1ParadoxCharacter::SpawnDefaultWeapon() {
+    if (!DefaultWeaponClass) {
+        UE_LOG(LogTemp, Error, TEXT("DefaultWeaponClass is NULL!"));
         return;
     }
 
-    // Используем отложенное создание через таймер
-    FTimerHandle TimerHandle;
-    GetWorldTimerManager().SetTimer(TimerHandle, [this]()
-        {
-            // Проверяем компоненты
-            if (!IsValid(this) || !GetWorld() || !CameraComponent)
-            {
-                UE_LOG(LogTemp, Error, TEXT("System1ParadoxCharacter: Cannot spawn weapon - invalid state"));
-                return;
-            }
+    UE_LOG(LogTemp, Warning, TEXT("[DEBUG] Spawning weapon..."));
 
-            FActorSpawnParameters SpawnParams;
-            SpawnParams.Owner = this;
-            SpawnParams.Instigator = GetInstigator();
-            SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.Owner = this;
+    SpawnParams.Instigator = GetInstigator();
 
-            // Спавним оружие
-            FVector SpawnLocation = GetActorLocation();
-            FRotator SpawnRotation = GetActorRotation();
+    CurrentWeapon = GetWorld()->SpawnActor<AWeapon>(
+        DefaultWeaponClass,
+        GetActorLocation(),
+        GetActorRotation(),
+        SpawnParams
+    );
 
-            CurrentWeapon = GetWorld()->SpawnActor<AWeapon>(DefaultWeaponClass, SpawnLocation, SpawnRotation, SpawnParams);
+    if (CurrentWeapon) {
+        // ПРИКРЕПИТЬ ОРУЖИЕ К РУКЕ
+        FName SocketName = TEXT("hand_r"); // или "WeaponSocket"
+        CurrentWeapon->AttachToComponent(
+            GetMesh(),
+            FAttachmentTransformRules::SnapToTargetIncludingScale,
+            SocketName
+        );
 
-            if (CurrentWeapon)
-            {
-                // Прикрепляем оружие к камере
-                FAttachmentTransformRules AttachmentRules(
-                    EAttachmentRule::SnapToTarget,
-                    EAttachmentRule::SnapToTarget,
-                    EAttachmentRule::KeepWorld,
-                    true
-                );
-
-                CurrentWeapon->AttachToComponent(CameraComponent, AttachmentRules);
-
-                // Настройка позиции оружия от первого лица
-                CurrentWeapon->SetActorRelativeLocation(FVector(35.0f, 8.0f, -30.0f));
-                CurrentWeapon->SetActorRelativeRotation(FRotator(2.0f, -95.0f, -5.0f));
-                CurrentWeapon->SetActorScale3D(FVector(0.8f));
-
-                CurrentWeaponType = ES1P_WeaponType::Pistol;
-
-                UE_LOG(LogTemp, Log, TEXT("✅ System1ParadoxCharacter: Weapon spawned and attached successfully"));
-
-                if (GEngine)
-                {
-                    GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green,
-                        TEXT("✅ WEAPON EQUIPPED AND ATTACHED TO CAMERA"));
-                }
-            }
-            else
-            {
-                UE_LOG(LogTemp, Error, TEXT("System1ParadoxCharacter: Failed to spawn weapon!"));
-            }
-
-        }, 0.2f, false); // Задержка 200ms для гарантированной инициализации
+        UE_LOG(LogTemp, Warning, TEXT("[DEBUG] Weapon spawned and attached to socket: %s"),
+            *SocketName.ToString());
+    }
+    else {
+        UE_LOG(LogTemp, Error, TEXT("[DEBUG] Failed to spawn weapon!"));
+    }
 }
 
 // ==================== ПЕРЕКЛЮЧЕНИЕ ОРУЖИЯ ====================
@@ -283,29 +259,44 @@ void ASystem1ParadoxCharacter::SwitchToRifle() { EquipWeapon(ES1P_WeaponType::Ri
 void ASystem1ParadoxCharacter::SwitchToMelee() { EquipWeapon(ES1P_WeaponType::Melee); }
 void ASystem1ParadoxCharacter::SwitchToUnarmed() { EquipWeapon(ES1P_WeaponType::Unarmed); }
 
-void ASystem1ParadoxCharacter::EquipWeapon(ES1P_WeaponType NewWeaponType)
-{
-    if (CurrentWeaponType == NewWeaponType) return;
+void ASystem1ParadoxCharacter::EquipWeapon(ES1P_WeaponType NewWeaponType) {
     CurrentWeaponType = NewWeaponType;
 
-    if (CurrentWeapon)
-    {
-        CurrentWeapon->SetActorHiddenInGame(NewWeaponType == ES1P_WeaponType::Unarmed);
-    }
+    // ОТЛАДКА: выводим в лог
+    UE_LOG(LogTemp, Warning, TEXT("[DEBUG] EquipWeapon called: %s"),
+        *UEnum::GetValueAsString(NewWeaponType));
 
-    FString WeaponName;
-    switch (NewWeaponType)
-    {
-    case ES1P_WeaponType::Pistol: WeaponName = TEXT("Pistol"); break;
-    case ES1P_WeaponType::Rifle: WeaponName = TEXT("Rifle"); break;
-    case ES1P_WeaponType::Melee: WeaponName = TEXT("Melee"); break;
-    default: WeaponName = TEXT("Unarmed"); break;
-    }
+    if (UFPSAnimInstance* AnimInstance = GetFPSAnimInstance()) {
+        // Сбросить все Alpha
+        AnimInstance->AnimState.UnarmedAlpha = 0.0f;
+        AnimInstance->AnimState.PistolAlpha = 0.0f;
+        AnimInstance->AnimState.RifleAlpha = 0.0f;
 
-    if (GEngine)
-    {
-        FString Msg = FString::Printf(TEXT("🔫 Weapon: %s"), *WeaponName);
-        GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, Msg);
+        // Установить нужную Alpha
+        switch (NewWeaponType) {
+        case ES1P_WeaponType::Unarmed:
+            AnimInstance->AnimState.UnarmedAlpha = 1.0f;
+            UE_LOG(LogTemp, Warning, TEXT("[DEBUG] Setting UnarmedAlpha = 1.0"));
+            break;
+
+        case ES1P_WeaponType::Pistol:
+            AnimInstance->AnimState.PistolAlpha = 1.0f;
+            UE_LOG(LogTemp, Warning, TEXT("[DEBUG] Setting PistolAlpha = 1.0"));
+            // Спавним оружие
+            if (!CurrentWeapon) {
+                SpawnDefaultWeapon();
+            }
+            break;
+
+        case ES1P_WeaponType::Rifle:
+            AnimInstance->AnimState.RifleAlpha = 1.0f;
+            UE_LOG(LogTemp, Warning, TEXT("[DEBUG] Setting RifleAlpha = 1.0"));
+            // Для винтовки тоже спавним
+            if (!CurrentWeapon) {
+                SpawnDefaultWeapon();
+            }
+            break;
+        }
     }
 }
 
