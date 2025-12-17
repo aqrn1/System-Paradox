@@ -241,9 +241,17 @@ void ASystem1ParadoxCharacter::SpawnDefaultWeapon() {
         FName SocketName = TEXT("hand_r"); // или "WeaponSocket"
         CurrentWeapon->AttachToComponent(
             GetMesh(),
-            FAttachmentTransformRules::SnapToTargetIncludingScale,
+            FAttachmentTransformRules::SnapToTargetNotIncludingScale, // ИЗМЕНИЛИ!
             SocketName
         );
+
+        // ★★★★ ВСТАВЬТЕ ЭТОТ КОД ЗДЕСЬ ★★★★
+      // Настройка положения оружия в руке
+        CurrentWeapon->SetActorRelativeLocation(FVector(-10.0f, 8.0f, -5.0f));
+        CurrentWeapon->SetActorRelativeRotation(FRotator(0.0f, 90.0f, 0.0f)); // Yaw=90 чтобы повернуть
+        // ★★★★★★★★★★★★★★★★★★★★★★★
+
+        UE_LOG(LogTemp, Warning, TEXT("[DEBUG] Weapon attached and transformed"));
 
         UE_LOG(LogTemp, Warning, TEXT("[DEBUG] Weapon spawned and attached to socket: %s"),
             *SocketName.ToString());
