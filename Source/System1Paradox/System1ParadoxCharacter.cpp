@@ -247,7 +247,7 @@ void ASystem1ParadoxCharacter::SpawnDefaultWeapon() {
 
         // ★★★★ ВСТАВЬТЕ ЭТОТ КОД ЗДЕСЬ ★★★★
       // Настройка положения оружия в руке
-        CurrentWeapon->SetActorRelativeLocation(FVector(-10.0f, 8.0f, -5.0f));
+        CurrentWeapon->SetActorRelativeLocation(FVector(-11.0f, 8.0f, -6.0f));
         CurrentWeapon->SetActorRelativeRotation(FRotator(0.0f, 90.0f, 0.0f)); // Yaw=90 чтобы повернуть
         // ★★★★★★★★★★★★★★★★★★★★★★★
 
