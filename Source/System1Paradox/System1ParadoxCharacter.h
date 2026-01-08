@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "System1ParadoxTypes.h"
+#include "S1P_Types.h"
 #include "System1ParadoxCharacter.generated.h"
 
 class USpringArmComponent;

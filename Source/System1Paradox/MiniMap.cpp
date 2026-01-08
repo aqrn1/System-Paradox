@@ -10,11 +10,8 @@ UMiniMap::UMiniMap()
 
 void UMiniMap::NativePaint(FPaintContext& Context)
 {
-    Super::NativePaint(Context);
-
     if (Canvas == nullptr || Players.Num() == 0) return;
 
-    // Рисуем миникарту
     for (AActor* Player : Players)
     {
         FVector PlayerLocation = Player->GetActorLocation();
