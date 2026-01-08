@@ -54,31 +54,10 @@ public:
     AWeapon* GetCurrentWeapon() const { return CurrentWeapon; }
 
     UFPSAnimInstance* GetFPSAnimInstance() const;
-    void MoveForward(float Value);
-    void MoveRight(float Value);
 
     // В System1ParadoxCharacter.cpp
-    void ASystem1ParadoxCharacter::MoveForward(float Value)
-    {
-        if (Controller != nullptr && Value != 0.0f)
-        {
-            const FRotator Rotation = Controller->GetControlRotation();
-            const FRotator YawRotation(0, Rotation.Yaw, 0);
-            const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-            AddMovementInput(Direction, Value);
-        }
-    }
-
-    void ASystem1ParadoxCharacter::MoveRight(float Value)
-    {
-        if (Controller != nullptr && Value != 0.0f)
-        {
-            const FRotator Rotation = Controller->GetControlRotation();
-            const FRotator YawRotation(0, Rotation.Yaw, 0);
-            const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-            AddMovementInput(Direction, Value);
-        }
-    }
+    void MoveForward(float Value);
+    void MoveRight(float Value);
 
 protected:
     virtual void BeginPlay() override;

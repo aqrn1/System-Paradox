@@ -57,6 +57,7 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HUD")
     FLinearColor HUDColor = FLinearColor::White;  // Добавь переменную HUDColor
 
+    virtual void DrawHUD() override;
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;
 
