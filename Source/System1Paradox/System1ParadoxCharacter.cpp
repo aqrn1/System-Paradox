@@ -60,12 +60,26 @@ void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* Player
 
 void ASystem1ParadoxCharacter::MoveForward(float Value)
 {
-    AddMovementInput(GetActorForwardVector(), Value);
+    if (Controller != nullptr && Value != 0.0f)
+    {
+        const FRotator Rotation = Controller->GetControlRotation();
+        const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+        const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+        AddMovementInput(Direction, Value);
+    }
 }
 
 void ASystem1ParadoxCharacter::MoveRight(float Value)
 {
-    AddMovementInput(GetActorRightVector(), Value);
+    if (Controller != nullptr && Value != 0.0f)
+    {
+        const FRotator Rotation = Controller->GetControlRotation();
+        const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+        const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+        AddMovementInput(Direction, Value);
+    }
 }
 
 void ASystem1ParadoxCharacter::Turn(float Value)

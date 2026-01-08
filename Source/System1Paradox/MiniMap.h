@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Components/Widget.h"
 #include "MiniMap.generated.h"
+#include "CanvasTypes.h" // для FPaintContext
 
 UCLASS()
 class SYSTEM1PARADOX_API UMiniMap : public UWidget
