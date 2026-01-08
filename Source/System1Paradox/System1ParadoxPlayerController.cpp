@@ -1,46 +1,42 @@
 ﻿#include "System1ParadoxPlayerController.h"
 #include "System1ParadoxCharacter.h"
 #include "FPSAnimInstance.h"
-#include "Engine/Engine.h"
 
 ASystem1ParadoxPlayerController::ASystem1ParadoxPlayerController()
 {
     bShowMouseCursor = false;
-    bEnableClickEvents = false;
-    bEnableMouseOverEvents = false;
 }
 
 void ASystem1ParadoxPlayerController::AnimDebug(int32 Enable)
 {
-    ASystem1ParadoxCharacter* MyCharacter = Cast<ASystem1ParadoxCharacter>(GetPawn());
-    if (!MyCharacter)
+    ASystem1ParadoxCharacter* Character = Cast<ASystem1ParadoxCharacter>(GetPawn());
+    if (!Character)
     {
-        if (GEngine)
-            GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("❌ ANIM DEBUG: Нет персонажа"));
         return;
     }
 
-    UFPSAnimInstance* AnimInst = MyCharacter->GetFPSAnimInstance();
-    if (AnimInst)
+    UFPSAnimInstance* AnimInstance = Character->GetFPSAnimInstance();
+    if (!AnimInstance)
     {
-        AnimInst->AnimDebug(Enable);
-        if (GEngine)
-            GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green,
-                FString::Printf(TEXT("✅ PC: AnimDebug %d"), Enable));
+        return;
     }
+
+    AnimInstance->AnimDebug(Enable);
 }
 
 void ASystem1ParadoxPlayerController::SetTestSpeed(float NewSpeed)
 {
-    ASystem1ParadoxCharacter* MyCharacter = Cast<ASystem1ParadoxCharacter>(GetPawn());
-    if (!MyCharacter) return;
-
-    UFPSAnimInstance* AnimInst = MyCharacter->GetFPSAnimInstance();
-    if (AnimInst)
+    ASystem1ParadoxCharacter* Character = Cast<ASystem1ParadoxCharacter>(GetPawn());
+    if (!Character)
     {
-        AnimInst->SetTestSpeed(NewSpeed);
-        if (GEngine)
-            GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green,
-                FString::Printf(TEXT("✅ PC: SetTestSpeed %.0f"), NewSpeed));
+        return;
     }
+
+    UFPSAnimInstance* AnimInstance = Character->GetFPSAnimInstance();
+    if (!AnimInstance)
+    {
+        return;
+    }
+
+    AnimInstance->SetTestSpeed(NewSpeed);
 }
