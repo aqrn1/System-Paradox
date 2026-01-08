@@ -48,8 +48,8 @@ void ASystem1ParadoxHUD::DrawHUD()
 void ASystem1ParadoxHUD::DrawHealthBar()
 {
     // Рисуем полоску здоровья
-    float HealthBarWidth = 200.0f;
-    float HealthBarHeight = 20.0f;
+    float HealthBarWidth = 200.0f * HUDSize;
+    float HealthBarHeight = 20.0f * HUDSize;
     float HealthBarX = 50.0f;
     float HealthBarY = 50.0f;
 
@@ -62,7 +62,7 @@ void ASystem1ParadoxHUD::DrawHealthBar()
     float HealthPercent = Health / 100.0f;
     FVector2D HealthBarSize(HealthBarWidth * HealthPercent, HealthBarHeight);
     FVector2D HealthBarPos(HealthBarX, HealthBarY);
-    DrawRect(FLinearColor::Green, HealthBarPos.X, HealthBarPos.Y, HealthBarSize.X, HealthBarSize.Y);
+    DrawRect(HUDColor, HealthBarPos.X, HealthBarPos.Y, HealthBarSize.X, HealthBarSize.Y);
 
     // Текст здоровья
     FString HealthText = FString::Printf(TEXT("Health: %.0f"), Health);
@@ -84,13 +84,13 @@ void ASystem1ParadoxHUD::DrawCrosshair()
     // Простой прицел в центре экрана
     float CenterX = Canvas->SizeX / 2.0f;
     float CenterY = Canvas->SizeY / 2.0f;
-    float CrosshairSize = 10.0f;
+    float CrosshairSize = 12.0f * HUDSize;
 
     // Горизонтальная линия
-    DrawLine(CenterX - CrosshairSize, CenterY, CenterX + CrosshairSize, CenterY, FLinearColor::White);
+    DrawLine(CenterX - CrosshairSize, CenterY, CenterX + CrosshairSize, CenterY, HUDColor);
 
     // Вертикальная линия
-    DrawLine(CenterX, CenterY - CrosshairSize, CenterX, CenterY + CrosshairSize, FLinearColor::White);
+    DrawLine(CenterX, CenterY - CrosshairSize, CenterX, CenterY + CrosshairSize, HUDColor);
 }
 
 void ASystem1ParadoxHUD::DrawMessage()
@@ -101,6 +101,16 @@ void ASystem1ParadoxHUD::DrawMessage()
         float MessageY = Canvas->SizeY / 3.0f;
         DrawText(DisplayMessage, FLinearColor::Yellow, MessageX, MessageY);
     }
+}
+
+void ASystem1ParadoxHUD::SetHUDSize(float NewSize)
+{
+    HUDSize = NewSize;
+}
+
+void ASystem1ParadoxHUD::SetHUDColor(FLinearColor NewColor)
+{
+    HUDColor = NewColor;
 }
 
 void ASystem1ParadoxHUD::UpdateHealth(float NewHealth)

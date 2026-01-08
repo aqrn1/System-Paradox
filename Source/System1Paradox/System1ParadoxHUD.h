@@ -12,8 +12,6 @@ class SYSTEM1PARADOX_API ASystem1ParadoxHUD : public AHUD
 public:
     ASystem1ParadoxHUD();
 
-    virtual void DrawHUD() override;
-
     // Функции для обновления информации на HUD
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void UpdateHealth(float NewHealth);
@@ -23,6 +21,13 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void ShowMessage(const FString& Message, float Duration = 3.0f);
+
+    // Функции для кастомизации HUD
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void SetHUDSize(float NewSize);
+
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void SetHUDColor(FLinearColor NewColor);
 
 protected:
     // Переменные для отображения
@@ -44,6 +49,13 @@ protected:
     // Шрифт для текста
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
     UFont* HudFont;
+
+    // Параметры кастомизации
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HUD")
+    float HUDSize = 1.0f;  // Добавь переменную HUDSize
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HUD")
+    FLinearColor HUDColor = FLinearColor::White;  // Добавь переменную HUDColor
 
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;

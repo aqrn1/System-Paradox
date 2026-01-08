@@ -1,7 +1,12 @@
 #pragma once
+
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "S1P_AnimTypes.h"     // структуры состояний
+#include "S1P_Types.h"         // enum'ы оружия и движения
 #include "CharacterAnimInstance.generated.h"
+
+class ASystem1ParadoxCharacter;
 
 UCLASS()
 class SYSTEM1PARADOX_API UCharacterAnimInstance : public UAnimInstance
@@ -9,37 +14,34 @@ class SYSTEM1PARADOX_API UCharacterAnimInstance : public UAnimInstance
     GENERATED_BODY()
 
 public:
-    // Обновляемые извне переменные состояния
+    UCharacterAnimInstance();
+
+    virtual void NativeInitializeAnimation() override;
+    virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+
+    /* ===== ДАННЫЕ ДЛЯ ANIM GRAPH ===== */
+
     UPROPERTY(BlueprintReadOnly, Category = "Movement")
-    float Speed = 0.0f;
+    float Speed = 0.f;
 
     UPROPERTY(BlueprintReadOnly, Category = "Movement")
     bool bIsInAir = false;
 
-    UPROPERTY(BlueprintReadOnly, Category = "Weapon")
-    FName CurrentWeaponType = TEXT("Unarmed"); // "Unarmed", "Pistol", "Rifle"
+    UPROPERTY(BlueprintReadOnly, Category = "Movement")
+    bool bIsCrouching = false;
 
-    UPROPERTY(BlueprintReadOnly, Category = "Action")
+    UPROPERTY(BlueprintReadOnly, Category = "Weapon")
+    ES1P_WeaponType WeaponType = ES1P_WeaponType::Unarmed;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Weapon")
+    bool bIsAiming = false;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Weapon")
     bool bIsReloading = false;
 
-    // Референсы на анимации (заполняются в редакторе)
-    // Пример для одного состояния - по аналогии добавьте все свои
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations|Pistol")
-    UAnimSequence* Pistol_Idle;
+private:
+    UPROPERTY(Transient)
+    ASystem1ParadoxCharacter* OwningCharacter;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations|Pistol")
-    UAnimSequence* Pistol_Jog_Fwd;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations|Rifle")
-    UAnimSequence* Rifle_Walk_Fwd;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations|Unarmed")
-    UAnimSequence* Unarmed_Jog_Fwd;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations|Actions")
-    UAnimMontage* Montage_HitReact_Front;
-
-    // Функция для запуска анимации действия (например, реакции на удар)
-    UFUNCTION(BlueprintCallable, Category = "Animations")
-    void PlayHitReact(FName Direction = TEXT("Front"));
+    void UpdateFromCharacter();
 };
