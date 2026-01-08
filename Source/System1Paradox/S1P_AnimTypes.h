@@ -1,9 +1,8 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "S1P_Types.h"  // Перечисления ES1P_WeaponType и ES1P_MovementState
-
-#include "S1P_AnimTypes.generated.h"  // ← ДОЛЖЕН БЫТЬ ПОСЛЕДНИМ!
+#include "S1P_Types.h"
+#include "S1P_AnimTypes.generated.h"
 
 USTRUCT(BlueprintType, meta = (DisplayName = "Anim State Data"))
 struct SYSTEM1PARADOX_API FAnimStateData
@@ -22,20 +21,20 @@ public:
         CurrentWeaponType = ES1P_WeaponType::Unarmed;
         MovementState = ES1P_MovementState::Idle;
 
-        // Оружие (уже есть)
+        // Оружие
         UnarmedAlpha = 1.0f;
         PistolAlpha = 0.0f;
         RifleAlpha = 0.0f;
         MeleeAlpha = 0.0f;
 
-        // ★★★ ДОБАВЬТЕ ЭТИ ПОЛЯ ДЛЯ ОРУЖИЯ ★★★
+        // Новые поля для оружия
         bIsFiring = false;
         bIsReloading = false;
         bIsAiming = false;
         FireAnimationTime = 0.0f;
         ReloadProgress = 0.0f;
 
-        // ★★★ ДОПОЛНИТЕЛЬНЫЕ AAA ПОЛЯ ★★★
+        // Дополнительные поля для AAA
         AimPitch = 0.0f;           // Наклон прицеливания
         LeanAmount = 0.0f;         // Наклон тела вбок
         StrafeDirection = 0.0f;    // Направление страфа
@@ -44,12 +43,14 @@ public:
         bIsMantling = false;       // Перелезание
     }
 
+    // Поля для движения
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float Speed;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     float SmoothSpeed;
 
+    // Состояния
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "States")
     bool bIsCrouching;
 
@@ -59,12 +60,14 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "States")
     bool bIsInAir;
 
+    // Оружие
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
     ES1P_WeaponType CurrentWeaponType;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
     ES1P_MovementState MovementState;
 
+    // Альфа-значения для анимаций
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blend Weights")
     float UnarmedAlpha;
 
@@ -77,7 +80,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blend Weights")
     float MeleeAlpha;
 
-    // ★★★ НОВЫЕ ПОЛЯ ДЛЯ ОРУЖИЯ ★★★
+    // Новые поля для оружия
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
     bool bIsFiring;
 
@@ -93,7 +96,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
     float ReloadProgress;
 
-    // ★★★ ДОПОЛНИТЕЛЬНЫЕ AAA ПОЛЯ ★★★
+    // Дополнительные поля для AAA
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Advanced")
     float AimPitch;
 

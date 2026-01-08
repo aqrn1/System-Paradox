@@ -2,121 +2,93 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Camera/CameraComponent.h"
-#include "GameFramework/SpringArmComponent.h"
-#include "S1P_Types.h"
-
 #include "System1ParadoxCharacter.generated.h"
 
 class UFPSAnimInstance;
 class AWeapon;
+class UCameraComponent;
 
 UCLASS()
-class SYSTEM1PARADOX_API ASystem1ParadoxCharacter : public ACharacter
-{
+class SYSTEM1PARADOX_API ASystem1ParadoxCharacter : public ACharacter {
     GENERATED_BODY()
 
 public:
     ASystem1ParadoxCharacter();
+
+    // Главный метод для обновления состояния персонажа
     virtual void Tick(float DeltaTime) override;
+
+    // Настройка ввода
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
     virtual void BeginPlay() override;
 
-    // КОМПОНЕНТЫ
+    // Камера персонажа
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
     UCameraComponent* CameraComponent;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
-    USpringArmComponent* SpringArmComponent;
-
+    // Текущее оружие
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
     AWeapon* CurrentWeapon;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
-    bool bIsSprinting;
+    // Метод для смены оружия
+    void EquipWeapon(ES1P_WeaponType NewWeaponType);
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
-    bool bIsCrouching;
+    // Метод для обновления скорости движения
+    void UpdateMovementSpeed();
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-    ES1P_WeaponType CurrentWeaponType;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-    float WalkSpeed;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-    float SprintSpeed;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-    TSubclassOf<AWeapon> DefaultWeaponClass;
-
+    // Методы для управления перемещением
     void MoveForward(float Value);
     void MoveRight(float Value);
-    void LookUp(float Value);
-    void Turn(float Value);
-    void StartJump();
-    void StopJump();
-    void StartSprint();
-    void StopSprint();
-    void StartCrouch();
-    void StopCrouch();
-    void StartFire();
-    void StopFire();
-    void ReloadWeapon();
-    void StartAim();
-    void StopAim();
-    void UpdateMovementSpeed();
-    bool CanSprint() const;
-    void SpawnDefaultWeapon();
 
-public:
-    // ==================== АНИМАЦИЯ ====================
+    // Методы для управления состоянием оружия
+    void SwitchToPistol();
+    void SwitchToRifle();
+    void SwitchToMelee();
+    void SwitchToUnarmed();
+
+    // Получаем текущую скорость
     UFUNCTION(BlueprintCallable, Category = "Animation")
     float GetCurrentSpeed() const;
 
+    // Получаем состояние приседания
     UFUNCTION(BlueprintCallable, Category = "Animation")
     bool GetIsCrouching() const;
 
-    UFUNCTION(BlueprintCallable, Category = "Animation")
-    bool GetIsSprinting() const;
-
-    UFUNCTION(BlueprintCallable, Category = "Animation")
-    bool GetIsInAir() const;
-
-    UFUNCTION(BlueprintCallable, Category = "Animation")
-    ES1P_WeaponType GetCurrentWeaponType() const;
-
-    UFUNCTION(BlueprintCallable, Category = "Animation")
-    ES1P_MovementState GetMovementState() const;
-
-    UFUNCTION(BlueprintCallable, Category = "Animation")
-    UFPSAnimInstance* GetFPSAnimInstance() const;
-
-    // ==================== ОРУЖИЕ ====================
+    // Получаем текущее оружие
     UFUNCTION(BlueprintCallable, Category = "Weapon")
-    AWeapon* GetCurrentWeapon() const { return CurrentWeapon; }  // ТОЛЬКО ОДНА ЭТА СТРОКА!
+    AWeapon* GetCurrentWeapon() const;
+
+    // События для переключения состояний оружия
+    UFUNCTION(BlueprintCallable, Category = "Weapon")
+    void StartFire();
 
     UFUNCTION(BlueprintCallable, Category = "Weapon")
-    void SwitchToPistol();
+    void StopFire();
 
     UFUNCTION(BlueprintCallable, Category = "Weapon")
-    void SwitchToRifle();
+    void ReloadWeapon();
 
     UFUNCTION(BlueprintCallable, Category = "Weapon")
-    void SwitchToMelee();
+    void StartAim();
 
     UFUNCTION(BlueprintCallable, Category = "Weapon")
-    void SwitchToUnarmed();
+    void StopAim();
 
-    UFUNCTION(BlueprintCallable, Category = "Weapon")
-    void EquipWeapon(ES1P_WeaponType NewWeaponType);
+    // Дополнительные параметры для анимации, такие как наклон прицеливания и т. д.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+    bool bIsFiring;
 
-    // ==================== КОМПОНЕНТЫ ====================
-    UFUNCTION(BlueprintCallable, Category = "Camera")
-    UCameraComponent* GetCameraComponent() const { return CameraComponent; }
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+    bool bIsReloading;
 
-    // ==================== ОТЛАДКА ====================
-    void PrintDebugInfo() const;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+    bool bIsAiming;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+    float FireAnimationTime;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+    float ReloadProgress;
 };

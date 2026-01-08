@@ -1,5 +1,4 @@
-﻿// System1ParadoxCharacter.cpp - ПОЛНЫЙ И ИСПРАВЛЕННЫЙ ФАЙЛ
-#include "System1ParadoxCharacter.h"
+﻿#include "System1ParadoxCharacter.h"
 #include "Weapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/InputComponent.h"
@@ -7,10 +6,10 @@
 #include "S1P_Types.h"
 #include "FPSAnimInstance.h"
 
-ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
-{
+ASystem1ParadoxCharacter::ASystem1ParadoxCharacter() {
     PrimaryActorTick.bCanEverTick = true;
 
+    // Настройка камеры
     SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
     SpringArmComponent->SetupAttachment(RootComponent);
     SpringArmComponent->TargetArmLength = 0.0f;
@@ -40,39 +39,34 @@ ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
     CurrentWeapon = nullptr;
 }
 
-void ASystem1ParadoxCharacter::BeginPlay()
-{
+void ASystem1ParadoxCharacter::BeginPlay() {
     Super::BeginPlay();
     GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
     SpawnDefaultWeapon();
 
-    if (GEngine)
-    {
-        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green,
-            TEXT("🎮 SYSTEM1PARADOX: AAA Character Initialized"));
+    if (GEngine) {
+        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("🎮 SYSTEM1PARADOX: AAA Character Initialized"));
     }
 }
 
-void ASystem1ParadoxCharacter::Tick(float DeltaTime)
-{
+void ASystem1ParadoxCharacter::Tick(float DeltaTime) {
     Super::Tick(DeltaTime);
 
     if (bIsSprinting && !CanSprint()) StopSprint();
 
     static float DebugTimer = 0.0f;
     DebugTimer += DeltaTime;
-    if (DebugTimer >= 2.0f)
-    {
+    if (DebugTimer >= 2.0f) {
         PrintDebugInfo();
         DebugTimer = 0.0f;
     }
 }
 
-void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
+void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
     check(PlayerInputComponent);
 
+    // Привязка входных данных
     PlayerInputComponent->BindAxis("MoveForward", this, &ASystem1ParadoxCharacter::MoveForward);
     PlayerInputComponent->BindAxis("MoveRight", this, &ASystem1ParadoxCharacter::MoveRight);
     PlayerInputComponent->BindAxis("Turn", this, &ASystem1ParadoxCharacter::Turn);
@@ -101,10 +95,8 @@ void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* Player
 }
 
 // ==================== ФУНКЦИИ ДВИЖЕНИЯ ====================
-void ASystem1ParadoxCharacter::MoveForward(float Value)
-{
-    if (Value != 0.0f && Controller)
-    {
+void ASystem1ParadoxCharacter::MoveForward(float Value) {
+    if (Value != 0.0f && Controller) {
         const FRotator Rotation = Controller->GetControlRotation();
         const FRotator YawRotation(0, Rotation.Yaw, 0);
         const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
@@ -112,10 +104,8 @@ void ASystem1ParadoxCharacter::MoveForward(float Value)
     }
 }
 
-void ASystem1ParadoxCharacter::MoveRight(float Value)
-{
-    if (Value != 0.0f && Controller)
-    {
+void ASystem1ParadoxCharacter::MoveRight(float Value) {
+    if (Value != 0.0f && Controller) {
         const FRotator Rotation = Controller->GetControlRotation();
         const FRotator YawRotation(0, Rotation.Yaw, 0);
         const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
@@ -129,32 +119,26 @@ void ASystem1ParadoxCharacter::StartJump() { Jump(); }
 void ASystem1ParadoxCharacter::StopJump() { StopJumping(); }
 
 // ==================== СПРИНТ ====================
-void ASystem1ParadoxCharacter::StartSprint()
-{
-    if (CanSprint())
-    {
+void ASystem1ParadoxCharacter::StartSprint() {
+    if (CanSprint()) {
         bIsSprinting = true;
         UpdateMovementSpeed();
         if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("⚡ SPRINTING"));
     }
 }
 
-void ASystem1ParadoxCharacter::StopSprint()
-{
+void ASystem1ParadoxCharacter::StopSprint() {
     bIsSprinting = false;
     UpdateMovementSpeed();
 }
 
-bool ASystem1ParadoxCharacter::CanSprint() const
-{
+bool ASystem1ParadoxCharacter::CanSprint() const {
     return !bIsCrouching && GetCharacterMovement()->IsMovingOnGround();
 }
 
 // ==================== ПРИСЕДАНИЕ ====================
-void ASystem1ParadoxCharacter::StartCrouch()
-{
-    if (!bIsCrouching)
-    {
+void ASystem1ParadoxCharacter::StartCrouch() {
+    if (!bIsCrouching) {
         bIsCrouching = true;
         Crouch();
         UpdateMovementSpeed();
@@ -162,18 +146,15 @@ void ASystem1ParadoxCharacter::StartCrouch()
     }
 }
 
-void ASystem1ParadoxCharacter::StopCrouch()
-{
-    if (bIsCrouching)
-    {
+void ASystem1ParadoxCharacter::StopCrouch() {
+    if (bIsCrouching) {
         bIsCrouching = false;
         UnCrouch();
         UpdateMovementSpeed();
     }
 }
 
-void ASystem1ParadoxCharacter::UpdateMovementSpeed()
-{
+void ASystem1ParadoxCharacter::UpdateMovementSpeed() {
     if (bIsCrouching)
         GetCharacterMovement()->MaxWalkSpeed = WalkSpeed * 0.5f;
     else if (bIsSprinting)
@@ -183,34 +164,27 @@ void ASystem1ParadoxCharacter::UpdateMovementSpeed()
 }
 
 // ==================== ОРУЖИЕ ====================
-void ASystem1ParadoxCharacter::StartFire()
-{
+void ASystem1ParadoxCharacter::StartFire() {
     if (CurrentWeapon) CurrentWeapon->StartFire();
 }
 
-void ASystem1ParadoxCharacter::StopFire()
-{
+void ASystem1ParadoxCharacter::StopFire() {
     if (CurrentWeapon) CurrentWeapon->StopFire();
 }
 
-void ASystem1ParadoxCharacter::ReloadWeapon()
-{
+void ASystem1ParadoxCharacter::ReloadWeapon() {
     if (CurrentWeapon) CurrentWeapon->Reload();
 }
 
-void ASystem1ParadoxCharacter::StartAim()
-{
-    if (CameraComponent)
-    {
+void ASystem1ParadoxCharacter::StartAim() {
+    if (CameraComponent) {
         CameraComponent->SetFieldOfView(75.0f);
         if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("🎯 AIM: ON"));
     }
 }
 
-void ASystem1ParadoxCharacter::StopAim()
-{
-    if (CameraComponent)
-    {
+void ASystem1ParadoxCharacter::StopAim() {
+    if (CameraComponent) {
         CameraComponent->SetFieldOfView(90.0f);
         if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("🎯 AIM: OFF"));
     }
@@ -245,8 +219,7 @@ void ASystem1ParadoxCharacter::SpawnDefaultWeapon() {
             SocketName
         );
 
-        // ★★★★ ВСТАВЬТЕ ЭТОТ КОД ЗДЕСЬ ★★★★
-      // Настройка положения оружия в руке
+        // Настройка положения оружия в руке
         CurrentWeapon->SetActorRelativeLocation(FVector(-11.0f, 8.0f, -6.0f));
         CurrentWeapon->SetActorRelativeRotation(FRotator(0.0f, 90.0f, 0.0f)); // Yaw=90 чтобы повернуть
         // ★★★★★★★★★★★★★★★★★★★★★★★

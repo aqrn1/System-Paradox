@@ -7,7 +7,7 @@
 
 // Предварительные объявления
 class ASystem1ParadoxCharacter;
-class AWeapon;  // ★★★ ДОБАВЬТЕ ЭТУ СТРОКУ ★★★
+class AWeapon;  // Для работы с оружием
 
 #include "FPSAnimInstance.generated.h"
 
@@ -19,36 +19,46 @@ class SYSTEM1PARADOX_API UFPSAnimInstance : public UAnimInstance
 public:
     UFPSAnimInstance();
 
+    // Инициализация анимации
     virtual void NativeInitializeAnimation() override;
+
+    // Обновление анимации
     virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+
+    // Очищаем данные
     virtual void NativeUninitializeAnimation() override;
 
-    // Консольные команды
+    // Консольные команды для отладки анимаций
     UFUNCTION(Exec, Category = "Animation Debug")
     void AnimDebug(int32 Enable);
 
     UFUNCTION(Exec, Category = "Animation Debug")
     void SetTestSpeed(float NewSpeed);
 
-    // Геттер для Blueprint
+    // Геттер для состояния анимации
     UFUNCTION(BlueprintCallable, Category = "Animation")
     FAnimStateData GetAnimStateData() const { return AnimState; }
 
-    // Основная структура данных
+    // Структура для хранения данных анимации
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Animation State")
     FAnimStateData AnimState;
 
 private:
+    // Ссылка на персонажа
     TWeakObjectPtr<ASystem1ParadoxCharacter> OwningCharacter;
 
+    // Флаг для отладки
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug", meta = (AllowPrivateAccess = "true"))
     bool bDebugMode;
 
+    // Тестовая скорость для отладки
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug", meta = (AllowPrivateAccess = "true"))
     float DebugSpeed;
 
+    // Коэффициент интерполяции для сглаживания
     float SmoothInterpSpeed;
 
+    // Функции для обновления данных анимации
     void UpdateWeaponBlendAlphas();
     void UpdateAnimationState(float DeltaSeconds);
     void ApplyDebugValues();
