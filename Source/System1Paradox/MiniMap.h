@@ -2,8 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "Components/Widget.h"
-#include "MiniMap.generated.h"
-#include "CanvasTypes.h" // для FPaintContext
+#include "CanvasTypes.h" // Это нужно подключить для FPaintContext
+#include "MiniMap.generated.h" // Это всегда должно быть последним подключением
 
 UCLASS()
 class SYSTEM1PARADOX_API UMiniMap : public UWidget

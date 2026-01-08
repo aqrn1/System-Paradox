@@ -49,6 +49,7 @@ public:
     bool IsWeaponFiring() const;
     bool IsWeaponReloading() const;
     bool IsWeaponAiming() const;
+  
 
     ES1P_WeaponType GetCurrentWeaponType() const { return CurrentWeaponType; }
     AWeapon* GetCurrentWeapon() const { return CurrentWeapon; }

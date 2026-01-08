@@ -168,9 +168,19 @@ bool ASystem1ParadoxCharacter::IsWeaponFiring() const
     return CurrentWeapon && CurrentWeapon->IsFiring();
 }
 
+bool ASystem1ParadoxCharacter::IsWeaponFiring() const
+{
+    return CurrentWeapon ? CurrentWeapon->IsFiring() : false;
+}
+
 bool ASystem1ParadoxCharacter::IsWeaponReloading() const
 {
     return CurrentWeapon && CurrentWeapon->IsReloading();
+}
+
+bool ASystem1ParadoxCharacter::IsWeaponReloading() const
+{
+    return CurrentWeapon ? CurrentWeapon->IsReloading() : false;
 }
 
 bool ASystem1ParadoxCharacter::IsWeaponAiming() const
@@ -178,6 +188,10 @@ bool ASystem1ParadoxCharacter::IsWeaponAiming() const
     return CurrentWeapon && CurrentWeapon->IsAiming();
 }
 
+bool ASystem1ParadoxCharacter::IsWeaponAiming() const
+{
+    return CurrentWeapon ? CurrentWeapon->IsAiming() : false;
+}
 // ===== GETTERS =====
 
 float ASystem1ParadoxCharacter::GetCurrentSpeed() const
