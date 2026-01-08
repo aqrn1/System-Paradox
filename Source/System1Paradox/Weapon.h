@@ -5,58 +5,56 @@
 #include "S1P_Types.h"
 #include "Weapon.generated.h"
 
-// Структура для параметров попадания
 USTRUCT(BlueprintType)
 struct FWeaponHitData
 {
     GENERATED_BODY()
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hit", meta = (ClampMin = "1.0", ClampMax = "200.0"))
-    float Damage = 25.0f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hit")
+    float Damage = 25.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hit", meta = (ClampMin = "1.0", ClampMax = "10.0"))
-    float HeadshotMultiplier = 2.0f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hit")
+    float HeadshotMultiplier = 2.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hit", meta = (ClampMin = "0.1", ClampMax = "5.0"))
-    float TorsoMultiplier = 1.0f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hit")
+    float TorsoMultiplier = 1.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hit", meta = (ClampMin = "0.1", ClampMax = "3.0"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hit")
     float LimbMultiplier = 0.7f;
 };
 
-// Структура для базовых характеристик оружия
 USTRUCT(BlueprintType)
 struct FWeaponStats
 {
     GENERATED_BODY()
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon", meta = (ClampMin = "1", ClampMax = "200"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     int32 MaxAmmo = 30;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon", meta = (ClampMin = "0.01", ClampMax = "1.0"))
-    float FireRate = 0.1f;
+    // ВРЕМЯ МЕЖДУ ВЫСТРЕЛАМИ (секунды)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float FireInterval = 0.1f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon", meta = (ClampMin = "0.5", ClampMax = "5.0"))
-    float ReloadTime = 2.0f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float ReloadTime = 2.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon", meta = (ClampMin = "0.0", ClampMax = "5.0"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float RecoilVertical = 0.1f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon", meta = (ClampMin = "0.0", ClampMax = "2.0"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float RecoilHorizontal = 0.05f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon", meta = (ClampMin = "100.0", ClampMax = "10000.0"))
-    float EffectiveRange = 5000.0f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float EffectiveRange = 5000.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon", meta = (ClampMin = "0.0", ClampMax = "5.0"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float Spread = 0.5f;
 };
 
-// ★★★ ДЕКЛАРАЦИИ ДЕЛЕГАТОВ ДО КЛАССА ★★★
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWeaponEventDelegate);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWeaponAmmoDelegate, int32, NewAmmo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWeaponEvent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWeaponAmmoEvent, int32, Ammo);
 
-UCLASS(Blueprintable, BlueprintType, meta = (DisplayName = "System1Paradox Weapon"))
+UCLASS(Blueprintable)
 class SYSTEM1PARADOX_API AWeapon : public AActor
 {
     GENERATED_BODY()
@@ -64,157 +62,86 @@ class SYSTEM1PARADOX_API AWeapon : public AActor
 public:
     AWeapon();
 
-protected:
-    virtual void BeginPlay() override;
-    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-public:
     virtual void Tick(float DeltaTime) override;
 
-    // ==================== ОСНОВНЫЕ ФУНКЦИИ ====================
-    UFUNCTION(BlueprintCallable, Category = "Weapon|Actions")
+    // ===== ACTIONS =====
+    UFUNCTION(BlueprintCallable)
     void StartFire();
 
-    UFUNCTION(BlueprintCallable, Category = "Weapon|Actions")
+    UFUNCTION(BlueprintCallable)
     void StopFire();
 
-    UFUNCTION(BlueprintCallable, Category = "Weapon|Actions")
-    void FireShot();
-
-    UFUNCTION(BlueprintCallable, Category = "Weapon|Actions")
+    UFUNCTION(BlueprintCallable)
     void Reload();
 
-    // ==================== ПРОВЕРКИ ====================
-    UFUNCTION(BlueprintCallable, Category = "Weapon|Checks")
-    bool CanFire() const;
+    UFUNCTION(BlueprintCallable)
+    void StartAim();
 
-    UFUNCTION(BlueprintCallable, Category = "Weapon|Checks")
-    bool CanReload() const;
+    UFUNCTION(BlueprintCallable)
+    void StopAim();
 
-    // ==================== ГЕТТЕРЫ ИНФОРМАЦИИ ====================
-    UFUNCTION(BlueprintCallable, Category = "Weapon|Info")
-    ES1P_WeaponType GetWeaponType() const { return WeaponType; }
-
-    UFUNCTION(BlueprintCallable, Category = "Weapon|Info")
-    int32 GetCurrentAmmo() const { return CurrentAmmo; }
-
-    UFUNCTION(BlueprintCallable, Category = "Weapon|Info")
-    int32 GetMaxAmmo() const { return Stats.MaxAmmo; }
-
-    UFUNCTION(BlueprintCallable, Category = "Weapon|Info")
-    float GetFireRate() const { return Stats.FireRate; }
-
-    // ==================== ГЕТТЕРЫ СОСТОЯНИЯ (ВАЖНО: ТОЛЬКО ЭТИ!) ====================
-    UFUNCTION(BlueprintCallable, Category = "Weapon|State")
+    // ===== STATE =====
     bool IsFiring() const { return bIsFiring; }
-
-    UFUNCTION(BlueprintCallable, Category = "Weapon|State")
     bool IsReloading() const { return bIsReloading; }
-
-    UFUNCTION(BlueprintCallable, Category = "Weapon|State")
     bool IsAiming() const { return bIsAiming; }
 
-    UFUNCTION(BlueprintCallable, Category = "Weapon|State")
     float GetReloadProgress() const;
 
-    // ==================== КОМПОНЕНТЫ ====================
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Components")
+    ES1P_WeaponType GetWeaponType() const { return WeaponType; }
+
+    // ===== COMPONENTS =====
+    UPROPERTY(VisibleAnywhere)
     USceneComponent* Root;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Components")
+    UPROPERTY(VisibleAnywhere)
     UStaticMeshComponent* WeaponMesh;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Components")
+    UPROPERTY(VisibleAnywhere)
     USceneComponent* MuzzleLocation;
 
-    // ==================== ХАРАКТЕРИСТИКИ ====================
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Stats")
-    FWeaponStats Stats;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Damage")
-    FWeaponHitData HitData;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Info")
-    ES1P_WeaponType WeaponType = ES1P_WeaponType::Pistol;
-
-    // ==================== ЭФФЕКТЫ ====================
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Effects")
-    USoundBase* FireSound;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Effects")
-    USoundBase* ReloadSound;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Effects")
-    USoundBase* EmptySound;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Effects")
-    UParticleSystem* MuzzleFlash;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Effects")
-    UParticleSystem* HitEffect;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Effects")
-    UParticleSystem* ShellEjectEffect;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Components")
+    UPROPERTY(VisibleAnywhere)
     USceneComponent* ShellEjectLocation;
 
-    // ==================== СОСТОЯНИЕ ОРУЖИЯ ====================
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|State")
-    int32 CurrentAmmo;
+    // ===== DATA =====
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FWeaponStats Stats;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|State")
-    bool bIsFiring;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FWeaponHitData HitData;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|State")
-    bool bIsReloading;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    ES1P_WeaponType WeaponType = ES1P_WeaponType::Pistol;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|State")
-    bool bIsAiming;
+    // ===== EVENTS =====
+    UPROPERTY(BlueprintAssignable)
+    FWeaponEvent OnWeaponFired;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|State")
-    float TimeSinceLastShot;
+    UPROPERTY(BlueprintAssignable)
+    FWeaponEvent OnWeaponReloaded;
 
-    // ==================== ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ ====================
-    UFUNCTION(Exec, Category = "Weapon|Debug")
-    void WeaponDebug(int32 Enable);
+    UPROPERTY(BlueprintAssignable)
+    FWeaponEvent OnWeaponEmpty;
 
-    UFUNCTION(Exec, Category = "Weapon|Debug")
-    void SetInfiniteAmmo(int32 Enable);
+    UPROPERTY(BlueprintAssignable)
+    FWeaponAmmoEvent OnAmmoChanged;
 
-    UFUNCTION(BlueprintCallable, Category = "Weapon|Actions")
-    void ToggleFireMode();
-
-    UFUNCTION(BlueprintCallable, Category = "Weapon|Setup")
-    void ApplyWeaponStats(const FWeaponStats& NewStats);
-
-    // ==================== ДЕЛЕГАТЫ ДЛЯ BLUEPRINT ====================
-    UPROPERTY(BlueprintAssignable, Category = "Weapon|Events")
-    FWeaponEventDelegate OnWeaponFired;
-
-    UPROPERTY(BlueprintAssignable, Category = "Weapon|Events")
-    FWeaponEventDelegate OnWeaponReloaded;
-
-    UPROPERTY(BlueprintAssignable, Category = "Weapon|Events")
-    FWeaponAmmoDelegate OnAmmoChanged;
-
-    UPROPERTY(BlueprintAssignable, Category = "Weapon|Events")
-    FWeaponEventDelegate OnWeaponEmpty;
+protected:
+    virtual void BeginPlay() override;
 
 private:
-    // ТАЙМЕРЫ
-    FTimerHandle FireTimerHandle;
-    FTimerHandle ReloadTimerHandle;
+    void FireShot();
+    bool CanFire() const;
+    bool CanReload() const;
 
-    // ВНУТРЕННИЕ ПЕРЕМЕННЫЕ
-    bool bInfiniteAmmo;
-    bool bDebugMode;
+    void ApplyRecoil();
+
+    int32 CurrentAmmo;
+    bool bIsFiring;
+    bool bIsReloading;
+    bool bIsAiming;
+
     float ReloadStartTime;
 
-    // ВНУТРЕННИЕ ФУНКЦИИ
-    void ApplyRecoil();
-    void ApplyHitEffect(const FHitResult& HitResult);
-    void ApplyShellEjectEffect();
-    float CalculateDamage(const FHitResult& HitResult) const;
-    FString GetBodyPartName(const FHitResult& HitResult) const;
+    FTimerHandle FireTimer;
+    FTimerHandle ReloadTimer;
 };
