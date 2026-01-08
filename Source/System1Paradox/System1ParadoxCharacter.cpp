@@ -14,6 +14,7 @@ ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
 
+    // Камера и спринговая рука
     SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
     SpringArmComponent->SetupAttachment(RootComponent);
     SpringArmComponent->TargetArmLength = 0.f;
@@ -25,13 +26,14 @@ ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
     CameraComponent->bUsePawnControlRotation = false;
     CameraComponent->SetFieldOfView(90.f);
 
+    // Начальная скорость персонажа
     GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
 
 void ASystem1ParadoxCharacter::BeginPlay()
 {
     Super::BeginPlay();
-    SpawnDefaultWeapon();
+    SpawnDefaultWeapon();  // Спавним оружие по умолчанию
 }
 
 void ASystem1ParadoxCharacter::Tick(float DeltaTime)
@@ -41,6 +43,9 @@ void ASystem1ParadoxCharacter::Tick(float DeltaTime)
 
 void ASystem1ParadoxCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
+    Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+    // Привязка ввода
     PlayerInputComponent->BindAxis("MoveForward", this, &ASystem1ParadoxCharacter::MoveForward);
     PlayerInputComponent->BindAxis("MoveRight", this, &ASystem1ParadoxCharacter::MoveRight);
     PlayerInputComponent->BindAxis("Turn", this, &ASystem1ParadoxCharacter::Turn);
@@ -150,6 +155,7 @@ void ASystem1ParadoxCharacter::SpawnDefaultWeapon()
     CurrentWeapon = GetWorld()->SpawnActor<AWeapon>(DefaultWeaponClass);
     if (CurrentWeapon)
     {
+        // Привязываем оружие к костям персонажа
         CurrentWeapon->AttachToComponent(GetMesh(),
             FAttachmentTransformRules::SnapToTargetNotIncludingScale,
             TEXT("WeaponSocket"));
@@ -168,19 +174,9 @@ bool ASystem1ParadoxCharacter::IsWeaponFiring() const
     return CurrentWeapon && CurrentWeapon->IsFiring();
 }
 
-bool ASystem1ParadoxCharacter::IsWeaponFiring() const
-{
-    return CurrentWeapon ? CurrentWeapon->IsFiring() : false;
-}
-
 bool ASystem1ParadoxCharacter::IsWeaponReloading() const
 {
     return CurrentWeapon && CurrentWeapon->IsReloading();
-}
-
-bool ASystem1ParadoxCharacter::IsWeaponReloading() const
-{
-    return CurrentWeapon ? CurrentWeapon->IsReloading() : false;
 }
 
 bool ASystem1ParadoxCharacter::IsWeaponAiming() const
@@ -188,10 +184,6 @@ bool ASystem1ParadoxCharacter::IsWeaponAiming() const
     return CurrentWeapon && CurrentWeapon->IsAiming();
 }
 
-bool ASystem1ParadoxCharacter::IsWeaponAiming() const
-{
-    return CurrentWeapon ? CurrentWeapon->IsAiming() : false;
-}
 // ===== GETTERS =====
 
 float ASystem1ParadoxCharacter::GetCurrentSpeed() const
