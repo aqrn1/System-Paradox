@@ -4,7 +4,7 @@
 #include "S1P_AnimTypes.generated.h"
 
 UENUM(BlueprintType)
-enum class ES1P_MovementState : uint8
+enum class ES1P_AnimMovementState : uint8
 {
     Idle,
     Walk,
