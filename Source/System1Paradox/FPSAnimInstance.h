@@ -19,6 +19,14 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Anim")
     const FS1P_AnimState& GetAnimState() const { return AnimState; }
 
+    // Для отладки анимаций
+    UFUNCTION(BlueprintCallable, Category = "Anim")
+    void AnimDebug(bool bEnable);
+
+    // Установка тестовой скорости анимации
+    UFUNCTION(BlueprintCallable, Category = "Anim")
+    void SetTestSpeed(float NewSpeed);
+
 private:
     void UpdateFromCharacter();
 

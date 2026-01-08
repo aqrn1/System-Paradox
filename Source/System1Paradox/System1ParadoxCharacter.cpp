@@ -147,6 +147,23 @@ void ASystem1ParadoxCharacter::EquipWeapon(ES1P_WeaponType NewWeaponType)
     CurrentWeaponType = NewWeaponType;
 }
 
+// ===== WEAPON STATE CHECKS =====
+
+bool ASystem1ParadoxCharacter::IsWeaponFiring() const
+{
+    return CurrentWeapon && CurrentWeapon->IsFiring();
+}
+
+bool ASystem1ParadoxCharacter::IsWeaponReloading() const
+{
+    return CurrentWeapon && CurrentWeapon->IsReloading();
+}
+
+bool ASystem1ParadoxCharacter::IsWeaponAiming() const
+{
+    return CurrentWeapon && CurrentWeapon->IsAiming();
+}
+
 // ===== GETTERS =====
 
 float ASystem1ParadoxCharacter::GetCurrentSpeed() const
@@ -157,8 +174,6 @@ float ASystem1ParadoxCharacter::GetCurrentSpeed() const
 bool ASystem1ParadoxCharacter::GetIsCrouching() const { return bIsCrouching; }
 bool ASystem1ParadoxCharacter::GetIsSprinting() const { return bIsSprinting; }
 bool ASystem1ParadoxCharacter::GetIsInAir() const { return GetCharacterMovement()->IsFalling(); }
-ES1P_WeaponType ASystem1ParadoxCharacter::GetCurrentWeaponType() const { return CurrentWeaponType; }
-AWeapon* ASystem1ParadoxCharacter::GetCurrentWeapon() const { return CurrentWeapon; }
 
 UFPSAnimInstance* ASystem1ParadoxCharacter::GetFPSAnimInstance() const
 {

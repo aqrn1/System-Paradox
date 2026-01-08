@@ -5,7 +5,6 @@
 void UFPSAnimInstance::NativeInitializeAnimation()
 {
     Super::NativeInitializeAnimation();
-
     CachedCharacter = Cast<ASystem1ParadoxCharacter>(TryGetPawnOwner());
 }
 
@@ -47,4 +46,14 @@ void UFPSAnimInstance::UpdateFromCharacter()
     AnimState.WeaponType = (uint8)CachedCharacter->GetCurrentWeaponType();
 
     AnimState.bIsValid = true;
+}
+
+void UFPSAnimInstance::AnimDebug(bool bEnable)
+{
+    // Логика для включения/выключения отладки анимаций
+}
+
+void UFPSAnimInstance::SetTestSpeed(float NewSpeed)
+{
+    // Логика для изменения скорости анимации
 }

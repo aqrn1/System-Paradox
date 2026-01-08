@@ -37,6 +37,7 @@ public:
 
     // ===== Weapon =====
     void SpawnDefaultWeapon();
+    void EquipWeapon(ES1P_WeaponType NewWeaponType);
 
     // ===== Getters =====
     float GetCurrentSpeed() const;
@@ -44,8 +45,13 @@ public:
     bool GetIsSprinting() const;
     bool GetIsInAir() const;
 
-    ES1P_WeaponType GetCurrentWeaponType() const;
-    AWeapon* GetCurrentWeapon() const;
+    // Проверки состояния оружия
+    bool IsWeaponFiring() const;
+    bool IsWeaponReloading() const;
+    bool IsWeaponAiming() const;
+
+    ES1P_WeaponType GetCurrentWeaponType() const { return CurrentWeaponType; }
+    AWeapon* GetCurrentWeapon() const { return CurrentWeapon; }
 
     UFPSAnimInstance* GetFPSAnimInstance() const;
 
