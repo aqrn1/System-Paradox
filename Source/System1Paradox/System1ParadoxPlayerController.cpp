@@ -1,42 +1,47 @@
 ﻿#include "System1ParadoxPlayerController.h"
+
+// UE
+#include "GameFramework/Pawn.h"
+
+// Game
 #include "System1ParadoxCharacter.h"
 #include "FPSAnimInstance.h"
 
-ASystem1ParadoxPlayerController::ASystem1ParadoxPlayerController()
+void ASystem1ParadoxPlayerController::ToggleAnimDebug(int32 Enable)
 {
-    bShowMouseCursor = false;
-}
+    // ВСЕГДА получаем персонажа через GetPawn()
+    ASystem1ParadoxCharacter* S1PCharacter =
+        Cast<ASystem1ParadoxCharacter>(GetPawn());
 
-void ASystem1ParadoxPlayerController::AnimDebug(int32 Enable)
-{
-    ASystem1ParadoxCharacter* Character = Cast<ASystem1ParadoxCharacter>(GetPawn());
-    if (!Character)
+    if (!S1PCharacter)
     {
         return;
     }
 
-    UFPSAnimInstance* AnimInstance = Character->GetFPSAnimInstance();
+    UFPSAnimInstance* AnimInstance = S1PCharacter->GetFPSAnimInstance();
     if (!AnimInstance)
     {
         return;
     }
 
-    AnimInstance->AnimDebug(Enable);
+    AnimInstance->AnimDebug(Enable != 0);
 }
 
-void ASystem1ParadoxPlayerController::SetTestSpeed(float NewSpeed)
+void ASystem1ParadoxPlayerController::ToggleAnimDebugOff()
 {
-    ASystem1ParadoxCharacter* Character = Cast<ASystem1ParadoxCharacter>(GetPawn());
-    if (!Character)
+    ASystem1ParadoxCharacter* S1PCharacter =
+        Cast<ASystem1ParadoxCharacter>(GetPawn());
+
+    if (!S1PCharacter)
     {
         return;
     }
 
-    UFPSAnimInstance* AnimInstance = Character->GetFPSAnimInstance();
+    UFPSAnimInstance* AnimInstance = S1PCharacter->GetFPSAnimInstance();
     if (!AnimInstance)
     {
         return;
     }
 
-    AnimInstance->SetTestSpeed(NewSpeed);
+    AnimInstance->AnimDebug(false);
 }

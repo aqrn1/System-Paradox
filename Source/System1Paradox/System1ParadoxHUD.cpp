@@ -129,9 +129,3 @@ void ASystem1ParadoxHUD::ShowMessage(const FString& Message, float Duration)
     DisplayMessage = Message;
     MessageTimer = Duration;
 }
-
-void ASystem1ParadoxHUD::DrawHUD()
-{
-    Super::DrawHUD();
-    // Реализация отрисовки на экране
-}

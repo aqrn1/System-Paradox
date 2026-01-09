@@ -69,6 +69,6 @@ void UCharacterAnimInstance::UpdateFromCharacter()
 
     // ===== WEAPON / ACTION =====
     WeaponType = OwningCharacter->GetCurrentWeaponType();
-    bIsAiming = OwningCharacter->IsAiming();
-    bIsReloading = OwningCharacter->IsReloading();
+    bIsAiming = OwningCharacter->IsWeaponAiming();
+    bIsReloading = OwningCharacter->IsWeaponReloading();
 }

@@ -18,6 +18,8 @@ class SYSTEM1PARADOX_API ASystem1ParadoxCharacter : public ACharacter
 public:
     ASystem1ParadoxCharacter();
 
+    virtual void Tick(float DeltaTime) override;
+
     // ===== Input =====
     void Turn(float Value);
     void LookUp(float Value);
