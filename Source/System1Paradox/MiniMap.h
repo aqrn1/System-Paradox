@@ -25,3 +25,11 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MiniMap")
     float ScaleFactor; // Масштаб миникарты
 };
+
+class UMiniMap : public UUserWidget
+{
+    GENERATED_BODY()
+
+public:
+    virtual void NativePaint(FPaintContext& Context) override;
+};
