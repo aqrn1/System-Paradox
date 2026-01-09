@@ -1,65 +1,42 @@
 ﻿#include "System1ParadoxPlayerController.h"
-
-// UE
-#include "GameFramework/Pawn.h"
-
-// Game
 #include "System1ParadoxCharacter.h"
 #include "FPSAnimInstance.h"
+#include "GameFramework/Pawn.h"
 
-void ASystem1ParadoxPlayerController::ToggleAnimDebug(int32 Enable)
+ASystem1ParadoxPlayerController::ASystem1ParadoxPlayerController()
 {
-    // ВСЕГДА получаем персонажа через GetPawn()
-    ASystem1ParadoxCharacter* S1PCharacter =
-        Cast<ASystem1ParadoxCharacter>(GetPawn());
-
-    if (!S1PCharacter)
-    {
-        return;
-    }
-
-    UFPSAnimInstance* AnimInstance = S1PCharacter->GetFPSAnimInstance();
-    if (!AnimInstance)
-    {
-        return;
-    }
-
-    AnimInstance->AnimDebug(Enable != 0);
+    bShowMouseCursor = false;
 }
 
-void ASystem1ParadoxPlayerController::ToggleAnimDebugOff()
+void ASystem1ParadoxPlayerController::BeginPlay()
 {
-    ASystem1ParadoxCharacter* S1PCharacter =
-        Cast<ASystem1ParadoxCharacter>(GetPawn());
+    Super::BeginPlay();
 
-    if (!S1PCharacter)
-    {
-        return;
-    }
-
-    UFPSAnimInstance* AnimInstance = S1PCharacter->GetFPSAnimInstance();
-    if (!AnimInstance)
-    {
-        return;
-    }
-
-    AnimInstance->AnimDebug(false);
+    EnableAnimDebug(true);
 }
 
-void ASystem1ParadoxPlayerController::DebugPlayer()
+void ASystem1ParadoxPlayerController::EnableAnimDebug(bool bEnable)
 {
-    ASystem1ParadoxCharacter* Character =
-        Cast<ASystem1ParadoxCharacter>(GetPawn());
+    APawn* ControlledPawn = GetPawn();
+    if (!ControlledPawn)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("PlayerController: Pawn not found"));
+        return;
+    }
 
+    ASystem1ParadoxCharacter* Character = Cast<ASystem1ParadoxCharacter>(ControlledPawn);
     if (!Character)
     {
-        UE_LOG(LogTemp, Error, TEXT("DebugPlayer: Character = NULL"));
+        UE_LOG(LogTemp, Warning, TEXT("PlayerController: Pawn is not System1ParadoxCharacter"));
         return;
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("=== DEBUG PLAYER ==="));
-    UE_LOG(LogTemp, Warning, TEXT("Speed: %f"), Character->GetCurrentSpeed());
-    UE_LOG(LogTemp, Warning, TEXT("Sprinting: %s"), Character->GetIsSprinting() ? TEXT("YES") : TEXT("NO"));
-    UE_LOG(LogTemp, Warning, TEXT("Crouching: %s"), Character->GetIsCrouching() ? TEXT("YES") : TEXT("NO"));
-    UE_LOG(LogTemp, Warning, TEXT("InAir: %s"), Character->GetIsInAir() ? TEXT("YES") : TEXT("NO"));
+    UFPSAnimInstance* AnimInstance = Character->GetFPSAnimInstance();
+    if (!AnimInstance)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("PlayerController: FPSAnimInstance not found"));
+        return;
+    }
+
+    AnimInstance->SetDebug(bEnable);
 }
