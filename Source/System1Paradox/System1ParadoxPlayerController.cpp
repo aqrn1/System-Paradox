@@ -24,14 +24,14 @@ void ASystem1ParadoxPlayerController::EnableAnimDebug(bool bEnable)
         return;
     }
 
-    ASystem1ParadoxCharacter* Character = Cast<ASystem1ParadoxCharacter>(ControlledPawn);
-    if (!Character)
+    ASystem1ParadoxCharacter* ControlledCharacter = Cast<ASystem1ParadoxCharacter>(ControlledPawn);
+    if (!ControlledCharacter)
     {
         UE_LOG(LogTemp, Warning, TEXT("PlayerController: Pawn is not System1ParadoxCharacter"));
         return;
     }
 
-    UFPSAnimInstance* AnimInstance = Character->GetFPSAnimInstance();
+    UFPSAnimInstance* AnimInstance = ControlledCharacter->GetFPSAnimInstance();
     if (!AnimInstance)
     {
         UE_LOG(LogTemp, Warning, TEXT("PlayerController: FPSAnimInstance not found"));
