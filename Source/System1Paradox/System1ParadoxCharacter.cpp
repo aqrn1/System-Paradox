@@ -128,6 +128,19 @@ void ASystem1ParadoxCharacter::StartCrouch()
     bIsCrouching = true;
     Crouch();
     UpdateMovementSpeed();
+
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(
+            -1,           // уникальный ID сообщения
+            1.5f,          // время отображения
+            FColor::Green, // цвет
+            TEXT("CROUCH PRESSED") // текст
+        );
+    }
+
+    // Логирование в консоль
+    UE_LOG(LogTemp, Log, TEXT("StartCrouch pressed, character is crouching"));
 }
 
 void ASystem1ParadoxCharacter::StopCrouch()
@@ -135,6 +148,19 @@ void ASystem1ParadoxCharacter::StopCrouch()
     bIsCrouching = false;
     UnCrouch();
     UpdateMovementSpeed();
+
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(
+            -1,           // уникальный ID сообщения
+            1.5f,          // время отображения
+            FColor::Red,   // цвет
+            TEXT("CROUCH RELEASED") // текст
+        );
+    }
+
+    // Логирование в консоль
+    UE_LOG(LogTemp, Log, TEXT("StopCrouch released, character is standing"));
 }
 
 bool ASystem1ParadoxCharacter::CanSprint() const
