@@ -25,6 +25,20 @@ void UCharacterAnimInstance::NativeInitializeAnimation()
     OwningCharacter = Cast<ASystem1ParadoxCharacter>(Pawn);
 }
 
+// Пример синхронизации данных в AnimInstance
+void UCharacterAnimInstance::NativeUpdateAnimation(float DeltaTime)
+{
+    if (ASystem1ParadoxCharacter* Character = Cast<ASystem1ParadoxCharacter>(TryGetPawnOwner()))
+    {
+        bIsCrouching = Character->bIsCrouching;
+        bIsSprinting = Character->bIsSprinting;
+        bIsInAir = Character->bIsInAir;
+        Speed = Character->Speed;
+        MovementDirection = Character->GetVelocity().GetSafeNormal();
+        CurrentWeaponType = Character->CurrentWeaponType;
+    }
+}
+
 void UCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
     Super::NativeUpdateAnimation(DeltaSeconds);

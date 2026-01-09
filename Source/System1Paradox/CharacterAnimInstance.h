@@ -39,6 +39,26 @@ public:
     UPROPERTY(BlueprintReadOnly, Category = "Weapon")
     bool bIsReloading = false;
 
+    // Эти переменные будем связывать с движением и состоянием персонажа
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+    bool bIsCrouching;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+    bool bIsSprinting;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+    bool bIsInAir;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+    float Speed;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+    FVector MovementDirection;
+
+    // Для оружия
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+    EWeaponType CurrentWeaponType;
+
 private:
     UPROPERTY(Transient)
     ASystem1ParadoxCharacter* OwningCharacter;

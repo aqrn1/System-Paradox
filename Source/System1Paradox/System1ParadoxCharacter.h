@@ -61,6 +61,19 @@ public:
     void MoveForward(float Value);
     void MoveRight(float Value);
 
+
+    // Основные переменные для движения и состояния
+    bool bIsCrouching = false;
+    bool bIsSprinting = false;
+    bool bIsInAir = false;
+    float Speed = 0.f; // Скорость для анимаций
+
+    // Для оружия
+    EWeaponType CurrentWeaponType = EWeaponType::None;
+
+    // Для анимации
+    FVector MovementDirection = FVector::ZeroVector; // Направление движенияяя
+
 protected:
     virtual void BeginPlay() override;
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
