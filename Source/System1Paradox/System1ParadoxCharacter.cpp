@@ -40,6 +40,14 @@ void ASystem1ParadoxCharacter::BeginPlay()
 {
     Super::BeginPlay();
     SpawnDefaultWeapon();  // Спавним оружие по умолчанию
+
+    // В конструкторе класса или BeginPlay()
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> CrouchAnim(TEXT("AnimMontage'/Game/Path/To/Your/Anim/CrouchAnim.CrouchAnim'"));
+    if (CrouchAnim.Succeeded())
+    {
+        CrouchAnimMontage = CrouchAnim.Object;
+    }
+
 }
 
 void ASystem1ParadoxCharacter::Tick(float DeltaTime)
@@ -141,6 +149,21 @@ void ASystem1ParadoxCharacter::StartCrouch()
 
     // Логирование в консоль
     UE_LOG(LogTemp, Log, TEXT("StartCrouch pressed, character is crouching"));
+
+    {
+        Super::StartCrouch();  // вызывем стандартную логику
+
+        // Начинаем анимацию
+        if (CharacterMesh)
+        {
+            // Предположим, что у тебя есть анимация для приседания
+            UAnimInstance* AnimInstance = CharacterMesh->GetAnimInstance();
+            if (AnimInstance)
+            {
+                AnimInstance->Montage_Play(CrouchAnimMontage);  // Анимация для приседания
+            }
+        }
+    }
 }
 
 void ASystem1ParadoxCharacter::StopCrouch()
@@ -161,6 +184,20 @@ void ASystem1ParadoxCharacter::StopCrouch()
 
     // Логирование в консоль
     UE_LOG(LogTemp, Log, TEXT("StopCrouch released, character is standing"));
+
+    {
+        Super::StopCrouch();  // вызывем стандартную логику
+
+        // Прерываем анимацию
+        if (CharacterMesh)
+        {
+            UAnimInstance* AnimInstance = CharacterMesh->GetAnimInstance();
+            if (AnimInstance)
+            {
+                AnimInstance->Montage_Stop(0.2f);  // Останавливаем анимацию
+            }
+        }
+    }
 }
 
 bool ASystem1ParadoxCharacter::CanSprint() const

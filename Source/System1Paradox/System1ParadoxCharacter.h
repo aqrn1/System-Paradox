@@ -90,4 +90,8 @@ protected:
     AWeapon* CurrentWeapon = nullptr;
 
     ES1P_WeaponType CurrentWeaponType = ES1P_WeaponType::Unarmed;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+    UAnimMontage* CrouchAnimMontage;  // Ссылка на анимацию приседания
+
 };
