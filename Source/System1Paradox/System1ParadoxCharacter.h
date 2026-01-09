@@ -93,5 +93,5 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
     UAnimMontage* CrouchAnimMontage;  // Ссылка на анимацию приседания
-
+    
 };

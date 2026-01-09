@@ -150,9 +150,9 @@ void ASystem1ParadoxCharacter::StartCrouch()
     UE_LOG(LogTemp, Log, TEXT("StartCrouch pressed, character is crouching"));
 
     // Начинаем анимацию
-    if (GetMesh)
+    if (GetMesh())
     {
-        UAnimInstance* AnimInstance = GetMesh->GetAnimInstance();
+        UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
         if (AnimInstance && CrouchAnimMontage)
         {
             AnimInstance->Montage_Play(CrouchAnimMontage);  // Анимация для приседания
@@ -180,9 +180,9 @@ void ASystem1ParadoxCharacter::StopCrouch()
     UE_LOG(LogTemp, Log, TEXT("StopCrouch released, character is standing"));
 
     // Прерываем анимацию
-    if (GetMesh)
+    if (GetMesh())
     {
-        UAnimInstance* AnimInstance = GetMesh->GetAnimInstance();
+        UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
         if (AnimInstance)
         {
             AnimInstance->Montage_Stop(0.2f);  // Останавливаем анимацию
@@ -203,4 +203,44 @@ void ASystem1ParadoxCharacter::UpdateMovementSpeed()
         GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
     else
         GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+}
+
+void ASystem1ParadoxCharacter::SpawnDefaultWeapon()
+{
+    if (!DefaultWeaponClass) return;
+
+    CurrentWeapon = GetWorld()->SpawnActor<AWeapon>(DefaultWeaponClass);
+    if (CurrentWeapon)
+    {
+        CurrentWeapon->AttachToComponent(
+            GetMesh(),
+            FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+            TEXT("WeaponSocket")
+        );
+    }
+}
+
+// ===== WEAPON STATE CHECKS =====
+
+bool ASystem1ParadoxCharacter::IsWeaponFiring() const
+{
+    return CurrentWeapon && CurrentWeapon->IsFiring();
+}
+
+bool ASystem1ParadoxCharacter::IsWeaponReloading() const
+{
+    return CurrentWeapon && CurrentWeapon->IsReloading();
+}
+
+bool ASystem1ParadoxCharacter::IsWeaponAiming() const
+{
+    return CurrentWeapon && CurrentWeapon->IsAiming();
+}
+
+// ===== ANIMATION =====
+
+UFPSAnimInstance* ASystem1ParadoxCharacter::GetFPSAnimInstance() const
+{
+    if (!GetMesh()) return nullptr;
+    return Cast<UFPSAnimInstance>(GetMesh()->GetAnimInstance());
 }
