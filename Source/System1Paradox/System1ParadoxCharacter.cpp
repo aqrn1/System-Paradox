@@ -28,6 +28,12 @@ ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
 
     // Начальная скорость персонажа
     GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+
+    // Разрешаем приседание
+    GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+
+    // Опционально: скорость в приседе
+    GetCharacterMovement()->MaxWalkSpeedCrouched = 200.f;
 }
 
 void ASystem1ParadoxCharacter::BeginPlay()
