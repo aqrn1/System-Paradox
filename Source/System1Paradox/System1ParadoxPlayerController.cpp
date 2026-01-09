@@ -45,3 +45,21 @@ void ASystem1ParadoxPlayerController::ToggleAnimDebugOff()
 
     AnimInstance->AnimDebug(false);
 }
+
+void ASystem1ParadoxPlayerController::DebugPlayer()
+{
+    ASystem1ParadoxCharacter* Character =
+        Cast<ASystem1ParadoxCharacter>(GetPawn());
+
+    if (!Character)
+    {
+        UE_LOG(LogTemp, Error, TEXT("DebugPlayer: Character = NULL"));
+        return;
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("=== DEBUG PLAYER ==="));
+    UE_LOG(LogTemp, Warning, TEXT("Speed: %f"), Character->GetCurrentSpeed());
+    UE_LOG(LogTemp, Warning, TEXT("Sprinting: %s"), Character->GetIsSprinting() ? TEXT("YES") : TEXT("NO"));
+    UE_LOG(LogTemp, Warning, TEXT("Crouching: %s"), Character->GetIsCrouching() ? TEXT("YES") : TEXT("NO"));
+    UE_LOG(LogTemp, Warning, TEXT("InAir: %s"), Character->GetIsInAir() ? TEXT("YES") : TEXT("NO"));
+}

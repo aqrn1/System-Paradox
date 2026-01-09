@@ -16,4 +16,7 @@ public:
 
     UFUNCTION(BlueprintCallable)
     void ToggleAnimDebugOff();
+
+    UFUNCTION(Exec)
+    void DebugPlayer();
 };
