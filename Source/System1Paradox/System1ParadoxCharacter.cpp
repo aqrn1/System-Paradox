@@ -34,20 +34,19 @@ ASystem1ParadoxCharacter::ASystem1ParadoxCharacter()
 
     // Опционально: скорость в приседе
     GetCharacterMovement()->MaxWalkSpeedCrouched = 200.f;
+
+    // Загрузка анимации приседания
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> CrouchAnim(TEXT("AnimMontage'/Game/Characters/Jumpsuit/SK_Jumpsuit/SkeletalMeshes/Jumpsuit/SK_Jumpsuit_Anim/W1_Crouch_Idle_Anim.W1_Crouch_Idle_Anim'"));
+    if (CrouchAnim.Succeeded())
+    {
+        CrouchAnimMontage = CrouchAnim.Object;
+    }
 }
 
 void ASystem1ParadoxCharacter::BeginPlay()
 {
     Super::BeginPlay();
     SpawnDefaultWeapon();  // Спавним оружие по умолчанию
-
-    // В конструкторе класса или BeginPlay()
-    static ConstructorHelpers::FObjectFinder<UAnimMontage> CrouchAnim(TEXT("AnimMontage'/Game/Path/To/Your/Anim/CrouchAnim.CrouchAnim'"));
-    if (CrouchAnim.Succeeded())
-    {
-        CrouchAnimMontage = CrouchAnim.Object;
-    }
-
 }
 
 void ASystem1ParadoxCharacter::Tick(float DeltaTime)
@@ -150,20 +149,15 @@ void ASystem1ParadoxCharacter::StartCrouch()
     // Логирование в консоль
     UE_LOG(LogTemp, Log, TEXT("StartCrouch pressed, character is crouching"));
 
-    
-        
-
-        // Начинаем анимацию
-        if (CharacterMesh)
+    // Начинаем анимацию
+    if (GetMesh)
+    {
+        UAnimInstance* AnimInstance = GetMesh->GetAnimInstance();
+        if (AnimInstance && CrouchAnimMontage)
         {
-            // Предположим, что у тебя есть анимация для приседания
-            UAnimInstance* AnimInstance = CharacterMesh->GetAnimInstance();
-            if (AnimInstance)
-            {
-                AnimInstance->Montage_Play(CrouchAnimMontage);  // Анимация для приседания
-            }
+            AnimInstance->Montage_Play(CrouchAnimMontage);  // Анимация для приседания
         }
-    
+    }
 }
 
 void ASystem1ParadoxCharacter::StopCrouch()
@@ -185,19 +179,15 @@ void ASystem1ParadoxCharacter::StopCrouch()
     // Логирование в консоль
     UE_LOG(LogTemp, Log, TEXT("StopCrouch released, character is standing"));
 
-   
-        
-
-       // Прерываем анимацию
-        if (CharacterMesh)
+    // Прерываем анимацию
+    if (GetMesh)
+    {
+        UAnimInstance* AnimInstance = GetMesh->GetAnimInstance();
+        if (AnimInstance)
         {
-            UAnimInstance* AnimInstance = CharacterMesh->GetAnimInstance();
-            if (AnimInstance)
-            {
-                AnimInstance->Montage_Stop(0.2f);  // Останавливаем анимацию
-            }
+            AnimInstance->Montage_Stop(0.2f);  // Останавливаем анимацию
         }
-    
+    }
 }
 
 bool ASystem1ParadoxCharacter::CanSprint() const
@@ -213,64 +203,4 @@ void ASystem1ParadoxCharacter::UpdateMovementSpeed()
         GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
     else
         GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-}
-
-// ===== WEAPON =====
-
-void ASystem1ParadoxCharacter::SpawnDefaultWeapon()
-{
-    if (!DefaultWeaponClass) return;
-
-    CurrentWeapon = GetWorld()->SpawnActor<AWeapon>(DefaultWeaponClass);
-    if (CurrentWeapon)
-    {
-        // Привязываем оружие к костям персонажа
-        CurrentWeapon->AttachToComponent(GetMesh(),
-            FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-            TEXT("WeaponSocket"));
-    }
-}
-
-void ASystem1ParadoxCharacter::EquipWeapon(ES1P_WeaponType NewWeaponType)
-{
-    CurrentWeaponType = NewWeaponType;
-}
-
-// ===== WEAPON STATE CHECKS =====
-
-bool ASystem1ParadoxCharacter::IsWeaponFiring() const
-{
-    return CurrentWeapon && CurrentWeapon->IsFiring();
-}
-
-bool ASystem1ParadoxCharacter::IsWeaponReloading() const
-{
-    return CurrentWeapon && CurrentWeapon->IsReloading();
-}
-
-bool ASystem1ParadoxCharacter::IsWeaponAiming() const
-{
-    return CurrentWeapon && CurrentWeapon->IsAiming();
-}
-
-// ===== GETTERS =====
-
-float ASystem1ParadoxCharacter::GetCurrentSpeed() const
-{
-    return GetVelocity().Size();
-}
-
-bool ASystem1ParadoxCharacter::GetIsCrouching() const { return bIsCrouching; }
-bool ASystem1ParadoxCharacter::GetIsSprinting() const { return bIsSprinting; }
-bool ASystem1ParadoxCharacter::GetIsInAir() const { return GetCharacterMovement()->IsFalling(); }
-
-UFPSAnimInstance* ASystem1ParadoxCharacter::GetFPSAnimInstance() const
-{
-    return Cast<UFPSAnimInstance>(GetMesh()->GetAnimInstance());
-}
-
-static ConstructorHelpers::FObjectFinder<UAnimMontage> CrouchAnim(TEXT("AnimMontage'/Game/Characters/Jumpsuit/SK_Jumpsuit/SkeletalMeshes/Jumpsuit/SK_Jumpsuit_Anim/W1_Crouch_Idle_Anim.W1_Crouch_Idle_Anim'"));
-if (CrouchAnim.Succeeded())
-{
-    CrouchAnimMontage = CrouchAnim.Object;
 }
