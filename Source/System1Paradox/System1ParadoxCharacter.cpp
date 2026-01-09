@@ -150,8 +150,8 @@ void ASystem1ParadoxCharacter::StartCrouch()
     // Логирование в консоль
     UE_LOG(LogTemp, Log, TEXT("StartCrouch pressed, character is crouching"));
 
-    {
-        Super::StartCrouch();  // вызывем стандартную логику
+    
+        
 
         // Начинаем анимацию
         if (CharacterMesh)
@@ -163,7 +163,7 @@ void ASystem1ParadoxCharacter::StartCrouch()
                 AnimInstance->Montage_Play(CrouchAnimMontage);  // Анимация для приседания
             }
         }
-    }
+    
 }
 
 void ASystem1ParadoxCharacter::StopCrouch()
@@ -185,10 +185,10 @@ void ASystem1ParadoxCharacter::StopCrouch()
     // Логирование в консоль
     UE_LOG(LogTemp, Log, TEXT("StopCrouch released, character is standing"));
 
-    {
-        Super::StopCrouch();  // вызывем стандартную логику
+   
+        
 
-        // Прерываем анимацию
+       // Прерываем анимацию
         if (CharacterMesh)
         {
             UAnimInstance* AnimInstance = CharacterMesh->GetAnimInstance();
@@ -197,7 +197,7 @@ void ASystem1ParadoxCharacter::StopCrouch()
                 AnimInstance->Montage_Stop(0.2f);  // Останавливаем анимацию
             }
         }
-    }
+    
 }
 
 bool ASystem1ParadoxCharacter::CanSprint() const
@@ -267,4 +267,10 @@ bool ASystem1ParadoxCharacter::GetIsInAir() const { return GetCharacterMovement(
 UFPSAnimInstance* ASystem1ParadoxCharacter::GetFPSAnimInstance() const
 {
     return Cast<UFPSAnimInstance>(GetMesh()->GetAnimInstance());
+}
+
+static ConstructorHelpers::FObjectFinder<UAnimMontage> CrouchAnim(TEXT("AnimMontage'/Game/Characters/Jumpsuit/SK_Jumpsuit/SkeletalMeshes/Jumpsuit/SK_Jumpsuit_Anim/W1_Crouch_Idle_Anim.W1_Crouch_Idle_Anim'"));
+if (CrouchAnim.Succeeded())
+{
+    CrouchAnimMontage = CrouchAnim.Object;
 }
