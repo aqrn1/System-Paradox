@@ -1,35 +1,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/Widget.h"
-#include "CanvasTypes.h" // Это нужно подключить для FPaintContext
-#include "MiniMap.generated.h" // Это всегда должно быть последним подключением
+#include "Blueprint/UserWidget.h"
+#include "MiniMap.generated.h"
 
 UCLASS()
-class SYSTEM1PARADOX_API UMiniMap : public UWidget
+class SYSTEM1PARADOX_API UMiniMap : public UUserWidget
 {
     GENERATED_BODY()
 
 public:
-    UMiniMap();
-
-protected:
-    virtual void NativePaint(FPaintContext& Context) override;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MiniMap")
-    TArray<AActor*> Players; // Игроки на миникарте
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MiniMap")
-    FVector MapCenter; // Центр карты
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MiniMap")
-    float ScaleFactor; // Масштаб миникарты
-};
-
-class UMiniMap : public UUserWidget
-{
-    GENERATED_BODY()
-
-public:
-    virtual void NativePaint(FPaintContext& Context) override;
+    virtual void NativeConstruct() override;
 };
